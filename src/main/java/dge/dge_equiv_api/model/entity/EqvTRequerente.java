@@ -101,11 +101,11 @@ public class EqvTRequerente {
         this.contato = contato;
     }
 
-    public Integer getHabilitacao() {
+    public String getHabilitacao() {
         return habilitacao;
     }
 
-    public void setHabilitacao(Integer habilitacao) {
+    public void setHabilitacao(String  habilitacao) {
         this.habilitacao = habilitacao;
     }
 
@@ -179,7 +179,7 @@ public class EqvTRequerente {
 
     private Integer contato;
 
-    private Integer habilitacao;
+    private String habilitacao;
 
     @Column(name = "doc_identificacao")
     private String docIdentificacao;

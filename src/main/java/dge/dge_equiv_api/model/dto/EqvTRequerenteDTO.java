@@ -57,11 +57,11 @@ public class EqvTRequerenteDTO {
         this.sexo = sexo;
     }
 
-    public Integer getHabilitacao() {
+    public String getHabilitacao() {
         return habilitacao;
     }
 
-    public void setHabilitacao(Integer habilitacao) {
+    public void setHabilitacao(String habilitacao) {
         this.habilitacao = habilitacao;
     }
 
@@ -73,20 +73,13 @@ public class EqvTRequerenteDTO {
         this.docIdentificacao = docIdentificacao;
     }
 
-    public LocalDate getDateCreate() {
-        return dateCreate;
-    }
-
-    public void setDateCreate(LocalDate dateCreate) {
-        this.dateCreate = dateCreate;
-    }
 
     private String nome;
     private String docNumero;
     private LocalDate dataNascimento;
     private String nacionalidade;
     private String sexo;
-    private Integer habilitacao;
+    private String habilitacao;
     private String docIdentificacao;
-    private LocalDate dateCreate;
+
 }

@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 
     @Repository
     public interface EqvTPedidoRepository extends JpaRepository<EqvTPedido, Integer> {
+
     }
 
