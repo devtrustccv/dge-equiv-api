@@ -23,30 +23,6 @@ public class EqvTInstEnsinoDTO {
         this.nome = nome;
     }
 
-    public String getEndereco() {
-        return endereco;
-    }
-
-    public void setEndereco(String endereco) {
-        this.endereco = endereco;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Integer getContato() {
-        return contato;
-    }
-
-    public void setContato(Integer contato) {
-        this.contato = contato;
-    }
-
     public String getPais() {
         return pais;
     }
@@ -55,9 +31,6 @@ public class EqvTInstEnsinoDTO {
         this.pais = pais;
     }
 
-    private String endereco;
-    private String email;
-    private Integer contato;
     private String pais;
 
 }

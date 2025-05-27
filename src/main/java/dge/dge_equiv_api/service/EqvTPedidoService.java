@@ -2,12 +2,7 @@ package dge.dge_equiv_api.service;
 
 import dge.dge_equiv_api.model.dto.*;
 import dge.dge_equiv_api.model.entity.EqvTPedido;
-import dge.dge_equiv_api.model.entity.TblDomain;
 import dge.dge_equiv_api.repository.EqvTPedidoRepository;
-import dge.dge_equiv_api.repository.TblDomainRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -19,12 +14,19 @@ public class EqvTPedidoService {
 
     private final EqvTPedidoRepository pedidoRepository;
     private final TblDomainService tblDomainService;
-    private final GlobalGeografiaService globalGeografiaService; // Injeção de dependência.
+    private final GlobalGeografiaService globalGeografiaService;
+    private  final NivelQualificacaoService nivelQualificacaoService;
+    private  final FamiliaProfissionalService familiaProfissionalService;
 
-    public EqvTPedidoService(EqvTPedidoRepository pedidoService, TblDomainService tblDomainService, GlobalGeografiaService globalGeografiaService) {
+    public EqvTPedidoService(EqvTPedidoRepository pedidoService, TblDomainService tblDomainService,
+                             GlobalGeografiaService globalGeografiaService,
+                             NivelQualificacaoService nivelQualificacaoService,
+                             FamiliaProfissionalService familiaProfissionalService) {
         this.pedidoRepository = pedidoService;
         this.tblDomainService = tblDomainService;
         this.globalGeografiaService = globalGeografiaService;
+        this.nivelQualificacaoService = nivelQualificacaoService;
+        this.familiaProfissionalService = familiaProfissionalService;
     }
 
     public EqvtPedidoDTO getPedidoDTOById(Integer id) {
@@ -42,8 +44,10 @@ public class EqvTPedidoService {
         dto.setCarga(pedido.getCarga());
         dto.setAnoInicio(pedido.getAnoInicio());
         dto.setAnoFim(pedido.getAnoFim());
-        dto.setNivel(pedido.getNivel());
-        dto.setFamilia(pedido.getFamilia());
+        Integer nivel = nivelQualificacaoService.BuscarNivelQualificacaoPorId(pedido.getNivel());
+        dto.setNivel(nivel);
+        String familia = familiaProfissionalService.BuscarFamiliaProfissionalbyid(pedido.getFamilia());
+        dto.setFamilia(familia);
         dto.setDespacho(pedido.getDespacho());
         dto.setNumDeclaracao(pedido.getNumDeclaracao());
         dto.setDataDespacho(pedido.getDataDespacho());
@@ -60,8 +64,6 @@ public class EqvTPedidoService {
             reqDto.setSexo(descricao);
             String descricaoHab = tblDomainService.buscarDescricaoPorDominioEValor("HABILITAÇÃO", pedido.getRequerente().getHabilitacao());
             reqDto.setHabilitacao(descricaoHab);
-//            String descricaoNacionalidade = tblDomainService.buscarDescricaoPorDominioEValor("NACIONALIDADE", pedido.getRequerente().getNacionalidade());
-//            reqDto.setNacionalidade(descricaoNacionalidade);
             String descricaoDoc = tblDomainService.buscarDescricaoPorDominioEValor("TIPO_DOCUMENTO_IDENT", pedido.getRequerente().getDocIdentificacao());
             reqDto.setDocIdentificacao(descricaoDoc);
             String getNacionalidade = globalGeografiaService.buscarNomePorCodigoPais(pedido.getRequerente().getNacionalidade());
@@ -76,9 +78,6 @@ public class EqvTPedidoService {
             EqvTInstEnsinoDTO instDto = new EqvTInstEnsinoDTO();
             instDto.setId(pedido.getInstEnsino().getId());
             instDto.setNome(pedido.getInstEnsino().getNome());
-            instDto.setEndereco(pedido.getInstEnsino().getEndereco());
-            instDto.setEmail(pedido.getInstEnsino().getEmail());
-            instDto.setContato(pedido.getInstEnsino().getContato());
             String getPais = globalGeografiaService.buscarNomePorCodigoPais(pedido.getInstEnsino().getPais());
             instDto.setPais(getPais);
             dto.setInstEnsino(instDto);
