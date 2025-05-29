@@ -69,7 +69,6 @@ public class EqvTPedidoService {
             String getNacionalidade = globalGeografiaService.buscarNomePorCodigoPais(pedido.getRequerente().getNacionalidade());
             reqDto.setNacionalidade(getNacionalidade);
 
-
             dto.setRequerente(reqDto);
         }
 
@@ -80,6 +79,7 @@ public class EqvTPedidoService {
             instDto.setNome(pedido.getInstEnsino().getNome());
             String getPais = globalGeografiaService.buscarNomePorCodigoPais(pedido.getInstEnsino().getPais());
             instDto.setPais(getPais);
+
             dto.setInstEnsino(instDto);
         }
 
