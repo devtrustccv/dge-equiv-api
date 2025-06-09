@@ -14,10 +14,11 @@ public class TblDomainService {
     }
 
     public String buscarDescricaoPorDominioEValor(String dominio, String valor) {
-        return tblDomainRepository.findByDominioAndValor(dominio, valor)
+        return tblDomainRepository.findByDominioAndValorWithEnvDadEquiv(dominio, valor)
                 .map(TblDomain::getDescription)
-                .orElse(valor); // Se não encontrar, retorna o valor original
+                .orElse(valor);
     }
+
 
 }
 

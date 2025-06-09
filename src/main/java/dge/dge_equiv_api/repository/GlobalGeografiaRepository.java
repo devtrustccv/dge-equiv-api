@@ -2,8 +2,6 @@ package dge.dge_equiv_api.repository;
 
 import dge.dge_equiv_api.model.entity.GlobalGeografia;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-
 import java.util.Optional;
 
 public interface GlobalGeografiaRepository extends JpaRepository<GlobalGeografia, String> {

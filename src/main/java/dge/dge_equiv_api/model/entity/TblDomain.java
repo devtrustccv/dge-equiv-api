@@ -63,6 +63,11 @@ public class TblDomain {
         this.valor = valor;
     }
 
+    @ManyToOne
+    @JoinColumn(name = "env_fk")
+    private TblEnv env;
+
+
 
 
 }

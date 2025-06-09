@@ -2,7 +2,7 @@ package dge.dge_equiv_api.model.entity;
 
 
 import jakarta.persistence.*;
-import java.time.ZonedDateTime;
+
 
 @Entity
 @Table(name = "cnq_t_familia_profissional")

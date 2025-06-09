@@ -95,11 +95,11 @@ public class EqvtPedidoDTO {
         this.familia = familia;
     }
 
-    public Integer getDespacho() {
+    public String getDespacho() {
         return despacho;
     }
 
-    public void setDespacho(Integer despacho) {
+    public void setDespacho(String despacho) {
         this.despacho = despacho;
     }
 
@@ -122,7 +122,7 @@ public class EqvtPedidoDTO {
     private BigDecimal anoFim;
     private Integer nivel;
     private String familia;
-    private Integer despacho;
+    private String despacho;
     private String numDeclaracao;
     private LocalDate dataDespacho;
 

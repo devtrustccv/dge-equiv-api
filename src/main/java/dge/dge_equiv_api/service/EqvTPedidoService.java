@@ -48,7 +48,8 @@ public class EqvTPedidoService {
         dto.setNivel(nivel);
         String familia = familiaProfissionalService.BuscarFamiliaProfissionalbyid(pedido.getFamilia());
         dto.setFamilia(familia);
-        dto.setDespacho(pedido.getDespacho());
+        String despacho = tblDomainService.buscarDescricaoPorDominioEValor("DESPACHO", pedido.getDespacho());
+        dto.setDespacho(despacho);
         dto.setNumDeclaracao(pedido.getNumDeclaracao());
         dto.setDataDespacho(pedido.getDataDespacho());
 
