@@ -44,9 +44,18 @@ public class EqvTPedidoService {
         dto.setCarga(pedido.getCarga());
         dto.setAnoInicio(pedido.getAnoInicio());
         dto.setAnoFim(pedido.getAnoFim());
-        Integer nivel = nivelQualificacaoService.BuscarNivelQualificacaoPorId(pedido.getNivel());
+        Integer nivel = null;
+        Integer nivelId = pedido.getNivel();
+        if (nivelId != null) {
+            nivel = nivelQualificacaoService.BuscarNivelQualificacaoPorId(nivelId);
+        }
         dto.setNivel(nivel);
-        String familia = familiaProfissionalService.BuscarFamiliaProfissionalbyid(pedido.getFamilia());
+
+        String familia = null;
+        Integer familiaId = pedido.getFamilia();
+        if (familiaId != null) {
+            familia = familiaProfissionalService.BuscarFamiliaProfissionalbyid(familiaId);
+        }
         dto.setFamilia(familia);
         String despacho = tblDomainService.buscarDescricaoPorDominioEValor("DESPACHO", pedido.getDespacho());
         dto.setDespacho(despacho);
@@ -79,6 +88,7 @@ public class EqvTPedidoService {
             instDto.setId(pedido.getInstEnsino().getId());
             instDto.setNome(pedido.getInstEnsino().getNome());
             String getPais = globalGeografiaService.buscarNomePorCodigoPais(pedido.getInstEnsino().getPais());
+            System.out.println(pedido.getInstEnsino());
             instDto.setPais(getPais);
 
             dto.setInstEnsino(instDto);
