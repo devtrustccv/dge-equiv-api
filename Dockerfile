@@ -18,9 +18,7 @@ FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 
 # Copia apenas o JAR gerado na etapa anterior
-
-
-COPY --from=builder /app/src/main/resources/db/migration/*.sql ./flyway/sql/
+COPY --from=builder /app/target/*.jar app.jar
 
 # Expõe a porta da aplicação
 EXPOSE 8080
