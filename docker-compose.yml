@@ -4,7 +4,7 @@ services:
   dge-api-equiv:
     container_name: dge-api-equiv
     #image: devtrustcv/dge-api-sgf:0.0.0
-    build: .
+    build: src/main/java/dge/dge_equiv_api
     ports:
       - "8080:8080"
     environment:
