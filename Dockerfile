@@ -18,7 +18,7 @@ FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 
 # Copia apenas o JAR gerado na etapa anterior
-COPY --from=builder /app/target/*.jar app.jar
+
 
 COPY --from=builder /app/src/main/resources/db/migration/*.sql ./flyway/sql/
 
