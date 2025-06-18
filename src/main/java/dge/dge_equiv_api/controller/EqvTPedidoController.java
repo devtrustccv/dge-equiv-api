@@ -25,6 +25,7 @@ public class EqvTPedidoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getPedido(@PathVariable Integer id) {
+        System.out.println("id: " + id);
         EqvtPedidoDTO dto = pedidoService.getPedidoDTOById(id);
         if (dto == null) return ResponseEntity.notFound().build();
 
