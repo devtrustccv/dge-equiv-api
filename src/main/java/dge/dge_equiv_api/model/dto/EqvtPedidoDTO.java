@@ -16,6 +16,12 @@ public class EqvtPedidoDTO {
     private String formacaoProf;
     private Integer carga;
     private BigDecimal anoInicio;
+    private BigDecimal anoFim;
+    private Integer nivel;
+    private String familia;
+    private String despacho;
+    private String numDeclaracao;
+    private LocalDate dataDespacho;
 
     public Integer getId() {
         return id;
@@ -131,12 +137,7 @@ public class EqvtPedidoDTO {
         }
     }
 
-    private BigDecimal anoFim;
-    private Integer nivel;
-    private String familia;
-    private String despacho;
-    private String numDeclaracao;
-    private LocalDate dataDespacho;
+
 
 
 }

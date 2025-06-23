@@ -112,11 +112,11 @@ public class EqvTPedido {
         this.nivel = nivel;
     }
 
-    public Integer getFamilia() {
+    public String getFamilia() {
         return familia;
     }
 
-    public void setFamilia(Integer familia) {
+    public void setFamilia(String familia) {
         this.familia = familia;
     }
 
@@ -146,7 +146,7 @@ public class EqvTPedido {
 
     private Integer nivel;
 
-    private Integer familia;
+    private String familia;
 
     private String despacho;
 

@@ -1,5 +1,6 @@
 package dge.dge_equiv_api.service;
 
+import dge.dge_equiv_api.Utils.Criptolink;
 import dge.dge_equiv_api.model.dto.*;
 import dge.dge_equiv_api.model.entity.EqvTPedido;
 import dge.dge_equiv_api.repository.EqvTPedidoRepository;
@@ -35,8 +36,6 @@ public class EqvTPedidoService {
     }
 
 
-
-
     public EqvtPedidoDTO toDto(EqvTPedido pedido) {
         EqvtPedidoDTO dto = new EqvtPedidoDTO();
         dto.setId(pedido.getId());
@@ -44,19 +43,8 @@ public class EqvTPedidoService {
         dto.setCarga(pedido.getCarga());
         dto.setAnoInicio(pedido.getAnoInicio());
         dto.setAnoFim(pedido.getAnoFim());
-        Integer nivel = null;
-        Integer nivelId = pedido.getNivel();
-        if (nivelId != null) {
-            nivel = nivelQualificacaoService.BuscarNivelQualificacaoPorId(nivelId);
-        }
-        dto.setNivel(nivel);
-
-        String familia = null;
-        Integer familiaId = pedido.getFamilia();
-        if (familiaId != null) {
-            familia = familiaProfissionalService.BuscarFamiliaProfissionalbyid(familiaId);
-        }
-        dto.setFamilia(familia);
+        dto.setNivel(pedido.getNivel());
+        dto.setFamilia(pedido.getFamilia());
         String despacho = tblDomainService.buscarDescricaoPorDominioEValor("DESPACHO", pedido.getDespacho());
         dto.setDespacho(despacho);
         dto.setNumDeclaracao(pedido.getNumDeclaracao());
@@ -105,4 +93,5 @@ public class EqvTPedidoService {
 
         return dto;
     }
+
 }

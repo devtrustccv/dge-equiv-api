@@ -1,5 +1,6 @@
 ### Listar todos (GET)
-GET http://localhost:8086/api/pedidos/83
+GET http://localhost:8086/api/pedidos/96
+
 
 
 Accept: application/json
