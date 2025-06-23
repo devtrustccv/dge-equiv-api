@@ -129,6 +129,15 @@ public class EqvtPedidoDTO {
     // Novo getter que será serializado no JSON como "id"
 
 
+    @JsonProperty("id")
+    public String getEncryptedId() {
+        if (this.id == null) return null;
+        try {
+            return AESUtil.encrypt(String.valueOf(this.id));
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
 
 

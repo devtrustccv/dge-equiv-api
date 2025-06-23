@@ -26,20 +26,19 @@ public class EqvTPedidoController {
     @GetMapping("/{encryptedId}")
     public ResponseEntity<?> getPedido(@PathVariable String encryptedId) {
         try {
-            String decryptedIdStr = AESUtil.decrypt(encryptedId);
-            Integer id = Integer.valueOf(decryptedIdStr);
+            // Descriptografa o ID criptografado (ex: "NcO49BG4qV_f5V01IYrIbQ==")
+            String decryptedId = AESUtil.decrypt(encryptedId);
+            Integer id = Integer.valueOf(decryptedId); // agora sim, seguro
 
             EqvtPedidoDTO dto = pedidoService.getPedidoDTOById(id);
             if (dto == null) return ResponseEntity.notFound().build();
 
-            return ResponseEntity.ok(dto); // retorna direto, sem "pedido"
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("erro", "ID inválido"));
         }
     }
 
-
-
-
-
 }
+
+
