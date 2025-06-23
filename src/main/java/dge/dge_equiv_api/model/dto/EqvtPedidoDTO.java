@@ -127,15 +127,7 @@ public class EqvtPedidoDTO {
         this.dataDespacho = dataDespacho;
     }
     // Novo getter que será serializado no JSON como "id"
-    @JsonProperty("id")
-    public String getIdCriptografado() {
-        try {
-            return AESUtil.encrypt(String.valueOf(this.id));
-        } catch (Exception e) {
-            // Trate exceção ou retorne null/valor padrão
-            return null;
-        }
-    }
+
 
 
 

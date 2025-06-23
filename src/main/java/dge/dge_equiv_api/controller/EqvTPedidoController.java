@@ -23,17 +23,21 @@ public class EqvTPedidoController {
     }
 
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getPedido(@PathVariable Integer id) {
-        System.out.println("id: " + id);
-        EqvtPedidoDTO dto = pedidoService.getPedidoDTOById(id);
-        if (dto == null) return ResponseEntity.notFound().build();
+    @GetMapping("/{encryptedId}")
+    public ResponseEntity<?> getPedido(@PathVariable String encryptedId) {
+        try {
+            String decryptedIdStr = AESUtil.decrypt(encryptedId);
+            Integer id = Integer.valueOf(decryptedIdStr);
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("pedido", dto);
+            EqvtPedidoDTO dto = pedidoService.getPedidoDTOById(id);
+            if (dto == null) return ResponseEntity.notFound().build();
 
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(dto); // retorna direto, sem "pedido"
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", "ID inválido"));
+        }
     }
+
 
 
 
