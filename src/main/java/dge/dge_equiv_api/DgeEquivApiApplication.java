@@ -9,7 +9,7 @@ public class DgeEquivApiApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(DgeEquivApiApplication.class, args);
-//		String encrypted = AESUtil.encrypt("96");
+//		String encrypted = AESUtil.decrypt("6WVVKrZL73rehj0pir1Lgw");
 //		System.out.println("Criptografado: " + encrypted);
 
 	}

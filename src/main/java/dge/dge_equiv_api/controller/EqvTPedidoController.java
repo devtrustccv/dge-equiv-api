@@ -3,13 +3,8 @@ package dge.dge_equiv_api.controller;
 import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.model.dto.EqvtPedidoDTO;
 import dge.dge_equiv_api.service.EqvTPedidoService;
-import org.flywaydb.core.internal.util.JsonUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 
 @RestController
@@ -35,7 +30,7 @@ public class EqvTPedidoController {
 
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("erro", "ID inválido"));
+            return ResponseEntity.badRequest().build();
         }
     }
 
