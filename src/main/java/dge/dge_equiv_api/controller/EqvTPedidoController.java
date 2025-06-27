@@ -23,7 +23,9 @@ public class EqvTPedidoController {
         try {
             // Descriptografa o ID criptografado (ex: "NcO49BG4qV_f5V01IYrIbQ==")
             String decryptedId = AESUtil.decrypt(encryptedId);
-            Integer id = Integer.valueOf(decryptedId); // agora sim, seguro
+            Integer id = Integer.valueOf(decryptedId);
+
+            System.out.println(id);
 
             EqvtPedidoDTO dto = pedidoService.getPedidoDTOById(id);
             if (dto == null) return ResponseEntity.notFound().build();
