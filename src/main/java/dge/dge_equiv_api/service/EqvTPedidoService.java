@@ -45,7 +45,7 @@ public class EqvTPedidoService {
         dto.setAnoFim(pedido.getAnoFim());
         dto.setNivel(pedido.getNivel());
         dto.setFamilia(pedido.getFamilia());
-        String despacho = tblDomainService.buscarDescricaoPorDominioEValor("DESPACHO", pedido.getDespacho());
+        String despacho = tblDomainService.buscarDescricaoPorDominioEValor("DESPACHO", String.valueOf(pedido.getDespacho()));
         dto.setDespacho(despacho);
         dto.setNumDeclaracao(pedido.getNumDeclaracao());
         dto.setDataDespacho(pedido.getDataDespacho());
@@ -60,8 +60,8 @@ public class EqvTPedidoService {
             reqDto.setDataNascimento(pedido.getRequerente().getDataNascimento());
             String descricao = tblDomainService.buscarDescricaoPorDominioEValor("SEXO", pedido.getRequerente().getSexo());
             reqDto.setSexo(descricao);
-            String descricaoHab = tblDomainService.buscarDescricaoPorDominioEValor("HABILITAÇÃO", pedido.getRequerente().getHabilitacao());
-            reqDto.setHabilitacao(descricaoHab);
+            Integer descricaoHab = Integer.valueOf(tblDomainService.buscarDescricaoPorDominioEValor("HABILITAÇÃO", String.valueOf(pedido.getRequerente().getHabilitacao())));
+            reqDto.setHabilitacao(String.valueOf(descricaoHab));
             String descricaoDoc = tblDomainService.buscarDescricaoPorDominioEValor("TIPO_DOCUMENTO_IDENT", pedido.getRequerente().getDocIdentificacao());
             reqDto.setDocIdentificacao(descricaoDoc);
             String getNacionalidade = globalGeografiaService.buscarNomePorCodigoPais(pedido.getRequerente().getNacionalidade());
@@ -82,7 +82,7 @@ public class EqvTPedidoService {
             dto.setInstEnsino(instDto);
         }
 
-        // Requisição
+        // Requisiçãoa
         if (pedido.getRequisicao() != null) {
             EqvTRequisicaoDTO reqqDto = new EqvTRequisicaoDTO();
             reqqDto.setId(pedido.getRequisicao().getId());

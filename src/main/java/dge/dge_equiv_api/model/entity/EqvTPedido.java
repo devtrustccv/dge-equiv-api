@@ -120,11 +120,11 @@ public class EqvTPedido {
         this.familia = familia;
     }
 
-    public String getDespacho() {
+    public Integer getDespacho() {
         return despacho;
     }
 
-    public void setDespacho(String despacho) {
+    public void setDespacho(Integer despacho) {
         this.despacho = despacho;
     }
 
@@ -148,7 +148,7 @@ public class EqvTPedido {
 
     private String familia;
 
-    private String despacho;
+    private Integer despacho;
 
     @Column(name = "num_declaracao", length = 255)
     private String numDeclaracao;

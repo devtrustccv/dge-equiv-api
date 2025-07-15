@@ -1,17 +1,24 @@
 package dge.dge_equiv_api.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dge.dge_equiv_api.Utils.AESUtil;
+import dge.dge_equiv_api.document.dto.DocumentoDTO;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class EqvtPedidoDTO {
     private Integer id;
+    @JsonIgnore
     private EqvTRequerenteDTO requerente;
+    @JsonIgnore
     private EqvTInstEnsinoDTO instEnsino;
+    @JsonIgnore
     private EqvTRequisicaoDTO requisicao;
     private String formacaoProf;
     private Integer carga;
@@ -22,6 +29,8 @@ public class EqvtPedidoDTO {
     private String despacho;
     private String numDeclaracao;
     private LocalDate dataDespacho;
+    private MultipartFile file;
+    private List<DocumentoDTO> documentos;
 
     public Integer getId() {
         return id;
@@ -126,7 +135,26 @@ public class EqvtPedidoDTO {
     public void setDataDespacho(LocalDate dataDespacho) {
         this.dataDespacho = dataDespacho;
     }
+
+    public List<DocumentoDTO> getDocumentos() {
+        return documentos;
+    }
+
+    public void setDocumentos(List<DocumentoDTO> documentos) {
+        this.documentos = documentos;
+    }
+
+    public MultipartFile getFile() {
+        return file;
+    }
+
+    public void setFile(MultipartFile file) {
+        this.file = file;
+    }
+
     // Novo getter que será serializado no JSON como "id"
+
+
 
 
     @JsonProperty("id")
