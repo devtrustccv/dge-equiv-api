@@ -42,6 +42,7 @@ public class ComboxController {
                 Map<String, String> response = new HashMap<>();
                 response.put("VALOR", String.valueOf(doc.getId()));
                 response.put("DESCRICAO", doc.getNome());
+                response.put("Obrigatorio",""+doc.getObrigatorio());
                 list.add(response);
             }
         }
@@ -59,7 +60,7 @@ public class ComboxController {
         for (EqvTInstEnsino inst : instituicoes) {
             Map<String, String> map = new HashMap<>();
             map.put("VALOR", String.valueOf(inst.getId()));      // valor do option
-            map.put("DESCRICAO", inst.getNome());                // texto visível no option
+            map.put("DESCRICAO", inst.getNome());
             list.add(map);
         }
 
