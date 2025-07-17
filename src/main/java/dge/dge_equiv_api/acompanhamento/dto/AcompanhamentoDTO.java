@@ -233,6 +233,9 @@ public class AcompanhamentoDTO {
         @JsonProperty("items")
         private Map<String, String> items;
 
+        public <K, V> Comunicacao(String notificação, String faltamDocs, LocalDateTime now, Map<K,V> proximoPasso) {
+        }
+
         public String getTitulo() {
             return titulo;
         }
@@ -277,6 +280,9 @@ public class AcompanhamentoDTO {
         @JsonProperty("data")
         private LocalDateTime data;
 
+        public Evento(String s, String iniciado, LocalDateTime now) {
+        }
+
         public String getTitulo() {
             return titulo;
         }
@@ -309,6 +315,9 @@ public class AcompanhamentoDTO {
 
         @JsonProperty("url")
         private String url;
+
+        public Output(String certificado, String wwww) {
+        }
 
         public String getTitulo() {
             return titulo;

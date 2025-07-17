@@ -1,7 +1,7 @@
-package dge.dge_equiv_api.service;
+package dge.dge_equiv_api.document.service;
 import dge.dge_equiv_api.Utils.RestClientHelper;
+import dge.dge_equiv_api.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.model.dto.DocRelacaoDTO;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
@@ -12,8 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 //@RequiredArgsConstructor
@@ -95,6 +94,60 @@ public class DocumentServiceImpl implements DocumentService {
 
     public String getPathFile(String fileName, String tipoRelacao, Integer idRelacao, String appCode, String ext) {
         System.out.println("ext " + ext);
-        return appCode + "/"+LocalDateTime.now().getYear()+"/modulos/"+tipoRelacao+"/"+idRelacao+"/"+fileName +"."+ ext;
+        return appCode + "/"+LocalDateTime.now().getYear()+"/processos/"+tipoRelacao+"/"+idRelacao+"/"+fileName +"."+ ext;
     }
+    //pegar doc no minio
+
+    public byte[] previewDocumento(Integer idRelacao, String tipoRelacao, String appCode, boolean download) {
+        String apiUrl = url + "/documentos/preview-by-tipo-rel"
+                + "?idRelacao=" + idRelacao
+                + "&tipoRelacao=" + tipoRelacao
+                + "&appCode=" + appCode
+                + "&download=" + download;
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Accept", MediaType.APPLICATION_OCTET_STREAM_VALUE);
+
+        ResponseEntity<byte[]> response = restClientHelper.sendRequest(
+                apiUrl,
+                HttpMethod.GET,
+                null,
+                byte[].class,
+                headers
+        );
+
+        System.out.println("link...."+apiUrl);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return response.getBody();
+        } else {
+            throw new RuntimeException("Erro ao buscar preview do documento: " + response.getStatusCode());
+        }
+    }
+
+    @Override
+    public List<DocumentoDTO> getDocumentosPorRelacao(Integer idRelacao, String tipoRelacao, String appCode) {
+        String apiUrl = url + "/documentos/list-by-tipo-rel"
+                + "?idRelacao=" + idRelacao
+                + "&tipoRelacao=" + tipoRelacao
+                + "&appCode=" + appCode;
+
+        ResponseEntity<DocumentoDTO[]> response = restClientHelper.sendRequest(
+                apiUrl,
+                HttpMethod.GET,
+                null,
+                DocumentoDTO[].class,
+                Collections.emptyMap()
+        );
+
+        System.out.println("link......."+apiUrl);
+
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            return Arrays.asList(response.getBody());
+        } else {
+            //log.warn("Nenhum documento encontrado para idRelacao={} tipoRelacao={}", idRelacao, tipoRelacao);
+            return Collections.emptyList();
+        }
+    }
+
 }

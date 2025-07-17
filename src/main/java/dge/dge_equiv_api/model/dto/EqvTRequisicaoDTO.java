@@ -1,6 +1,7 @@
 package dge.dge_equiv_api.model.dto;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 @Data
@@ -8,10 +9,10 @@ public class EqvTRequisicaoDTO {
 
     private Integer id;
     private Integer nProcesso;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataCreate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate   dataUpdate;
-
-
 
     private Integer userCreate;
     private Integer userUpdate;

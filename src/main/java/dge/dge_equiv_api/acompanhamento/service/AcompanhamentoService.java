@@ -45,7 +45,7 @@ public class AcompanhamentoService {
     public void criarAcompanhamento(AcompanhamentoDTO body) {
         try {
             String token = authService.getToken();
-            log.info("Token: " + token);
+            //log.info("Token: " + token);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);

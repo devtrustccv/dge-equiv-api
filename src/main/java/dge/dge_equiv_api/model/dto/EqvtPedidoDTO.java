@@ -1,5 +1,6 @@
 package dge.dge_equiv_api.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dge.dge_equiv_api.Utils.AESUtil;
@@ -14,9 +15,9 @@ import java.util.List;
 @Data
 public class EqvtPedidoDTO {
     private Integer id;
-    @JsonIgnore
+
     private EqvTRequerenteDTO requerente;
-    @JsonIgnore
+
     private EqvTInstEnsinoDTO instEnsino;
     @JsonIgnore
     private EqvTRequisicaoDTO requisicao;
@@ -28,8 +29,8 @@ public class EqvtPedidoDTO {
     private String familia;
     private String despacho;
     private String numDeclaracao;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataDespacho;
-    private MultipartFile file;
     private List<DocumentoDTO> documentos;
 
     public Integer getId() {
@@ -142,14 +143,6 @@ public class EqvtPedidoDTO {
 
     public void setDocumentos(List<DocumentoDTO> documentos) {
         this.documentos = documentos;
-    }
-
-    public MultipartFile getFile() {
-        return file;
-    }
-
-    public void setFile(MultipartFile file) {
-        this.file = file;
     }
 
     // Novo getter que será serializado no JSON como "id"

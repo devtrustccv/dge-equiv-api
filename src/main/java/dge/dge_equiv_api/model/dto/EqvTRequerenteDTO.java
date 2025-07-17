@@ -1,5 +1,6 @@
 package dge.dge_equiv_api.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -14,18 +15,23 @@ public class EqvTRequerenteDTO {
     private Integer nif;
     private String nome;
     private String docNumero;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataNascimento;
     private String nacionalidade;
     private String sexo;
     private String habilitacao;
     private String docIdentificacao;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private  LocalDate dataEmissaoDoc;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataValidadeDoc;
     private String email;
     private Integer contato;
     private Integer userCreate;
     private Integer userUpdate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateCreate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataUpdate;
 
     public Integer getId() {

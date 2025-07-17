@@ -1,5 +1,6 @@
 package dge.dge_equiv_api.document.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -9,11 +10,15 @@ import org.springframework.web.multipart.MultipartFile;
     @AllArgsConstructor
     @Builder
     public class DocumentoDTO {
+       @JsonProperty
         private Integer id;
+    @JsonProperty
         private String nome;
+
         private Integer idTpDoc;
     private String urlArquivo;
     private MultipartFile file;
+
 
     public String getUrlArquivo() {
         return urlArquivo;
@@ -56,7 +61,42 @@ import org.springframework.web.multipart.MultipartFile;
     }
 
 
+    public static Builder builder() {
+        return new Builder();
+    }
 
+    public static class Builder {
+        private final DocumentoDTO instance = new DocumentoDTO();
+
+        public Builder id(Integer id) {
+            instance.setId(id);
+            return this;
+        }
+
+        public Builder nome(String nome) {
+            instance.setNome(nome);
+            return this;
+        }
+
+        public Builder idTpDoc(Integer idTpDoc) {
+            instance.setIdTpDoc(idTpDoc);
+            return this;
+        }
+
+        public Builder urlArquivo(String urlArquivo) {
+            instance.setUrlArquivo(urlArquivo);
+            return this;
+        }
+
+        public Builder file(MultipartFile file) {
+            instance.setFile(file);
+            return this;
+        }
+
+        public DocumentoDTO build() {
+            return instance;
+        }
+    }
 
     }
 

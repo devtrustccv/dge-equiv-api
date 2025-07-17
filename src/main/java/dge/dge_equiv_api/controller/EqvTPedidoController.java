@@ -1,11 +1,7 @@
 package dge.dge_equiv_api.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dge.dge_equiv_api.Utils.AESUtil;
-import dge.dge_equiv_api.document.dto.DocumentoDTO;
+import dge.dge_equiv_api.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.model.dto.EqvtPedidoDTO;
 import dge.dge_equiv_api.model.dto.PortalPedidosDTO;
 import dge.dge_equiv_api.model.dto.PortalPedidosRespostaDTO;
@@ -13,14 +9,11 @@ import dge.dge_equiv_api.service.EqvTPedidoCrudService;
 import dge.dge_equiv_api.service.EqvTPedidoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-
 import java.util.List;
 
 
@@ -32,132 +25,165 @@ public class EqvTPedidoController {
 
     private final EqvTPedidoService pedidoService;
     private final EqvTPedidoCrudService crudService;
+    private final DocumentServiceImpl documentServiceImpl;
 
-    public EqvTPedidoController(EqvTPedidoService pedidoService, EqvTPedidoCrudService crudService) {
+    public EqvTPedidoController(EqvTPedidoService pedidoService, EqvTPedidoCrudService crudService, DocumentServiceImpl documentServiceImpl) {
         this.pedidoService = pedidoService;
         this.crudService = crudService;
+        this.documentServiceImpl = documentServiceImpl;
     }
 
-    // ----- CRUD via CrudService -----
-
-//    @PostMapping
-//    public ResponseEntity<EqvtPedidoDTO> create(@Valid @RequestBody EqvtPedidoDTO pedidoDTO) {
-//        EqvtPedidoDTO created = crudService.createPedido(pedidoDTO);
-//        return ResponseEntity.ok(created);
-//    }
-
-    // NOVO ENDPOINT para criar múltiplos pedidos de uma só vez
+    // ========================
+    // POST - Criar pedidos
+    // ========================
     @Operation(
-            summary = "Cria um novo pedido",
-            description = "Cria um pedido de equivalência profissional com dados completos do requerente, requisição e documentos." +
-                    "obs podes criar varios pedidos de uma vez se quiseres  para o mesmo  requerente e requesicao",
+            summary = "Cria novos pedidos",
+            description = "Cria um ou mais pedidos de equivalência para um requerente e requisição.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Pedido criado com sucesso"),
-                    @ApiResponse(responseCode = "400", description = "Erro de validação ou dados inválidos")
+                    @ApiResponse(responseCode = "200", description = "Pedidos criados com sucesso"),
+                    @ApiResponse(responseCode = "400", description = "Erro ao processar os dados")
             }
     )
+    @PostMapping(value = "/portal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createLote(@ModelAttribute PortalPedidosDTO lotePedidosDTO) {
+        try {
+            List<EqvtPedidoDTO> created = crudService.createLotePedidosComRequisicaoERequerenteUnicos(
+                    lotePedidosDTO.getPedidos(),
+                    lotePedidosDTO.getRequisicao(),
+                    lotePedidosDTO.getRequerente()
+            );
 
-    @PostMapping(value = "/portal" ,consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PortalPedidosRespostaDTO> createLote(@ModelAttribute PortalPedidosDTO lotePedidosDTO) {
-        List<EqvtPedidoDTO> created = crudService.createLotePedidosComRequisicaoERequerenteUnicos(
-                lotePedidosDTO.getPedidos(),
-                lotePedidosDTO.getRequisicao(),
-                lotePedidosDTO.getRequerente()
-        );
+            if (created.isEmpty()) {
+                logger.warn("Nenhum pedido foi criado.");
+                return ResponseEntity.badRequest().body("Não foi possível criar os pedidos.");
+            }
 
-        var resposta = new PortalPedidosRespostaDTO();
-
-        if (!created.isEmpty()) {
+            PortalPedidosRespostaDTO resposta = new PortalPedidosRespostaDTO();
             resposta.setRequisicao(created.getFirst().getRequisicao());
             resposta.setRequerente(created.getFirst().getRequerente());
             resposta.setPedidos(created);
-        }
 
-        return ResponseEntity.ok(resposta);
+            logger.info("Pedidos criados com sucesso: {}", created.size());
+            return ResponseEntity.ok().body(resposta);
+        } catch (Exception e) {
+            logger.error("Erro ao criar pedidos: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Erro ao criar pedidos: " + e.getMessage());
+        }
     }
 
+    // ========================
+    // PUT - Atualizar pedidos
+    // ========================
     @Operation(
-            summary = "Editar um novo pedido",
-            description = "Permite editar um pedido de equivalência profissional com dados completos do requerente, requisição e documentos." +
-                    "obs a ediacao e atraves do id do da requesicao",
+            summary = "Atualiza pedidos por ID da requisição",
+            description = "Atualiza todos os pedidos associados à requisição especificada.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Pedido updated com sucesso"),
-                    @ApiResponse(responseCode = "400", description = "Erro de validação ou dados inválidos")
+                    @ApiResponse(responseCode = "200", description = "Pedidos atualizados com sucesso"),
+                    @ApiResponse(responseCode = "400", description = "Erro ao atualizar os pedidos")
             }
     )
-
-    @GetMapping("/portal/{id}")
-    public ResponseEntity<?> getById(@PathVariable String encryptedId) {
+    @PutMapping(value = "/portal/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateLote(@PathVariable String id, @ModelAttribute PortalPedidosDTO lotePedidosDTO) {
         try {
-            String decryptedId = AESUtil.decrypt(encryptedId);
-            Integer id = Integer.valueOf(decryptedId);
-            EqvtPedidoDTO dto = crudService.findById(id);
-            if (dto == null) return ResponseEntity.notFound().build();
-            return ResponseEntity.ok(dto);
+            Integer requisicaoId = Integer.valueOf(id);
+            List<EqvtPedidoDTO> updated = crudService.updatePedidosByRequisicaoId(requisicaoId, lotePedidosDTO);
+
+            if (updated.isEmpty()) {
+                logger.warn("Nenhum pedido foi atualizado.");
+                return ResponseEntity.badRequest().body("Não foi possível atualizar os pedidos.");
+            }
+
+            PortalPedidosRespostaDTO resposta = new PortalPedidosRespostaDTO();
+            resposta.setRequisicao(updated.getFirst().getRequisicao());
+            resposta.setRequerente(updated.getFirst().getRequerente());
+            resposta.setPedidos(updated);
+
+            logger.info("Pedidos atualizados com sucesso: {}", updated.size());
+            return ResponseEntity.ok().body(resposta);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+            logger.error("Erro ao atualizar pedidos: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Erro ao atualizar pedidos: " + e.getMessage());
         }
     }
 
+    // ========================
+    // GET - Buscar todos os pedidos
+    // ========================
     @GetMapping
     public ResponseEntity<List<EqvtPedidoDTO>> getAll() {
         List<EqvtPedidoDTO> pedidos = crudService.findAll();
+       // byte[] arquivo = documentServiceImpl.previewDocumento(496, "SOLICITACAO", "equiv", false);
+        //logger.info("saida .......  "+arquivo.length);
+        logger.info("Total de pedidos encontrados: {}", pedidos.size());
+        return ResponseEntity.ok(pedidos);
+    }
+
+    @GetMapping("/portal/{id}")
+    public ResponseEntity<List<EqvtPedidoDTO>> getPedidosComDocumentosPorRequisicao(@PathVariable Integer id) {
+        List<EqvtPedidoDTO> pedidos = crudService.findPedidosComDocumentosByRequisicao(id);
         return ResponseEntity.ok(pedidos);
     }
 
 
-
-
-    @PutMapping(value = "/portal/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateLote(@PathVariable String id, @ModelAttribute PortalPedidosDTO lotePedidosDTO) {
-        try {
-
-            Integer requisicaoId = Integer.valueOf(id);
-
-            List<EqvtPedidoDTO> updated = crudService.updatePedidosByRequisicaoId(requisicaoId, lotePedidosDTO);
-
-            PortalPedidosRespostaDTO resposta = new PortalPedidosRespostaDTO();
-
-            if (!updated.isEmpty()) {
-                resposta.setRequisicao(updated.getFirst().getRequisicao());
-                resposta.setRequerente(updated.getFirst().getRequerente());
-                resposta.setPedidos(updated);
-            }
-
-            return ResponseEntity.ok(resposta);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Erro ao atualizar lote: " + e.getMessage());
-        }
-    }
-
-
-//    @DeleteMapping("/portal/{encryptedId}")
-//    public ResponseEntity<?> delete(@PathVariable String encryptedId) {
-//        try {
-//            String decryptedId = AESUtil.decrypt(encryptedId);
-//            Integer id = Integer.valueOf(decryptedId);
-//            crudService.deletePedido(id);
-//            return ResponseEntity.noContent().build();
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
-//        }
-//    }
-
+    // ========================
+    // GET - Buscar pedido por ID criptografado
+    // ========================
     @GetMapping("/{encryptedId}")
     public ResponseEntity<?> getPedido(@PathVariable String encryptedId) {
         try {
-            // Descriptografa o ID criptografado (ex: "NcO49BG4qV_f5V01IYrIbQ==")
             String decryptedId = AESUtil.decrypt(encryptedId);
             Integer id = Integer.valueOf(decryptedId);
 
             EqvtPedidoDTO dto = pedidoService.getPedidoDTOById(id);
-            if (dto == null) return ResponseEntity.notFound().build();
+            if (dto == null) {
+                logger.warn("Pedido não encontrado para o ID descriptografado: {}", id);
+                return ResponseEntity.status(404).body("Pedido não encontrado.");
+            }
 
+            logger.info("Pedido encontrado para ID {}: {}", id, dto);
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            logger.error("Erro ao buscar pedido por ID criptografado: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("ID inválido ou erro ao descriptografar.");
         }
     }
 
+//    @Autowired
+//    private RuntimeService runtimeService;
+//
+//    @PostMapping("/iniciar-processo")
+//    public ResponseEntity<?> iniciarProcesso() {
+//        String numero = "EQV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+//
+//        Map<String, Object> vars = new HashMap<>();
+//        vars.put("numero", numero);
+//
+//        ProcessInstance instance = runtimeService.startProcessInstanceByKey("processo_equivalencia", vars);
+//
+//        return ResponseEntity.ok(Map.of(
+//                "processInstanceId", instance.getId(),
+//                "numero", numero
+//        ));
+//    }
 
+
+    // ========================
+    // DELETE - (Comentado por segurança, ativar se necessário)
+    // ========================
+    /*
+    @DeleteMapping("/portal/{encryptedId}")
+    public ResponseEntity<?> delete(@PathVariable String encryptedId) {
+        try {
+            String decryptedId = AESUtil.decrypt(encryptedId);
+            Integer id = Integer.valueOf(decryptedId);
+            crudService.deletePedido(id);
+
+            logger.info("Pedido deletado com sucesso, ID: {}", id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            logger.error("Erro ao deletar pedido: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        }
+    }
+    */
 }

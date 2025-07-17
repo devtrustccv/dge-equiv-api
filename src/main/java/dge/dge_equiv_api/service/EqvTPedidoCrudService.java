@@ -3,240 +3,252 @@ package dge.dge_equiv_api.service;
 import dge.dge_equiv_api.acompanhamento.dto.AcompanhamentoDTO;
 import dge.dge_equiv_api.acompanhamento.service.AcompanhamentoService;
 import dge.dge_equiv_api.document.dto.DocumentoDTO;
+import dge.dge_equiv_api.document.service.DocumentService;
+import dge.dge_equiv_api.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.model.dto.*;
-import dge.dge_equiv_api.model.entity.EqvTPedido;
-import dge.dge_equiv_api.model.entity.EqvTRequerente;
-import dge.dge_equiv_api.model.entity.EqvTInstEnsino;
-import dge.dge_equiv_api.model.entity.EqvTRequisicao;
-import dge.dge_equiv_api.repository.EqvTPedidoRepository;
-import dge.dge_equiv_api.repository.EqvTRequerenteRepository;
-import dge.dge_equiv_api.repository.EqvTInstEnsinoRepository;
-import dge.dge_equiv_api.repository.EqvTRequisicaoRepository;
+import dge.dge_equiv_api.model.entity.*;
+import dge.dge_equiv_api.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class EqvTPedidoCrudService {
 
-    @Autowired
-    private EqvTPedidoRepository pedidoRepository;
-
-    @Autowired
-    private EqvTRequerenteRepository requerenteRepository;
-
-    @Autowired
-    private EqvTInstEnsinoRepository instEnsinoRepository;
-
-    @Autowired
-    private EqvTRequisicaoRepository requisicaoRepository;
-
-    @Autowired
-    private DocumentService documentService;
-
-    @Autowired
-    private AcompanhamentoService acompanhamentoService;
-
     private static final Logger log = LoggerFactory.getLogger(EqvTPedidoCrudService.class);
 
-
-    // CREATE: cria sempre novos requerente e requisição, usa ou cria instituição ensino
-//    public EqvtPedidoDTO createPedido(EqvtPedidoDTO dto) {
-//
-//        EqvTPedido pedido = new EqvTPedido();
-//
-//        copyPedidoFields(pedido, dto);
-//
-//        // Criar e salvar novo requerente
-//        if (dto.getRequerente() != null) {
-//            EqvTRequerente requerente = new EqvTRequerente();
-//            copyRequerenteFields(requerente, dto.getRequerente());
-//            requerente = requerenteRepository.save(requerente);
-//            pedido.setRequerente(requerente);
-//        }
-//
-//        // Inst. ensino: buscar por id ou criar novo
-//        if (dto.getInstEnsino() != null) {
-//            EqvTInstEnsino instEnsino = null;
-//            if (dto.getInstEnsino().getId() != null) {
-//                instEnsino = instEnsinoRepository.findById(dto.getInstEnsino().getId()).orElse(null);
-//            }
-//            if (instEnsino == null) {
-//                instEnsino = new EqvTInstEnsino();
-//                copyInstEnsinoFields(instEnsino, dto.getInstEnsino());
-//                instEnsino = instEnsinoRepository.save(instEnsino);
-//            }
-//            pedido.setInstEnsino(instEnsino);
-//        }
-//
-//        // Criar e salvar nova requisição
-//        if (dto.getRequisicao() != null) {
-//            EqvTRequisicao requisicao = new EqvTRequisicao();
-//            copyRequisicaoFields(requisicao, dto.getRequisicao());
-//            requisicao = requisicaoRepository.save(requisicao);
-//            pedido.setRequisicao(requisicao);
-//        }
-//
-////        AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(dto, pedido);
-////        acompanhamentoService.criarAcompanhamento(acompanhamento);
-//
-//       // log.info("Acompanhamento criado: {}", acompanhamento);
-//
-//
-//
-//        pedido = pedidoRepository.save(pedido);
-//        salvarDocumentosDoPedido(dto, pedido);
-//
-//
-//        return convertToDTO(pedido);
-//
-//
-//    }
-
+    @Autowired private EqvTPedidoRepository pedidoRepository;
+    @Autowired private EqvTRequerenteRepository requerenteRepository;
+    @Autowired private EqvTInstEnsinoRepository instEnsinoRepository;
+    @Autowired private EqvTRequisicaoRepository requisicaoRepository;
+    @Autowired private DocumentService documentService;
+    @Autowired private AcompanhamentoService acompanhamentoService;
+    @Autowired
+    private DocumentServiceImpl documentServiceImpl;
 
     public List<EqvtPedidoDTO> createLotePedidosComRequisicaoERequerenteUnicos(
             List<EqvtPedidoDTO> pedidosDTO,
             EqvTRequisicaoDTO requisicaoDTO,
             EqvTRequerenteDTO requerenteDTO) {
 
-        // Cria e salva o requerente
         EqvTRequerente requerente = new EqvTRequerente();
         copyRequerenteFields(requerente, requerenteDTO);
         requerente = requerenteRepository.save(requerente);
 
-        // Cria e salva a requisição
         EqvTRequisicao requisicao = new EqvTRequisicao();
         copyRequisicaoFields(requisicao, requisicaoDTO);
         requisicao = requisicaoRepository.save(requisicao);
 
         List<EqvtPedidoDTO> result = new ArrayList<>();
+        List<EqvTPedido> pedidosSalvos = new ArrayList<>();
 
         for (EqvtPedidoDTO dto : pedidosDTO) {
             EqvTPedido pedido = new EqvTPedido();
             copyPedidoFields(pedido, dto);
-
-            // Instituição de ensino
-            if (dto.getInstEnsino() != null) {
-                EqvTInstEnsino inst = null;
-                if (dto.getInstEnsino().getId() != null) {
-                    inst = instEnsinoRepository.findById(dto.getInstEnsino().getId()).orElse(null);
-                }
-                if (inst == null) {
-                    inst = new EqvTInstEnsino();
-                    copyInstEnsinoFields(inst, dto.getInstEnsino());
-                    inst = instEnsinoRepository.save(inst);
-                }
-                pedido.setInstEnsino(inst);
-            }
-
-//            // Associa requerente e requisição comuns
             pedido.setRequerente(requerente);
             pedido.setRequisicao(requisicao);
 
-            // Salva o pedido
+            // inst ensino
+
+            if (dto.getInstEnsino() != null) {
+                EqvTInstEnsino inst = instEnsinoRepository
+                        .findById(dto.getInstEnsino().getId())
+                        .orElseGet(() -> {
+                            EqvTInstEnsino novo = new EqvTInstEnsino();
+                            copyInstEnsinoFields(novo, dto.getInstEnsino());
+                            return instEnsinoRepository.save(novo);
+                        });
+                pedido.setInstEnsino(inst);
+            }
+
             pedido = pedidoRepository.save(pedido);
+            pedidosSalvos.add(pedido); // guardamos os pedidos com ID
 
-            // SALVAR DOCUMENTOS (adicionado)
             salvarDocumentosDoPedido(dto, pedido);
-            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(dto, pedido);
-            acompanhamentoService.criarAcompanhamento(acompanhamento);
-            log.info("Acompanhamento criado: {}", acompanhamento);
-
             result.add(convertToDTO(pedido));
+        }
+
+        // Agora sim: criar um único acompanhamento após todos os pedidos estarem salvos
+        AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidosSalvos);
+        if (acompanhamento != null) {
+            acompanhamentoService.criarAcompanhamento(acompanhamento);
+            log.info("Acompanhamento criado com sucesso para requisição {}", requisicao.getId());
         }
 
         return result;
     }
 
 
-
-    // UPDATE: atualiza entidades relacionadas, cria se não existirem
     public List<EqvtPedidoDTO> updatePedidosByRequisicaoId(Integer requisicaoId, PortalPedidosDTO dto) {
         EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
                 .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
 
         List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
 
-        // Atualiza Requisição
         if (dto.getRequisicao() != null) {
             copyRequisicaoFields(requisicao, dto.getRequisicao());
             requisicaoRepository.save(requisicao);
         }
 
-        // Atualiza ou cria Requerente
         EqvTRequerente requerente = null;
         if (dto.getRequerente() != null) {
-            if (dto.getRequerente().getId() != null) {
-                requerente = requerenteRepository.findById(dto.getRequerente().getId()).orElse(null);
-            }
-            if (requerente == null) {
-                requerente = new EqvTRequerente();
-            }
+            requerente = dto.getRequerente().getId() != null ?
+                    requerenteRepository.findById(dto.getRequerente().getId()).orElse(new EqvTRequerente()) :
+                    new EqvTRequerente();
+
             copyRequerenteFields(requerente, dto.getRequerente());
             requerente = requerenteRepository.save(requerente);
         }
 
-        // Atualiza cada pedido com dados individuais
         List<EqvtPedidoDTO> result = new ArrayList<>();
-
         List<EqvtPedidoDTO> pedidosDTO = dto.getPedidos();
+
         for (int i = 0; i < pedidos.size(); i++) {
             EqvTPedido pedido = pedidos.get(i);
-            EqvtPedidoDTO dadosPedido = pedidosDTO.get(i); // dados atualizados desse pedido
+            EqvtPedidoDTO novo = pedidosDTO.get(i);
 
-            copyPedidoFields(pedido, dadosPedido);
-
-            if (requerente != null)
-                pedido.setRequerente(requerente);
-
+            copyPedidoFields(pedido, novo);
+            pedido.setRequerente(requerente);
             pedido.setRequisicao(requisicao);
             pedido = pedidoRepository.save(pedido);
 
-            // ✅ Agora salva só os documentos desse pedido específico
-            salvarDocumentosDoPedido(dadosPedido, pedido);
-
+            salvarDocumentosDoPedido(novo, pedido);
             result.add(convertToDTO(pedido));
         }
-
 
         return result;
     }
 
+//    public void deletePedido(Integer id) {
+//        if (!pedidoRepository.existsById(id)) {
+//            throw new EntityNotFoundException("Pedido não encontrado com ID: " + id);
+//        }
+//        pedidoRepository.deleteById(id);
+//        log.info("Pedido {} deletado com sucesso.", id);
+//    }
 
-
-    // DELETE
-    public void deletePedido(Integer id) {
-        if (!pedidoRepository.existsById(id)) {
-            throw new EntityNotFoundException("Pedido não encontrado com ID: " + id);
-        }
-        pedidoRepository.deleteById(id);
-    }
-
-    // LIST ALL
     public List<EqvtPedidoDTO> findAll() {
-        return pedidoRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return pedidoRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    // FIND BY ID
     public EqvtPedidoDTO findById(Integer id) {
         EqvTPedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com ID: " + id));
         return convertToDTO(pedido);
     }
+
+    private void salvarDocumentosDoPedido(EqvtPedidoDTO dto, EqvTPedido pedido) {
+        List<DocumentoDTO> docs = dto.getDocumentos();
+
+        if (docs == null || docs.isEmpty()) {
+            log.warn("Nenhum documento recebido para o pedido {}", pedido.getId());
+            return;
+        }
+
+        log.info("Salvando {} documentos para o pedido {}", docs.size(), pedido.getId());
+
+        for (DocumentoDTO doc : docs) {
+            if (doc.getFile() == null) {
+                log.warn("Documento {} sem arquivo", doc.getNome());
+                continue;
+            }
+
+            try {
+                documentService.save(DocRelacaoDTO.builder()
+                        .idRelacao(pedido.getId())
+                        .tipoRelacao("SOLICITACAO")
+                        .estado("A")
+                        .appCode("equiv")
+                        .idTpDoc(String.valueOf(doc.getIdTpDoc()))
+                        .fileName(doc.getNome())
+                        .file(doc.getFile())
+                        .build()
+                );
+                log.info("Documento {} salvo com sucesso", doc.getNome());
+            } catch (Exception e) {
+                log.error("Erro ao salvar documento {}", doc.getNome(), e);
+            }
+        }
+    }
+
+// criar  acompanhamento para cada  pedido
+private AcompanhamentoDTO montarAcompanhamentoDTO(EqvTRequisicao requisicao, List<EqvTPedido> pedidos) {
+    try {
+        AcompanhamentoDTO acomp = new AcompanhamentoDTO();
+        acomp.setNumero(String.valueOf(requisicao.getnProcesso()));
+        acomp.setAppDad("EQUIV");
+        acomp.setPessoaId(12);
+        acomp.setEntidadeNif(null);
+        acomp.setTipo("PEDIDO_RVCC");
+
+        // Combinações dos títulos
+        String titulos = pedidos.stream()
+                .map(EqvTPedido::getFormacaoProf)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(" | "));
+        acomp.setTitulo("Pedido(s): " + titulos);
+        acomp.setDescricao("Equivalência para " + titulos);
+
+        // Nome da instituição (se todas forem iguais, ou pegar da primeira)
+        String entidade = pedidos.stream()
+                .map(p -> p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null)
+                .filter(Objects::nonNull)
+                .findFirst().orElse(null);
+        acomp.setEntidade(entidade);
+
+        acomp.setPercentagem(10);
+        acomp.setDataInicio(LocalDateTime.now());
+        acomp.setDataFim(LocalDateTime.now());
+        acomp.setDataFimPrevisto(LocalDate.now().plusDays(14));
+        acomp.setEtapaAtual("Solicitacao");
+        acomp.setEstado("EM_PROGRESSO");
+        acomp.setEstadoDesc("Em Progresso");
+
+        // Adiciona um mapa com todas as formações
+        Map<String, String> detalhes = new LinkedHashMap<>();
+        for (EqvTPedido p : pedidos) {
+            detalhes.put("Formação " + p.getId(), p.getFormacaoProf());
+        }
+        acomp.setDetalhes(detalhes);
+
+        acomp.setEventos(List.of(
+                new AcompanhamentoDTO.Evento("Etapa 1", "Iniciado", LocalDateTime.now())
+        ));
+        acomp.setComunicacoes(List.of(
+                new AcompanhamentoDTO.Comunicacao("Notificação", "Faltam documentos", LocalDateTime.now(),
+                        Map.of("Proximo_Passo", "Análise"))
+        ));
+        acomp.setOutputs(List.of());
+
+        return acomp;
+    } catch (Exception e) {
+        log.error("Erro ao montar AcompanhamentoDTO", e);
+        return null;
+    }
+}
+
+
+    //pegar todos od pedidos e os seus documentos associoados
+    public List<EqvtPedidoDTO> findPedidosComDocumentosByRequisicao(Integer requisicaoId) {
+        EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
+                .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
+        List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+        return pedidos.stream().map(pedido -> {
+            EqvtPedidoDTO dto = convertToDTO(pedido);
+            dto.setDocumentos(documentService.getDocumentosPorRelacao(pedido.getId(), "SOLICITACAO", "equiv"));
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
 
     // ======== Helper methods para copiar campos ========
     private void copyPedidoFields(EqvTPedido pedido, EqvtPedidoDTO dto) {
@@ -290,6 +302,21 @@ public class EqvTPedidoCrudService {
         dto.setAnoFim(pedido.getAnoFim());
         dto.setNivel(pedido.getNivel());
         dto.setFamilia(pedido.getFamilia());
+
+        List<DocumentoDTO> docs = new ArrayList<>();
+
+
+//        if (pedido.getId() != null) {
+//            DocumentoDTO doc = new DocumentoDTO();
+//            doc.setNome("Documento 1");
+//            doc.setUrlArquivo("http://localhost:8083/api/documentos/preview-by-tipo-rel"
+//                    + "?idRelacao=" + pedido.getId()
+//                    + "&tipoRelacao=SOLICITACAO"
+//                    + "&appCode=equiv");
+//            docs.add(doc);
+//        }
+
+        dto.setDocumentos(docs);
 
 
         if (pedido.getRequerente() != null) {
@@ -348,86 +375,6 @@ public class EqvTPedidoCrudService {
 
         return dto;
     }
-
-
-    // gravar documento no minio
-
-    private void salvarDocumentosDoPedido(EqvtPedidoDTO dto, EqvTPedido pedido) {
-        List<DocumentoDTO> docs = dto.getDocumentos();
-
-        if (docs == null) {
-            log.warn("Nenhum documento recebido para o pedido {}", pedido.getId());
-            return;
-        }
-
-        log.info("Salvando {} documentos para o pedido {}", docs.size(), pedido.getId());
-
-        for (DocumentoDTO doc : docs) {
-            if (doc.getFile() == null) {
-                log.warn("Documento {} sem arquivo associado", doc.getNome());
-                continue;
-            }
-
-            log.debug("Processando documento: {}", doc.getNome());
-
-            DocRelacaoDTO docRelacao = DocRelacaoDTO.builder()
-                    .idRelacao(pedido.getId())
-                    .tipoRelacao("SOLICITACAO")
-                    .estado("A")
-                    .appCode("equiv")
-                    .idTpDoc(""+doc.getIdTpDoc())
-                    .fileName(doc.getNome())
-                    .file(doc.getFile())
-                    .build();
-
-            try {
-                documentService.save(docRelacao);
-                log.info("Documento {} salvo com sucesso", doc.getNome());
-            } catch (Exception e) {
-                log.error("Erro ao salvar documento {}", doc.getNome(), e);
-            }
-        }
-    }
-
-
-    private AcompanhamentoDTO montarAcompanhamentoDTO(EqvtPedidoDTO dto, EqvTPedido pedido) {
-        try {
-            AcompanhamentoDTO acomp = new AcompanhamentoDTO();
-            acomp.setNumero(String.valueOf(pedido.getRequisicao().getnProcesso()));
-            acomp.setAppDad("EQUIV");
-            acomp.setPessoaId(12);
-            acomp.setEntidadeNif(null);
-            acomp.setTipo("PEDIDO_RVCC");
-            acomp.setTitulo(dto.getFormacaoProf());
-            acomp.setDescricao(dto.getFormacaoProf());
-            acomp.setEntidade(dto.getInstEnsino() != null ? dto.getInstEnsino().getNome() : null);
-            acomp.setPercentagem(10);
-            acomp.setDataInicio(LocalDateTime.now());
-            acomp.setDataFim(LocalDateTime.now());
-            acomp.setDataFimPrevisto(LocalDate.now().plusDays(14));
-            acomp.setEtapaAtual("Solicitacao");
-            acomp.setEstado("EM_PROGRESSO");
-            acomp.setEstadoDesc("Em Progresso");
-            acomp.setDetalhes(Map.of("Formação", dto.getFormacaoProf(), "Valor", "2345"));
-
-//            AcompanhamentoDTO.Evento evento = new AcompanhamentoDTO.Evento("Etapa 1", "Iniciado", LocalDateTime.now());
-//            acomp.setEventos(List.of(evento));
-//
-//            AcompanhamentoDTO.Comunicacao comunicacao = new AcompanhamentoDTO.Comunicacao("Notificação", "Faltam docs", LocalDateTime.now(),
-//                    Map.of("Proximo_Passo", "Pagamento", "teste", "232323"));
-//            acomp.setComunicacoes(List.of(comunicacao));
-//
-//            AcompanhamentoDTO.Output output = new AcompanhamentoDTO.Output("Certificado", "wwww");
-//            acomp.setOutputs(List.of(output, output));
-
-            return acomp;
-
-        } catch (Exception e) {
-            log.error("Erro ao montar AcompanhamentoDTO", e);
-            return null; // ou lançar exceção, dependendo do seu fluxo
-        }
-    }
-
 
 
 }
