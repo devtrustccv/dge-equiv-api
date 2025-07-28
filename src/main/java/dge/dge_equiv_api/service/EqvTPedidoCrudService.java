@@ -311,7 +311,7 @@ public class EqvTPedidoCrudService {
             acomp.setPercentagem(10);
             acomp.setDataInicio(LocalDateTime.now());
             acomp.setDataFim(LocalDateTime.now());
-            acomp.setDataFimPrevisto(LocalDate.now().plusDays(14));
+            //acomp.setDataFimPrevisto(LocalDate.now().plusDays(14));
             acomp.setEtapaAtual("Solicitacao");
             acomp.setEstado("EM_PROGRESSO");
             acomp.setEstadoDesc("Em Progresso");
