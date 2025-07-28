@@ -2,6 +2,13 @@ package dge.dge_equiv_api.document.service;
 import dge.dge_equiv_api.Utils.RestClientHelper;
 import dge.dge_equiv_api.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.model.dto.DocRelacaoDTO;
+import dge.dge_equiv_api.model.entity.EqvTPedido;
+import dge.dge_equiv_api.repository.EqvTPedidoRepository;
+import io.micrometer.common.lang.NonNull;
+import io.micrometer.common.lang.Nullable;
+import jakarta.persistence.EntityNotFoundException;
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
@@ -18,6 +25,11 @@ import java.util.*;
 //@RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
 
+    @Autowired
+    private EqvTPedidoRepository pedidoRepository; // Adicione esta injeção
+
+
+
     private final RestClientHelper restClientHelper;
 
     @Value("${api.base.service.url}")
@@ -30,6 +42,13 @@ public class DocumentServiceImpl implements DocumentService {
     public String save(DocRelacaoDTO dto) {
         String apiUrl = url + "/documentos";
 
+        EqvTPedido pedido = pedidoRepository.findById(dto.getIdRelacao())
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado"));
+
+        // Obter o número do processo da requisição
+        String nProcesso = pedido.getRequisicao() != null
+                ? String.valueOf(pedido.getRequisicao().getnProcesso())
+                : "SEM-PROCESSO";
         // Criar headers
         Map<String, String> headersMap = new HashMap<>();
         headersMap.put("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE);
@@ -43,7 +62,8 @@ public class DocumentServiceImpl implements DocumentService {
         body.add("appCode", dto.getAppCode());
         body.add("fileName", dto.getFileName());
         String ext = getFileExtension(dto.getFile().getOriginalFilename());
-        var path = getPathFile(dto.getFileName(),  dto.getTipoRelacao(), dto.getIdRelacao(), dto.getAppCode(), ext);
+
+        var path = getPathFile(dto.getFileName(),  dto.getTipoRelacao(),  dto.getIdRelacao(), nProcesso, dto.getAppCode(), ext);
         body.add("path", path);
 
         if (dto.getIdTpDoc() != null) {
@@ -92,9 +112,18 @@ public class DocumentServiceImpl implements DocumentService {
         return ""; // Sem extensão
     }
 
-    public String getPathFile(String fileName, String tipoRelacao, Integer idRelacao, String appCode, String ext) {
+    public String getPathFile(String fileName,  String tipoRelacao, Integer idRelacao, String nprocesso, String appCode, String ext) {
         System.out.println("ext " + ext);
-        return appCode + "/"+LocalDateTime.now().getYear()+"/processos/"+tipoRelacao+"/"+idRelacao+"/"+fileName +"."+ ext;
+        return appCode + "/"+LocalDateTime.now().getYear()+"/processos/"+tipoRelacao+"/"+nprocesso+"/"+idRelacao+"/"+fileName +"."+ ext;
+    }
+
+    public static String getBasePathForProcess(String appDad, @NonNull String processTypeKey, @Nullable String processInstanceID, @Nullable String taskKey) {
+
+        var thisYear = new DateTime().year().getAsString();
+        var task = (taskKey == null || taskKey.isEmpty() ? "":taskKey+"/");
+        var processId = (processInstanceID == null || processInstanceID.isEmpty() ? "":processInstanceID+"/");
+
+        return appDad+"/"+thisYear+"/processos/"+processTypeKey+"/"+processId+task;
     }
     //pegar doc no minio
 
@@ -127,7 +156,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public List<DocumentoDTO> getDocumentosPorRelacao(Integer idRelacao, String tipoRelacao, String appCode) {
-        String apiUrl = url + "/documentos/list-by-tipo-rel"
+        String apiUrl = url + "/documentos/preview-by-tipo-rel"
                 + "?idRelacao=" + idRelacao
                 + "&tipoRelacao=" + tipoRelacao
                 + "&appCode=" + appCode;

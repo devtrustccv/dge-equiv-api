@@ -65,6 +65,18 @@ public class AcompanhamentoDTO {
     @JsonProperty("outputs")
     private List<Output> outputs;
 
+    @JsonProperty("anexos")
+    private List<Anexo> anexos;
+
+    public List<Anexo> getAnexos() {
+        return anexos;
+    }
+
+    public void setAnexos(List<Anexo> anexos) {
+        this.anexos = anexos;
+    }
+
+
     // Getters e Setters
 
     public String getNumero() {
@@ -335,4 +347,62 @@ public class AcompanhamentoDTO {
             this.url = url;
         }
     }
+
+    public static class Anexo {
+        @JsonProperty("titulo")
+        private String titulo;
+
+        @JsonProperty("datetime")
+        private LocalDateTime datetime;
+
+        @JsonProperty("url")
+        private String url;
+
+        @JsonProperty("input")
+        private boolean input;
+
+        public Anexo() {
+        }
+
+        public Anexo(String titulo, LocalDateTime datetime, String url, boolean input) {
+            this.titulo = titulo;
+            this.datetime = datetime;
+            this.url = url;
+            this.input = input;
+        }
+
+        public String getTitulo() {
+            return titulo;
+        }
+
+        public void setTitulo(String titulo) {
+            this.titulo = titulo;
+        }
+
+        public LocalDateTime getDatetime() {
+            return datetime;
+        }
+
+        public void setDatetime(LocalDateTime datetime) {
+            this.datetime = datetime;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public boolean isInput() {
+            return input;
+        }
+
+        public void setInput(boolean input) {
+            this.input = input;
+        }
+    }
+
+
 }

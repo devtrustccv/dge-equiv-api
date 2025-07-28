@@ -1,7 +1,10 @@
 package dge.dge_equiv_api.service;
 
+import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.acompanhamento.dto.AcompanhamentoDTO;
 import dge.dge_equiv_api.acompanhamento.service.AcompanhamentoService;
+import dge.dge_equiv_api.certificado.config.ReporterConfig;
+import dge.dge_equiv_api.certificado.dto.CertificadoEquivalenciaDTO;
 import dge.dge_equiv_api.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.document.service.DocumentService;
 import dge.dge_equiv_api.document.service.DocumentServiceImpl;
@@ -9,13 +12,16 @@ import dge.dge_equiv_api.model.dto.*;
 import dge.dge_equiv_api.model.entity.*;
 import dge.dge_equiv_api.notification.dto.NotificationRequestDTO;
 import dge.dge_equiv_api.notification.service.NotificationService;
+import dge.dge_equiv_api.process.service.ProcessService;
 import dge.dge_equiv_api.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,21 +50,55 @@ public class EqvTPedidoCrudService {
     private DocumentServiceImpl documentServiceImpl;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private ProcessService processService;
+   @Autowired
+    private GlobalGeografiaService globalGeografiaService;
+
+    @Autowired
+    private ReporterConfig reporterConfig;
 
 
+    @Transactional
     public List<EqvtPedidoDTO> createLotePedidosComRequisicaoERequerenteUnicos(
             List<EqvtPedidoDTO> pedidosDTO,
             EqvTRequisicaoDTO requisicaoDTO,
             EqvTRequerenteDTO requerenteDTO) {
 
+        // 1. Validate inputs
+        if (pedidosDTO == null || pedidosDTO.isEmpty()) {
+            throw new IllegalArgumentException("Lista de pedidos não pode ser nula ou vazia");
+        }
+        if (requerenteDTO == null) {
+            throw new IllegalArgumentException("RequerenteDTO não pode ser nulo");
+        }
+
+        // 2. Save requerente
         EqvTRequerente requerente = new EqvTRequerente();
         copyRequerenteFields(requerente, requerenteDTO);
         requerente = requerenteRepository.save(requerente);
 
+        // 3. Process institutions first
+        Map<Integer, EqvTInstEnsino> instituicoesProcessadas = new HashMap<>();
+        for (EqvtPedidoDTO dto : pedidosDTO) {
+            if (dto.getInstEnsino() != null) {
+                EqvTInstEnsino inst = processarInstituicaoEnsino(dto.getInstEnsino());
+                instituicoesProcessadas.put(inst.getId(), inst);
+                dto.getInstEnsino().setId(inst.getId());
+            }
+        }
+
+        // 4. Create and save requisicao
         EqvTRequisicao requisicao = new EqvTRequisicao();
         copyRequisicaoFields(requisicao, requisicaoDTO);
         requisicao = requisicaoRepository.save(requisicao);
 
+        // 5. Start process BEFORE saving pedidos
+        String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instituicoesProcessadas);
+        requisicao.setnProcesso(Integer.valueOf(processInstanceId));
+        requisicao = requisicaoRepository.save(requisicao);
+
+        // 6. Save pedidos and documents
         List<EqvtPedidoDTO> result = new ArrayList<>();
         List<EqvTPedido> pedidosSalvos = new ArrayList<>();
 
@@ -68,35 +108,80 @@ public class EqvTPedidoCrudService {
             pedido.setRequerente(requerente);
             pedido.setRequisicao(requisicao);
 
-            // inst ensino
-
-//            if (dto.getInstEnsino() != null) {
-//                EqvTInstEnsino inst = instEnsinoRepository
-//                        .findById(dto.getInstEnsino().getId())
-//                        .orElseGet(() -> {
-//                            EqvTInstEnsino novo = new EqvTInstEnsino();
-//                            copyInstEnsinoFields(novo, dto.getInstEnsino());
-//                            return instEnsinoRepository.save(novo);
-//                        });
-//                pedido.setInstEnsino(inst);
-//            }
+            // Set institution if exists
+            if (dto.getInstEnsino() != null && dto.getInstEnsino().getId() != null) {
+                pedido.setInstEnsino(instituicoesProcessadas.get(dto.getInstEnsino().getId()));
+            }
 
             pedido = pedidoRepository.save(pedido);
-            pedidosSalvos.add(pedido); // guardamos os pedidos com ID
-
+            pedidosSalvos.add(pedido);
             salvarDocumentosDoPedido(dto, pedido);
 
+            enviarEmailConfirmacao(requerente,pedido);
+
+            // 8. Send confirmation email
             result.add(convertToDTO(pedido));
         }
 
-        // Agora sim: criar um único acompanhamento após todos os pedidos estarem salvos
-        AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidosSalvos);
-        if (acompanhamento != null) {
-            acompanhamentoService.criarAcompanhamento(acompanhamento);
-            log.info("Acompanhamento criado com sucesso para requisição {}", requisicao.getId());
-        }
-        enviarEmailConfirmacao(requerente, requisicao);
+        // 7. Create acompanhamento
+        criarAcompanhamento(requisicao, pedidosSalvos);
+
+
+
+
         return result;
+    }
+
+    // Helper methods
+    private EqvTInstEnsino processarInstituicaoEnsino(EqvTInstEnsinoDTO dto) {
+        if (dto.getId() != null) {
+            return instEnsinoRepository.findById(dto.getId())
+                    .orElseGet(() -> criarNovaInstituicao(dto));
+        }
+        return criarNovaInstituicao(dto);
+    }
+
+    private EqvTInstEnsino criarNovaInstituicao(EqvTInstEnsinoDTO dto) {
+        EqvTInstEnsino novo = new EqvTInstEnsino();
+        copyInstEnsinoFields(novo, dto);
+        return instEnsinoRepository.save(novo);
+    }
+
+    private String iniciarProcessoComValidacao(EqvTRequerente requerente,
+                                               List<EqvtPedidoDTO> pedidosDTO,
+                                               Map<Integer, EqvTInstEnsino> instituicoes) {
+        try {
+            List<EqvTPedido> pedidosTemporarios = pedidosDTO.stream()
+                    .map(dto -> {
+                        EqvTPedido p = new EqvTPedido();
+                        copyPedidoFields(p, dto);
+
+                        // Ensure institution is set properly
+                        if (dto.getInstEnsino() != null && dto.getInstEnsino().getId() != null) {
+                            p.setInstEnsino(instituicoes.get(dto.getInstEnsino().getId()));
+                        }
+
+                        return p;
+                    })
+                    .collect(Collectors.toList());
+
+            return processService.iniciarProcessoEquivalencia(requerente, pedidosTemporarios);
+        } catch (Exception e) {
+            log.error("Falha ao iniciar processo de equivalência", e);
+            throw new RuntimeException("Não foi possível iniciar o processo de equivalência", e);
+        }
+    }
+
+    private void criarAcompanhamento(EqvTRequisicao requisicao, List<EqvTPedido> pedidos) {
+        try {
+            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidos);
+            if (acompanhamento != null) {
+                acompanhamentoService.criarAcompanhamento(acompanhamento);
+                log.info("Acompanhamento criado para processo {}", requisicao.getnProcesso());
+            }
+        } catch (Exception e) {
+            log.error("Falha ao criar acompanhamento", e);
+        }
     }
 
 
@@ -166,7 +251,12 @@ public class EqvTPedidoCrudService {
             return;
         }
 
-        log.info("Salvando {} documentos para o pedido {}", docs.size(), pedido.getId());
+        // Garante que a requisição e número de processo existem
+        if (pedido.getRequisicao() == null || pedido.getRequisicao().getnProcesso() == null) {
+            throw new IllegalStateException("Número de processo não disponível para salvar documentos");
+        }
+
+        String nProcesso = String.valueOf(pedido.getRequisicao().getnProcesso());
 
         for (DocumentoDTO doc : docs) {
             if (doc.getFile() == null) {
@@ -177,15 +267,16 @@ public class EqvTPedidoCrudService {
             try {
                 documentService.save(DocRelacaoDTO.builder()
                         .idRelacao(pedido.getId())
-                        .tipoRelacao("SOLICITACAO")
+                        .tipoRelacao("SOLITACAO")
                         .estado("A")
                         .appCode("equiv")
                         .idTpDoc(String.valueOf(doc.getIdTpDoc()))
                         .fileName(doc.getNome())
                         .file(doc.getFile())
-                        .build()
-                );
-                log.info("Documento {} salvo com sucesso", doc.getNome());
+                        .nProcesso(nProcesso) // Agora temos o número do processo
+                        .build());
+
+                log.info("Documento {} salvo com sucesso para processo {}", doc.getNome(), nProcesso);
             } catch (Exception e) {
                 log.error("Erro ao salvar documento {}", doc.getNome(), e);
             }
@@ -228,7 +319,7 @@ public class EqvTPedidoCrudService {
             // Adiciona um mapa com todas as formações
             Map<String, String> detalhes = new LinkedHashMap<>();
             for (EqvTPedido p : pedidos) {
-                detalhes.put("Formação " + p.getId(), p.getFormacaoProf());
+                detalhes.put("Formação Profissional " + p.getId(), p.getFormacaoProf());
             }
             acomp.setDetalhes(detalhes);
 
@@ -236,10 +327,17 @@ public class EqvTPedidoCrudService {
                     new AcompanhamentoDTO.Evento("Etapa 1", "Iniciado", LocalDateTime.now())
             ));
             acomp.setComunicacoes(List.of(
-                    new AcompanhamentoDTO.Comunicacao("Notificação", "Faltam documentos", LocalDateTime.now(),
+                    new AcompanhamentoDTO.Comunicacao("Notificação", "", LocalDateTime.now(),
                             Map.of("Proximo_Passo", "Análise"))
             ));
             acomp.setOutputs(List.of());
+
+//            List<AcompanhamentoDTO.Anexo> anexos = List.of(
+//                    new AcompanhamentoDTO.Anexo("Certificado", LocalDateTime.now(), "https://www.dasinal.cv", false),
+//                    new AcompanhamentoDTO.Anexo("CNI", LocalDateTime.now(), "https://www.devtrust.cv", true)
+//            );
+//            acomp.setAnexos(anexos);
+
 
             return acomp;
         } catch (Exception e) {
@@ -256,41 +354,81 @@ public class EqvTPedidoCrudService {
         List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
         return pedidos.stream().map(pedido -> {
             EqvtPedidoDTO dto = convertToDTO(pedido);
-            dto.setDocumentos(documentService.getDocumentosPorRelacao(pedido.getId(), "SOLICITACAO", "equiv"));
+            dto.setDocumentos(documentService.getDocumentosPorRelacao(pedido.getId(), "SOLITACAO","equiv"));
+            log.info("Encontrados {} documentos para o pedido {}", dto.getDocumentos().size(), pedido.getId());
             return dto;
         }).collect(Collectors.toList());
     }
 
 
     // enviar email
-    private void enviarEmailConfirmacao(EqvTRequerente requerente, EqvTRequisicao requisicao) {
+    private void enviarEmailConfirmacao(EqvTRequerente requerente, EqvTPedido requisicao) {
         String nomeRequerente = requerente.getNome() != null ? requerente.getNome() : "";
-        String numeroPedido = requisicao.getnProcesso() != null ? String.valueOf(requisicao.getnProcesso()) : "";
+        String numeroPedido = requisicao.getRequisicao().getnProcesso() != null ? String.valueOf(requisicao.getRequisicao().getnProcesso()) : "";
+        String nomeFormacao = requisicao.getFormacaoProf() != null ? requisicao.getFormacaoProf() : "Formação não especificada";
+        String pais = globalGeografiaService.buscarNomePorCodigoPais(requisicao.getInstEnsino().getPais())  != null ? globalGeografiaService.buscarNomePorCodigoPais(requisicao.getInstEnsino().getPais()) : "País não especificado";
+        String nomeTecnico = "Técnico Responsável"; // Substitua dinamicamente se tiver o nome real
 
         try {
+            // Email para o requerente
+            String assuntoRequerente = "Confirmação de Recebimento - Pedido de Equivalência Profissional";
+            String mensagemRequerente =
+                    "<p>Exmo(a). Sr(a). <strong>" + nomeRequerente + "</strong>,</p>" +
+                            "<p>Confirmamos o recebimento do seu pedido de equivalência profissional, registrado sob o número <strong>" + numeroPedido + "</strong>.</p>" +
+                            "<p>O seu pedido foi recebido pela <strong>Unidade de Coordenação do Sistema Nacional de Qualificações (UC-SNQ)</strong> e será agora instruído e analisado.</p>" +
+                            "<p><strong>Será informado(a) sobre o progresso em cada etapa do processo.</strong></p>" +
+                            "<p>Atenciosamente,</p><p><strong>UC-SNQ</strong></p>";
 
+            NotificationRequestDTO dto1 = new NotificationRequestDTO();
+            dto1.setAppName("equiv");
+            dto1.setSubject(assuntoRequerente);
+            dto1.setMessage(mensagemRequerente);
+            dto1.setEmail(requerente.getEmail());
+            notificationService.enviarEmail(dto1);
+            log.info("Email de confirmação enviado para: {}", requerente.getEmail());
 
-        String assunto = "Confirmação de Recebimento - Pedido de Equivalência Profissional";
+            // Email para o técnico ou responsável institucional
+            String assuntoTecnico = "Novo Pedido de Equivalência Profissional Submetido";
+            String mensagemTecnico =
+                    "<p>Prezado(a) <strong>" + nomeTecnico + "</strong>,</p>" +
+                            "<p>Foi submetido um novo pedido de equivalência profissional por parte do(a) requerente <strong>" + nomeRequerente + "</strong>, " +
+                            "referente ao Formação de <strong>" + nomeFormacao + "</strong>, realizado em <strong>" + pais + "</strong>.</p>" +
+                            "<p>O processo encontra-se registado sob o número <strong>" + numeroPedido + "</strong> e aguarda análise inicial.</p>" +
+                            "<p>Por favor, aceda à plataforma para proceder com a verificação da documentação e validação da submissão.</p>" +
+                            "<p>Com os melhores cumprimentos,<br><strong>UC-SNQ – Sistema de Equivalência Profissional</strong></p>";
 
-        String mensagem =
-                "<p>Exmo(a). Sr(a). <strong>" + nomeRequerente + "</strong>,</p>" +
-                        "<p>Confirmamos o recebimento do seu pedido de equivalência profissional, registrado sob o número <strong>" + numeroPedido + "</strong>.</p>" +
-                        "<p>O seu pedido foi recebido pela <strong>Unidade de Coordenação do Sistema Nacional de Qualificações (UC-SNQ)</strong> e será agora instruído e analisado.</p>" +
-                        "<p><strong>Será informado(a) sobre o progresso em cada etapa do processo.</strong></p>" +
-                        "<p>Atenciosamente,</p><p><strong>UC-SNQ</strong></p>";
+            NotificationRequestDTO dto2 = new NotificationRequestDTO();
+            dto2.setAppName("equiv");
+            dto2.setSubject(assuntoTecnico);
+            dto2.setMessage(mensagemTecnico);
+            dto2.setEmail("barbosaadnilson931@gmail.com");
+            ///notificationService.enviarEmail(dto2);
+            log.info("Email institucional enviado para: uc-snq@instituicao.gov.cv");
 
-        NotificationRequestDTO dto = new NotificationRequestDTO();
-        dto.setAppName("equiv"); // ou outro appCode conforme o backend do serviço de notificação
-        dto.setSubject(assunto);
-        dto.setMessage(mensagem);
-        log.info("Enviando email de confirmação para: {}", dto.getMessage());
-        dto.setEmail(requerente.getEmail()); // Certifique-se de que o email do requerente esteja preenchido
-
-        notificationService.enviarEmail(dto);
-        log.info("Email de confirmação enviado para: {}", requerente.getEmail());
-        }catch (Exception e) {
-            log.error("Erro ao enviar email de confirmação", e);
+        } catch (Exception e) {
+            log.error("Erro ao enviar email(s) de confirmação", e);
         }
+    }
+
+
+
+    public CertificadoEquivalenciaDTO montarCertificado(EqvtPedidoDTO pedidoDTO) {
+        CertificadoEquivalenciaDTO dto = new CertificadoEquivalenciaDTO();
+
+        String id = AESUtil.encrypt(pedidoDTO.getId().toString());
+        String url = reporterConfig.getReporterEqvUrl() + "equiv/declaracao_equivalencia/" + id;
+
+        dto.setFormacaoOriginal(pedidoDTO.getFormacaoProf());
+        dto.setEntidadeOriginal(pedidoDTO.getInstEnsino() != null ? pedidoDTO.getInstEnsino().getNome() : null);
+        dto.setEquivalencia("Equivalência Profissional"); // se fixo ou regra
+        dto.setNivelQualificacao(pedidoDTO.getNivel() != null ? pedidoDTO.getNivel().toString() : null);
+        dto.setUrl(url);
+        dto.setDataEmissao(LocalDate.now());// por defenir
+        dto.setEntidadeEmissora("DGERT - Direção-Geral do Emprego e das Relações de Trabalho");
+        dto.setNumeroProcesso(pedidoDTO.getRequisicao().getnProcesso().toString());
+        dto.setPaisOrigem(pedidoDTO.getInstEnsino() != null ? pedidoDTO.getInstEnsino().getPais() : null);
+
+        return dto;
     }
 
 
@@ -328,7 +466,16 @@ public class EqvTPedidoCrudService {
     }
 
     private void copyRequisicaoFields(EqvTRequisicao requisicao, EqvTRequisicaoDTO dto) {
-        requisicao.setnProcesso(dto.getnProcesso());
+
+        if (dto == null) {
+            return; // Ou define valores padrão
+        }
+
+        // Só define nProcesso se não for nulo no DTO
+        if (dto.getnProcesso() != null) {
+            requisicao.setnProcesso(dto.getnProcesso());
+        }
+
         requisicao.setStatus(1);
         requisicao.setEtapa(1);
         requisicao.setDataCreate(LocalDate.now());

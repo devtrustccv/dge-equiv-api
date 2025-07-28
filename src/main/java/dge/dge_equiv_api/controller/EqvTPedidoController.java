@@ -1,6 +1,7 @@
 package dge.dge_equiv_api.controller;
 
 import dge.dge_equiv_api.Utils.AESUtil;
+import dge.dge_equiv_api.certificado.dto.CertificadoEquivalenciaDTO;
 import dge.dge_equiv_api.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.model.dto.EqvtPedidoDTO;
 import dge.dge_equiv_api.model.dto.PortalPedidosDTO;
@@ -147,6 +148,18 @@ public class EqvTPedidoController {
             return ResponseEntity.badRequest().body("ID inválido ou erro ao descriptografar.");
         }
     }
+
+    @GetMapping("/certificado/{id}")
+    public ResponseEntity<CertificadoEquivalenciaDTO> getCertificado(@PathVariable Integer id) {
+        EqvtPedidoDTO pedido = crudService.findById(id); // seu método real aqui
+        if (pedido == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        CertificadoEquivalenciaDTO dto = crudService.montarCertificado(pedido);
+        return ResponseEntity.ok(dto);
+    }
+
 
 //    @Autowired
 //    private RuntimeService runtimeService;

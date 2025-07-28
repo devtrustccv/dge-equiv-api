@@ -12,6 +12,15 @@ public class DocRelacaoDTO {
     private String path;
     private String appCode;
     private MultipartFile file;
+    private String nProcesso; // <-- só para usar no path do arquivo
+
+    public String getNProcesso() {
+        return nProcesso;
+    }
+
+    public void setNProcesso(String nProcesso) {
+        this.nProcesso = nProcesso;
+    }
 
     // Construtor padrão
     public DocRelacaoDTO() {}
@@ -108,6 +117,12 @@ public class DocRelacaoDTO {
         private String path;
         private String appCode;
         private MultipartFile file;
+        private String nProcesso;
+
+        public Builder nProcesso(String nProcesso) {
+            this.nProcesso = nProcesso;
+            return this;
+        }
 
         public Builder idRelacao(Integer idRelacao) {
             this.idRelacao = idRelacao;

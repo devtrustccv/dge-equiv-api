@@ -12,10 +12,7 @@ import java.util.Map;
 public class NotificationRequestDTO {
 
     private String email;
-
-    @JsonProperty("body")  // mapeia "body" no JSON para "message"
     private String message;
-
     private String status;
     private String subject;
     private String appName;

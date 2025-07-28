@@ -30,8 +30,8 @@ public class NotificationService {
         // Construir corpo multipart
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("appCode", dto.getAppName());
-        body.add("subject", dto.getSubject());
-        body.add("body", dto.getMessage());
+        body.add("Subject", dto.getSubject());
+        body.add("message", dto.getMessage());
         body.add("email", dto.getEmail());
 
 
