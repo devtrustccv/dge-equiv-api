@@ -1,0 +1,37 @@
+spring.application.name=dge-equiv-api
+server.servlet.context-path=/api
+server.port=8086
+api.version=1.0
+spring.datasource.url=jdbc:postgresql://localhost:5432/db_dge_equivalencia
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+spring.datasource.driver-class-name=org.postgresql.Driver
+#spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.default_schema=public
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.show-sql=true
+logging.level.dge.dge_equiv_api.service=INFO
+
+
+### FLYWAY CONFIGURATIONS
+spring.flyway.enabled=false
+spring.flyway.baseline-on-migrate=true
+spring.flyway.location=classpath:db/migration
+spring.flyway.schemas=public
+spring.flyway.databaseType=postgresql
+
+api.base.service.url=http://localhost:8083/api
+api.auth.url=https://deploy.devtrust.cv/dge-api/public/token
+
+# Credenciais
+api.auth.client_id=dge-central-base
+api.auth.client_secret=fOA5mn0XvyXcsnPQnJnweQOkWNOuQZwO
+
+# Endpoints protegidos
+api.acompanhamento.create=https://deploy.devtrust.cv/dge-api/api-global/process
+api.acompanhamento.update=https://deploy.devtrust.cv/dge-api/api-global/process/update
+reporter.eqv.url=https://deploy.devtrust.cv/report-dge/
+process.equiv.start-url=http://localhost:8080/dge/services/process/start
+
+
+
