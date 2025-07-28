@@ -53,22 +53,35 @@ public class EqvTPedidoService {
         // Requerente
         if (pedido.getRequerente() != null) {
             EqvTRequerenteDTO reqDto = new EqvTRequerenteDTO();
+
             reqDto.setId(pedido.getRequerente().getId());
             reqDto.setNome(pedido.getRequerente().getNome());
             reqDto.setDocNumero(pedido.getRequerente().getDocNumero());
-            reqDto.setDocIdentificacao(pedido.getRequerente().getDocIdentificacao());
             reqDto.setDataNascimento(pedido.getRequerente().getDataNascimento());
-            String descricao = tblDomainService.buscarDescricaoPorDominioEValor("SEXO", pedido.getRequerente().getSexo());
-            reqDto.setSexo(descricao);
-            Integer descricaoHab = Integer.valueOf(tblDomainService.buscarDescricaoPorDominioEValor("HABILITAÇÃO", String.valueOf(pedido.getRequerente().getHabilitacao())));
-            reqDto.setHabilitacao(String.valueOf(descricaoHab));
-            String descricaoDoc = tblDomainService.buscarDescricaoPorDominioEValor("TIPO_DOCUMENTO_IDENT", pedido.getRequerente().getDocIdentificacao());
-            reqDto.setDocIdentificacao(descricaoDoc);
-            String getNacionalidade = globalGeografiaService.buscarNomePorCodigoPais(pedido.getRequerente().getNacionalidade());
-            reqDto.setNacionalidade(getNacionalidade);
+
+            // Sexo - pega a descrição
+            String sexoCod = pedido.getRequerente().getSexo();
+            if (sexoCod != null)
+                reqDto.setSexo(tblDomainService.buscarDescricaoPorDominioEValor("SEXO", sexoCod));
+
+            // Habilitação - pega a descrição
+            Integer codHabilitacao = pedido.getRequerente().getHabilitacao();
+            if (codHabilitacao != null)
+                reqDto.setHabilitacao(tblDomainService.buscarDescricaoPorDominioEValor("HABILITAÇÃO", String.valueOf(codHabilitacao)));
+
+            // Tipo de Documento - pega a descrição
+            String tipoDocCod = pedido.getRequerente().getDocIdentificacao();
+            if (tipoDocCod != null)
+                reqDto.setDocIdentificacao(tblDomainService.buscarDescricaoPorDominioEValor("TIPO_DOCUMENTO_IDENT", tipoDocCod));
+
+            // Nacionalidade - pega o nome do país
+            String codPais = pedido.getRequerente().getNacionalidade();
+            if (codPais != null)
+                reqDto.setNacionalidade(globalGeografiaService.buscarNomePorCodigoPais(codPais));
 
             dto.setRequerente(reqDto);
         }
+
 
         // Instituição
         if (pedido.getInstEnsino() != null) {
