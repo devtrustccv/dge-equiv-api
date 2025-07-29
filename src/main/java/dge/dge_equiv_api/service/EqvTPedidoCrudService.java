@@ -88,6 +88,7 @@ public class EqvTPedidoCrudService {
                 EqvTInstEnsino inst = processarInstituicaoEnsino(dto.getInstEnsino());
                 instituicoesProcessadas.put(inst.getId(), inst);
                 dto.getInstEnsino().setId(inst.getId());
+
             }
         }
 
@@ -153,6 +154,8 @@ public class EqvTPedidoCrudService {
     private EqvTInstEnsino criarNovaInstituicao(EqvTInstEnsinoDTO dto) {
         EqvTInstEnsino novo = new EqvTInstEnsino();
         copyInstEnsinoFields(novo, dto);
+        novo.setDateCreate(LocalDate.now());
+        novo.setStatus("A");
         return instEnsinoRepository.save(novo);
     }
 
@@ -472,6 +475,7 @@ public class EqvTPedidoCrudService {
     private void copyInstEnsinoFields(EqvTInstEnsino instEnsino, EqvTInstEnsinoDTO dto) {
         instEnsino.setNome(dto.getNome());
         instEnsino.setPais(dto.getPais());
+        instEnsino.setDateCreate(dto.getDateCreate());
     }
 
     private void copyRequisicaoFields(EqvTRequisicao requisicao, EqvTRequisicaoDTO dto) {
