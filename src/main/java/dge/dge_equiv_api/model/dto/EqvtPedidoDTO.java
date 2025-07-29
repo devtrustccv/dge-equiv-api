@@ -29,8 +29,12 @@ public class EqvtPedidoDTO {
     private String familia;
     private String despacho;
     private String numDeclaracao;
+    private Integer Status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataDespacho;
+
+    private String Etapa;
+
     private List<DocumentoDTO> documentos;
 
     public Integer getId() {
@@ -39,6 +43,21 @@ public class EqvtPedidoDTO {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getEtapa() {
+        return Etapa;
+    }
+
+    public void setEtapa(String etapa) {
+        Etapa = etapa;
+    }
+
+    public void setStatus(Integer status) {
+        Status = status;
+    }
+    public Integer getStatus() {
+        return Status;
     }
 
     public EqvTRequerenteDTO getRequerente() {

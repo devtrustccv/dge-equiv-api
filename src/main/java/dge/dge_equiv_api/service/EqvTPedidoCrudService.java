@@ -15,6 +15,7 @@ import dge.dge_equiv_api.notification.service.NotificationService;
 import dge.dge_equiv_api.process.service.ProcessService;
 import dge.dge_equiv_api.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +93,10 @@ public class EqvTPedidoCrudService {
         // 4. Create and save requisicao
         EqvTRequisicao requisicao = new EqvTRequisicao();
         copyRequisicaoFields(requisicao, requisicaoDTO);
+        requisicao.setStatus(1);
+        requisicao.setEtapa(1);
+        requisicao.setDataCreate(LocalDate.now());
+
         requisicao = requisicaoRepository.save(requisicao);
 
         // 5. Start process BEFORE saving pedidos
@@ -107,6 +112,8 @@ public class EqvTPedidoCrudService {
             EqvTPedido pedido = new EqvTPedido();
             copyPedidoFields(pedido, dto);
             pedido.setRequerente(requerente);
+            pedido.setStatus(1);
+            pedido.setEtapa("Solicitação");
             pedido.setRequisicao(requisicao);
 
             // Set institution if exists
@@ -477,8 +484,8 @@ public class EqvTPedidoCrudService {
             requisicao.setnProcesso(dto.getnProcesso());
         }
 
-        requisicao.setStatus(1);
-        requisicao.setEtapa(1);
+        requisicao.setStatus(dto.getStatus());
+        requisicao.setEtapa(dto.getEtapa());
         requisicao.setDataCreate(LocalDate.now());
         requisicao.setDataUpdate(dto.getDataUpdate());
         requisicao.setUserCreate(dto.getUserCreate());
@@ -491,10 +498,12 @@ public class EqvTPedidoCrudService {
         dto.setId(pedido.getId());
         dto.setFormacaoProf(pedido.getFormacaoProf());
         dto.setCarga(pedido.getCarga());
+        dto.setStatus(pedido.getStatus());
         dto.setAnoInicio(pedido.getAnoInicio());
         dto.setAnoFim(pedido.getAnoFim());
         dto.setNivel(pedido.getNivel());
         dto.setFamilia(pedido.getFamilia());
+        dto.setEtapa(pedido.getEtapa());
 
         List<DocumentoDTO> docs = new ArrayList<>();
 

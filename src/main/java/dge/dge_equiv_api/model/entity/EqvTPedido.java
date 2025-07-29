@@ -40,6 +40,26 @@ public class EqvTPedido {
     @Column(name = "ano_fim", precision = 10, scale = 2)
     private BigDecimal anoFim;
 
+    private Integer Status;
+
+    private String Etapa;
+
+    public String getEtapa() {
+        return Etapa;
+    }
+
+    public void setEtapa(String etapa) {
+        Etapa = etapa;
+    }
+
+    public Integer getStatus() {
+        return Status;
+    }
+
+    public void setStatus(Integer status) {
+        Status = status;
+    }
+
     public Integer getId() {
         return id;
     }

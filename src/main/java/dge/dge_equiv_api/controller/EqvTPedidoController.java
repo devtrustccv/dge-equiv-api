@@ -8,6 +8,7 @@ import dge.dge_equiv_api.model.dto.PortalPedidosDTO;
 import dge.dge_equiv_api.model.dto.PortalPedidosRespostaDTO;
 import dge.dge_equiv_api.service.EqvTPedidoCrudService;
 import dge.dge_equiv_api.service.EqvTPedidoService;
+import io.micrometer.common.lang.NonNull;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ public class EqvTPedidoController {
                     lotePedidosDTO.getPedidos(),
                     lotePedidosDTO.getRequisicao(),
                     lotePedidosDTO.getRequerente(),
+
                     lotePedidosDTO.getPessoaId()
             );
 
@@ -78,37 +80,37 @@ public class EqvTPedidoController {
     // ========================
     // PUT - Atualizar pedidos
     // ========================
-    @Operation(
-            summary = "Atualiza pedidos por ID da requisição",
-            description = "Atualiza todos os pedidos associados à requisição especificada.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Pedidos atualizados com sucesso"),
-                    @ApiResponse(responseCode = "400", description = "Erro ao atualizar os pedidos")
-            }
-    )
-    @PutMapping(value = "/portal/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateLote(@PathVariable String id, @ModelAttribute PortalPedidosDTO lotePedidosDTO) {
-        try {
-            Integer requisicaoId = Integer.valueOf(id);
-            List<EqvtPedidoDTO> updated = crudService.updatePedidosByRequisicaoId(requisicaoId, lotePedidosDTO);
-
-            if (updated.isEmpty()) {
-                logger.warn("Nenhum pedido foi atualizado.");
-                return ResponseEntity.badRequest().body("Não foi possível atualizar os pedidos.");
-            }
-
-            PortalPedidosRespostaDTO resposta = new PortalPedidosRespostaDTO();
-            resposta.setRequisicao(updated.getFirst().getRequisicao());
-            resposta.setRequerente(updated.getFirst().getRequerente());
-            resposta.setPedidos(updated);
-
-            logger.info("Pedidos atualizados com sucesso: {}", updated.size());
-            return ResponseEntity.ok().body(resposta);
-        } catch (Exception e) {
-            logger.error("Erro ao atualizar pedidos: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body("Erro ao atualizar pedidos: " + e.getMessage());
-        }
-    }
+//    @Operation(
+//            summary = "Atualiza pedidos por ID da requisição",
+//            description = "Atualiza todos os pedidos associados à requisição especificada.",
+//            responses = {
+//                    @ApiResponse(responseCode = "200", description = "Pedidos atualizados com sucesso"),
+//                    @ApiResponse(responseCode = "400", description = "Erro ao atualizar os pedidos")
+//            }
+//    )
+//    @PutMapping(value = "/portal/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<?> updateLote(@PathVariable String id, @ModelAttribute PortalPedidosDTO lotePedidosDTO) {
+//        try {
+//            Integer requisicaoId = Integer.valueOf(id);
+//            List<EqvtPedidoDTO> updated = crudService.updatePedidosByRequisicaoId(requisicaoId, lotePedidosDTO);
+//
+//            if (updated.isEmpty()) {
+//                logger.warn("Nenhum pedido foi atualizado.");
+//                return ResponseEntity.badRequest().body("Não foi possível atualizar os pedidos.");
+//            }
+//
+//            PortalPedidosRespostaDTO resposta = new PortalPedidosRespostaDTO();
+//            resposta.setRequisicao(updated.getFirst().getRequisicao());
+//            resposta.setRequerente(updated.getFirst().getRequerente());
+//            resposta.setPedidos(updated);
+//
+//            logger.info("Pedidos atualizados com sucesso: {}", updated.size());
+//            return ResponseEntity.ok().body(resposta);
+//        } catch (Exception e) {
+//            logger.error("Erro ao atualizar pedidos: {}", e.getMessage(), e);
+//            return ResponseEntity.badRequest().body("Erro ao atualizar pedidos: " + e.getMessage());
+//        }
+//    }
 
     // ========================
     // GET - Buscar todos os pedidos
