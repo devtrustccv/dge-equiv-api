@@ -77,6 +77,7 @@ public class EqvTPedidoCrudService {
 
         // 2. Save requerente
         EqvTRequerente requerente = new EqvTRequerente();
+        requerente.setDateCreate(LocalDate.now());
         copyRequerenteFields(requerente, requerenteDTO);
         requerente = requerenteRepository.save(requerente);
 
