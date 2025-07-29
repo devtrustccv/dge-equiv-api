@@ -36,22 +36,25 @@ public class EqvTPedidoController {
 
     // ========================
     // POST - Criar pedidos
-    // ========================
+    // =======================
     @Operation(
             summary = "Cria novos pedidos",
-            description = "Cria um ou mais pedidos de equivalência para um requerente e requisição.",
+            description = "Cria um ou mais pedidos de equivalência associados a um requerente e uma requisição. " +
+                    "⚠️ É obrigatório informar o identificador da pessoa (`pessoaId`) no envio da requisição.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Pedidos criados com sucesso"),
                     @ApiResponse(responseCode = "400", description = "Erro ao processar os dados")
             }
     )
+
     @PostMapping(value = "/portal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createLote(@ModelAttribute PortalPedidosDTO lotePedidosDTO) {
         try {
             List<EqvtPedidoDTO> created = crudService.createLotePedidosComRequisicaoERequerenteUnicos(
                     lotePedidosDTO.getPedidos(),
                     lotePedidosDTO.getRequisicao(),
-                    lotePedidosDTO.getRequerente()
+                    lotePedidosDTO.getRequerente(),
+                    lotePedidosDTO.getPessoaId()
             );
 
             if (created.isEmpty()) {

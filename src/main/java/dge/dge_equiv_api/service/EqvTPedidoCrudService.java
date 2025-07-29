@@ -63,7 +63,8 @@ public class EqvTPedidoCrudService {
     public List<EqvtPedidoDTO> createLotePedidosComRequisicaoERequerenteUnicos(
             List<EqvtPedidoDTO> pedidosDTO,
             EqvTRequisicaoDTO requisicaoDTO,
-            EqvTRequerenteDTO requerenteDTO) {
+            EqvTRequerenteDTO requerenteDTO,
+            Integer pessoaId) {
 
         // 1. Validate inputs
         if (pedidosDTO == null || pedidosDTO.isEmpty()) {
@@ -124,7 +125,7 @@ public class EqvTPedidoCrudService {
         }
 
         // 7. Create acompanhamento
-        criarAcompanhamento(requisicao, pedidosSalvos);
+        criarAcompanhamento(requisicao, pedidosSalvos, pessoaId);
 
 
 
@@ -172,9 +173,9 @@ public class EqvTPedidoCrudService {
         }
     }
 
-    private void criarAcompanhamento(EqvTRequisicao requisicao, List<EqvTPedido> pedidos) {
+    private void criarAcompanhamento(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId) {
         try {
-            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidos);
+            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidos,pessoaId);
             if (acompanhamento != null) {
                 acompanhamentoService.criarAcompanhamento(acompanhamento);
                 log.info("Acompanhamento criado para processo {}", requisicao.getnProcesso());
@@ -284,12 +285,12 @@ public class EqvTPedidoCrudService {
     }
 
     // criar  acompanhamento para cada  pedido
-    private AcompanhamentoDTO montarAcompanhamentoDTO(EqvTRequisicao requisicao, List<EqvTPedido> pedidos) {
+    private AcompanhamentoDTO montarAcompanhamentoDTO(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId) {
         try {
             AcompanhamentoDTO acomp = new AcompanhamentoDTO();
             acomp.setNumero(String.valueOf(requisicao.getnProcesso()));
             acomp.setAppDad("EQUIV");
-            acomp.setPessoaId(12);
+            acomp.setPessoaId(pessoaId);
             acomp.setEntidadeNif(null);
             acomp.setTipo("PEDIDO_RVCC");
 

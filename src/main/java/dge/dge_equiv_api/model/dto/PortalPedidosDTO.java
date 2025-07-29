@@ -7,12 +7,23 @@ public class PortalPedidosDTO {
     private EqvTRequisicaoDTO requisicao;
     private EqvTRequerenteDTO requerente;
     private List<EqvtPedidoDTO> pedidos;
+    private Integer pessoaId;
+
 
     // campos para arquivos
     private MultipartFile file;                     // um arquivo
     private List<MultipartFile> documentosArquivos; // vários arquivos
 
     // getters e setters
+
+
+    public Integer getPessoaId() {
+        return pessoaId;
+    }
+
+    public void setPessoaId(Integer pessoaId) {
+        this.pessoaId = pessoaId;
+    }
 
     public EqvTRequisicaoDTO getRequisicao() {
         return requisicao;

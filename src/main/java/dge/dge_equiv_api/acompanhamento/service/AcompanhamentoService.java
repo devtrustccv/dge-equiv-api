@@ -61,6 +61,7 @@ public class AcompanhamentoService {
                     request,
                     AcompanhamentoDTO.class
             );
+            //log.debug("Payload enviado: {}", objectMapper.writeValueAsString(body));
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Acompanhamento criado com sucesso: " + response.getBody());
