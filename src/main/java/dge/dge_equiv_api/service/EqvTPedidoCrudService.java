@@ -67,10 +67,10 @@ public class EqvTPedidoCrudService {
             EqvTRequerenteDTO requerenteDTO,
             Integer pessoaId) {
 
+        //validar  pessoa id para o registro do acompanhamento
         if (pessoaId == null) {
-            throw new RuntimeException("É necessário fornecer o identificador da pessoa (pessoaId) para registrar o acompanhamento.");
+            throw new RuntimeException("O campo 'pessoaId' é obrigatório para o registro do acompanhamento. Por favor, forneça um valor válido.");
         }
-
 
         // 1. Validate inputs
         if (pedidosDTO == null || pedidosDTO.isEmpty()) {
