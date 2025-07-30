@@ -115,20 +115,20 @@ public class EqvTPedidoController {
     // ========================
     // GET - Buscar todos os pedidos
     // ========================
-    @GetMapping
-    public ResponseEntity<List<EqvtPedidoDTO>> getAll() {
-        List<EqvtPedidoDTO> pedidos = crudService.findAll();
-       // byte[] arquivo = documentServiceImpl.previewDocumento(496, "SOLICITACAO", "equiv", false);
-        //logger.info("saida .......  "+arquivo.length);
-        logger.info("Total de pedidos encontrados: {}", pedidos.size());
-        return ResponseEntity.ok(pedidos);
-    }
+//    @GetMapping
+//    public ResponseEntity<List<EqvtPedidoDTO>> getAll() {
+//        List<EqvtPedidoDTO> pedidos = crudService.findAll();
+//       // byte[] arquivo = documentServiceImpl.previewDocumento(496, "SOLICITACAO", "equiv", false);
+//        //logger.info("saida .......  "+arquivo.length);
+//        logger.info("Total de pedidos encontrados: {}", pedidos.size());
+//        return ResponseEntity.ok(pedidos);
+//    }
 
-    @GetMapping("/portal/{id}")
-    public ResponseEntity<List<EqvtPedidoDTO>> getPedidosComDocumentosPorRequisicao(@PathVariable Integer id) {
-        List<EqvtPedidoDTO> pedidos = crudService.findPedidosComDocumentosByRequisicao(id);
-        return ResponseEntity.ok(pedidos);
-    }
+//    @GetMapping("/portal/{id}")
+//    public ResponseEntity<List<EqvtPedidoDTO>> getPedidosComDocumentosPorRequisicao(@PathVariable Integer id) {
+//        List<EqvtPedidoDTO> pedidos = crudService.findPedidosComDocumentosByRequisicao(id);
+//        return ResponseEntity.ok(pedidos);
+//    }
 
 
     // ========================
