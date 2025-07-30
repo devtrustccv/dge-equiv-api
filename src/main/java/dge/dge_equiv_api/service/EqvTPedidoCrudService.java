@@ -67,6 +67,11 @@ public class EqvTPedidoCrudService {
             EqvTRequerenteDTO requerenteDTO,
             Integer pessoaId) {
 
+        if (pessoaId == null) {
+            throw new RuntimeException("É necessário fornecer o identificador da pessoa (pessoaId) para registrar o acompanhamento.");
+        }
+
+
         // 1. Validate inputs
         if (pedidosDTO == null || pedidosDTO.isEmpty()) {
             throw new IllegalArgumentException("Lista de pedidos não pode ser nula ou vazia");
@@ -152,6 +157,17 @@ public class EqvTPedidoCrudService {
     }
 
     private EqvTInstEnsino criarNovaInstituicao(EqvTInstEnsinoDTO dto) {
+
+        if (dto.getNome() == null || dto.getPais() == null) {
+            throw new IllegalArgumentException("Nome e país da instituição são obrigatórios.");
+        }
+
+        Optional<EqvTInstEnsino> existente = instEnsinoRepository.findByNomeIgnoreCaseAndPais(dto.getNome().trim(), dto.getPais().trim());
+
+        if (existente.isPresent()) {
+            throw new IllegalArgumentException("Já existe uma instituição com o nome '" + dto.getNome() + "' para o país '" + dto.getPais() + "'.");
+        }
+
         EqvTInstEnsino novo = new EqvTInstEnsino();
         copyInstEnsinoFields(novo, dto);
         novo.setDateCreate(LocalDate.now());

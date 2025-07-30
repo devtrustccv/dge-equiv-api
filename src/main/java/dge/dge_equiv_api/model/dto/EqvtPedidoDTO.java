@@ -15,9 +15,9 @@ import java.util.List;
 @Data
 public class EqvtPedidoDTO {
     private Integer id;
-
+    @JsonIgnore
     private EqvTRequerenteDTO requerente;
-
+    @JsonIgnore
     private EqvTInstEnsinoDTO instEnsino;
     @JsonIgnore
     private EqvTRequisicaoDTO requisicao;
