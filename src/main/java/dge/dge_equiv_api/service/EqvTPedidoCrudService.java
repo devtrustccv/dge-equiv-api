@@ -213,45 +213,45 @@ public class EqvTPedidoCrudService {
     }
 
 
-    public List<EqvtPedidoDTO> updatePedidosByRequisicaoId(Integer requisicaoId, PortalPedidosDTO dto) {
-        EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
-                .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
-
-        List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
-
-        if (dto.getRequisicao() != null) {
-            copyRequisicaoFields(requisicao, dto.getRequisicao());
-            requisicaoRepository.save(requisicao);
-        }
-
-        EqvTRequerente requerente = null;
-        if (dto.getRequerente() != null) {
-            requerente = dto.getRequerente().getId() != null ?
-                    requerenteRepository.findById(dto.getRequerente().getId()).orElse(new EqvTRequerente()) :
-                    new EqvTRequerente();
-
-            copyRequerenteFields(requerente, dto.getRequerente());
-            requerente = requerenteRepository.save(requerente);
-        }
-
-        List<EqvtPedidoDTO> result = new ArrayList<>();
-        List<EqvtPedidoDTO> pedidosDTO = dto.getPedidos();
-
-        for (int i = 0; i < pedidos.size(); i++) {
-            EqvTPedido pedido = pedidos.get(i);
-            EqvtPedidoDTO novo = pedidosDTO.get(i);
-
-            copyPedidoFields(pedido, novo);
-            pedido.setRequerente(requerente);
-            pedido.setRequisicao(requisicao);
-            pedido = pedidoRepository.save(pedido);
-
-            salvarDocumentosDoPedido(novo, pedido);
-            result.add(convertToDTO(pedido));
-        }
-
-        return result;
-    }
+//    public List<EqvtPedidoDTO> updatePedidosByRequisicaoId(Integer requisicaoId, PortalPedidosDTO dto) {
+//        EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
+//                .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
+//
+//        List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+//
+//        if (dto.getRequisicao() != null) {
+//            copyRequisicaoFields(requisicao, dto.getRequisicao());
+//            requisicaoRepository.save(requisicao);
+//        }
+//
+//        EqvTRequerente requerente = null;
+//        if (dto.getRequerente() != null) {
+//            requerente = dto.getRequerente().getId() != null ?
+//                    requerenteRepository.findById(dto.getRequerente().getId()).orElse(new EqvTRequerente()) :
+//                    new EqvTRequerente();
+//
+//            copyRequerenteFields(requerente, dto.getRequerente());
+//            requerente = requerenteRepository.save(requerente);
+//        }
+//
+//        List<EqvtPedidoDTO> result = new ArrayList<>();
+//        List<EqvtPedidoDTO> pedidosDTO = dto.getPedidos();
+//
+//        for (int i = 0; i < pedidos.size(); i++) {
+//            EqvTPedido pedido = pedidos.get(i);
+//            EqvtPedidoDTO novo = pedidosDTO.get(i);
+//
+//            copyPedidoFields(pedido, novo);
+//            pedido.setRequerente(requerente);
+//            pedido.setRequisicao(requisicao);
+//            pedido = pedidoRepository.save(pedido);
+//
+//            salvarDocumentosDoPedido(novo, pedido);
+//            result.add(convertToDTO(pedido));
+//        }
+//
+//        return result;
+//    }
 
 //    public void deletePedido(Integer id) {
 //        if (!pedidoRepository.existsById(id)) {
@@ -376,17 +376,17 @@ public class EqvTPedidoCrudService {
 
 
     //pegar todos od pedidos e os seus documentos associoados
-    public List<EqvtPedidoDTO> findPedidosComDocumentosByRequisicao(Integer requisicaoId) {
-        EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
-                .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
-        List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
-        return pedidos.stream().map(pedido -> {
-            EqvtPedidoDTO dto = convertToDTO(pedido);
-            dto.setDocumentos(documentService.getDocumentosPorRelacao(pedido.getId(), "SOLITACAO","equiv"));
-            log.info("Encontrados {} documentos para o pedido {}", dto.getDocumentos().size(), pedido.getId());
-            return dto;
-        }).collect(Collectors.toList());
-    }
+//    public List<EqvtPedidoDTO> findPedidosComDocumentosByRequisicao(Integer requisicaoId) {
+//        EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
+//                .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
+//        List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+//        return pedidos.stream().map(pedido -> {
+//            EqvtPedidoDTO dto = convertToDTO(pedido);
+//            dto.setDocumentos(documentService.getDocumentosPorRelacao(pedido.getId(), "SOLITACAO","equiv"));
+//            log.info("Encontrados {} documentos para o pedido {}", dto.getDocumentos().size(), pedido.getId());
+//            return dto;
+//        }).collect(Collectors.toList());
+//    }
 
 
     // enviar email

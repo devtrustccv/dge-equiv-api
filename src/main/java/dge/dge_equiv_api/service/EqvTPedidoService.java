@@ -30,14 +30,14 @@ public class EqvTPedidoService {
         this.familiaProfissionalService = familiaProfissionalService;
     }
 
-    public EqvtPedidoDTO getPedidoDTOById(Integer id) {
+    public EqvtPedidoReporteDTO getPedidoDTOById(Integer id) {
         Optional<EqvTPedido> pedidoOpt = pedidoRepository.findById(id);
         return pedidoOpt.map(this::toDto).orElse(null);
     }
 
 
-    public EqvtPedidoDTO toDto(EqvTPedido pedido) {
-        EqvtPedidoDTO dto = new EqvtPedidoDTO();
+    public EqvtPedidoReporteDTO toDto(EqvTPedido pedido) {
+        EqvtPedidoReporteDTO dto = new EqvtPedidoReporteDTO();
         dto.setId(pedido.getId());
         dto.setFormacaoProf(pedido.getFormacaoProf());
         dto.setCarga(pedido.getCarga());

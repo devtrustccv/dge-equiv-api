@@ -4,6 +4,7 @@ import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.certificado.dto.CertificadoEquivalenciaDTO;
 import dge.dge_equiv_api.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.model.dto.EqvtPedidoDTO;
+import dge.dge_equiv_api.model.dto.EqvtPedidoReporteDTO;
 import dge.dge_equiv_api.model.dto.PortalPedidosDTO;
 import dge.dge_equiv_api.model.dto.PortalPedidosRespostaDTO;
 import dge.dge_equiv_api.service.EqvTPedidoCrudService;
@@ -27,12 +28,10 @@ public class EqvTPedidoController {
 
     private final EqvTPedidoService pedidoService;
     private final EqvTPedidoCrudService crudService;
-    private final DocumentServiceImpl documentServiceImpl;
 
     public EqvTPedidoController(EqvTPedidoService pedidoService, EqvTPedidoCrudService crudService, DocumentServiceImpl documentServiceImpl) {
         this.pedidoService = pedidoService;
         this.crudService = crudService;
-        this.documentServiceImpl = documentServiceImpl;
     }
 
     // ========================
@@ -55,7 +54,6 @@ public class EqvTPedidoController {
                     lotePedidosDTO.getPedidos(),
                     lotePedidosDTO.getRequisicao(),
                     lotePedidosDTO.getRequerente(),
-
                     lotePedidosDTO.getPessoaId()
             );
 
@@ -113,25 +111,6 @@ public class EqvTPedidoController {
 //    }
 
     // ========================
-    // GET - Buscar todos os pedidos
-    // ========================
-//    @GetMapping
-//    public ResponseEntity<List<EqvtPedidoDTO>> getAll() {
-//        List<EqvtPedidoDTO> pedidos = crudService.findAll();
-//       // byte[] arquivo = documentServiceImpl.previewDocumento(496, "SOLICITACAO", "equiv", false);
-//        //logger.info("saida .......  "+arquivo.length);
-//        logger.info("Total de pedidos encontrados: {}", pedidos.size());
-//        return ResponseEntity.ok(pedidos);
-//    }
-
-//    @GetMapping("/portal/{id}")
-//    public ResponseEntity<List<EqvtPedidoDTO>> getPedidosComDocumentosPorRequisicao(@PathVariable Integer id) {
-//        List<EqvtPedidoDTO> pedidos = crudService.findPedidosComDocumentosByRequisicao(id);
-//        return ResponseEntity.ok(pedidos);
-//    }
-
-
-    // ========================
     // GET - Buscar pedido por ID criptografado
     // ========================
     @GetMapping("/{encryptedId}")
@@ -140,7 +119,7 @@ public class EqvTPedidoController {
             String decryptedId = AESUtil.decrypt(encryptedId);
             Integer id = Integer.valueOf(decryptedId);
 
-            EqvtPedidoDTO dto = pedidoService.getPedidoDTOById(id);
+            EqvtPedidoReporteDTO dto = pedidoService.getPedidoDTOById(id);
             if (dto == null) {
                 logger.warn("Pedido não encontrado para o ID descriptografado: {}", id);
                 return ResponseEntity.status(404).body("Pedido não encontrado.");
@@ -154,54 +133,4 @@ public class EqvTPedidoController {
         }
     }
 
-    @GetMapping("/certificado/{id}")
-    public ResponseEntity<CertificadoEquivalenciaDTO> getCertificado(@PathVariable Integer id) {
-        EqvtPedidoDTO pedido = crudService.findById(id); // seu método real aqui
-        if (pedido == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        CertificadoEquivalenciaDTO dto = crudService.montarCertificado(pedido);
-        return ResponseEntity.ok(dto);
-    }
-
-
-//    @Autowired
-//    private RuntimeService runtimeService;
-//
-//    @PostMapping("/iniciar-processo")
-//    public ResponseEntity<?> iniciarProcesso() {
-//        String numero = "EQV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-//
-//        Map<String, Object> vars = new HashMap<>();
-//        vars.put("numero", numero);
-//
-//        ProcessInstance instance = runtimeService.startProcessInstanceByKey("processo_equivalencia", vars);
-//
-//        return ResponseEntity.ok(Map.of(
-//                "processInstanceId", instance.getId(),
-//                "numero", numero
-//        ));
-//    }
-
-
-    // ========================
-    // DELETE - (Comentado por segurança, ativar se necessário)
-    // ========================
-    /*
-    @DeleteMapping("/portal/{encryptedId}")
-    public ResponseEntity<?> delete(@PathVariable String encryptedId) {
-        try {
-            String decryptedId = AESUtil.decrypt(encryptedId);
-            Integer id = Integer.valueOf(decryptedId);
-            crudService.deletePedido(id);
-
-            logger.info("Pedido deletado com sucesso, ID: {}", id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            logger.error("Erro ao deletar pedido: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
-        }
-    }
-    */
 }

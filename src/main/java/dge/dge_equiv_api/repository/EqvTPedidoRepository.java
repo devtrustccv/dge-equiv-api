@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
     public interface EqvTPedidoRepository extends JpaRepository<EqvTPedido, Integer> {
-        List<EqvTPedido> findByRequisicao(EqvTRequisicao requisicao);
+      //  List<EqvTPedido> findByRequisicao(EqvTRequisicao requisicao);
     }
 

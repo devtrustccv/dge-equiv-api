@@ -4,6 +4,8 @@ import dge.dge_equiv_api.model.entity.EqvTInstEnsino;
 import dge.dge_equiv_api.model.entity.TipoDocumentoEntity;
 import dge.dge_equiv_api.repository.JpaEnstEnsinoRepository;
 import dge.dge_equiv_api.repository.JpaTipoDocumentoRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,13 +29,19 @@ public class ComboxController {
         this.jpaEnstEnsinoRepository = jpaEnstEnsinoRepository;
     }
 
+
     @GetMapping("/tipo_documento")
+    @Operation(
+            summary = "Retorna os tipos de documentos",
+            description = "Lista todos os tipos de documentos válidos para o sistema.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+                    @ApiResponse(responseCode = "500", description = "Erro interno no servidor")
+            }
+    )
+
     public List<Map<String, String>> getTipoDocumentoByReferencia() {
-
         String etapa = "solitacao";
-
-
-
         List<TipoDocumentoEntity> tipoDocumentoOpt = jpaTipoDocumentoRepository.findByEtapaAndStatusOrderByNomeAsc(etapa, "A");
         List<Map<String, String>> list = new ArrayList<>();
 
@@ -51,7 +59,9 @@ public class ComboxController {
     }
 
 
-
+    @Operation(
+            summary = "Retorna as instituicoes ativas com Status A"
+    )
     @GetMapping("/instituicoes")
     public List<Map<String, String>> getInstituicoesAtivasSelect() {
         List<EqvTInstEnsino> instituicoes = jpaEnstEnsinoRepository.findByStatusOrderByNomeAsc("A");
