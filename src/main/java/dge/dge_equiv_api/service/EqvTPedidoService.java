@@ -47,6 +47,7 @@ public class EqvTPedidoService {
         dto.setFamilia(pedido.getFamilia());
         String despacho = tblDomainService.buscarDescricaoPorDominioEValor("DESPACHO", String.valueOf(pedido.getDespacho()));
         dto.setDespacho(despacho);
+        dto.setCarga(pedido.getCarga());
         dto.setNumDeclaracao(pedido.getNumDeclaracao());
         dto.setDataDespacho(pedido.getDataDespacho());
 
@@ -58,6 +59,8 @@ public class EqvTPedidoService {
             reqDto.setNome(pedido.getRequerente().getNome());
             reqDto.setDocNumero(pedido.getRequerente().getDocNumero());
             reqDto.setDataNascimento(pedido.getRequerente().getDataNascimento());
+            reqDto.setEmail(pedido.getRequerente().getEmail());
+            reqDto.setContato(pedido.getRequerente().getContato());
 
             // Sexo - pega a descrição
             String sexoCod = pedido.getRequerente().getSexo();

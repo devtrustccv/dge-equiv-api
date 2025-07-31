@@ -74,6 +74,12 @@ public class EqvTPedidoController {
             return ResponseEntity.badRequest().body("Erro ao criar pedidos: " + e.getMessage());
         }
     }
+    @GetMapping("/portal/{id}")
+    public ResponseEntity<List<EqvtPedidoDTO>> getPedidosComDocumentosPorRequisicao(@PathVariable Integer id) {
+        List<EqvtPedidoDTO> pedidos = crudService.findPedidosComDocumentosByRequisicao(id);
+        return ResponseEntity.ok(pedidos);
+    }
+
 
     // ========================
     // PUT - Atualizar pedidos
