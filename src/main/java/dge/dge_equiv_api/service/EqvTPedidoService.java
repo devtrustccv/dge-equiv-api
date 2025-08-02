@@ -6,6 +6,7 @@ import dge.dge_equiv_api.model.entity.EqvTPedido;
 import dge.dge_equiv_api.repository.EqvTPedidoRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,16 +17,19 @@ public class EqvTPedidoService {
     private final EqvTPedidoRepository pedidoRepository;
     private final TblDomainService tblDomainService;
     private final GlobalGeografiaService globalGeografiaService;
+    private final DocRelacaoService docRelacaoService;
+
     private  final NivelQualificacaoService nivelQualificacaoService;
     private  final FamiliaProfissionalService familiaProfissionalService;
 
     public EqvTPedidoService(EqvTPedidoRepository pedidoService, TblDomainService tblDomainService,
-                             GlobalGeografiaService globalGeografiaService,
+                             GlobalGeografiaService globalGeografiaService, DocRelacaoService docRelacaoService, EqvTTipoDocumentoService eqvTTipoDocumentoService,
                              NivelQualificacaoService nivelQualificacaoService,
                              FamiliaProfissionalService familiaProfissionalService) {
         this.pedidoRepository = pedidoService;
         this.tblDomainService = tblDomainService;
         this.globalGeografiaService = globalGeografiaService;
+        this.docRelacaoService = docRelacaoService;
         this.nivelQualificacaoService = nivelQualificacaoService;
         this.familiaProfissionalService = familiaProfissionalService;
     }
@@ -106,6 +110,34 @@ public class EqvTPedidoService {
             reqqDto.setnProcesso(pedido.getRequisicao().getnProcesso());
             dto.setRequisicao(reqqDto);
         }
+
+        if (pedido.getDecisoesAp() != null && !pedido.getDecisoesAp().isEmpty()) {
+            List<EqvtTDecisaoApDTO> decisoes = pedido.getDecisoesAp().stream().map(dec -> {
+                EqvtTDecisaoApDTO d = new EqvtTDecisaoApDTO();
+                d.setNivel(dec.getNivel());
+                d.setFamilia(dec.getFamilia());
+                d.setDecisao(dec.getDecisao());
+                d.setParecerCnep(dec.getParecerCnep());
+                d.setObs(dec.getObs());
+                return d;
+            }).toList();
+            dto.setDecisoesAp(decisoes);
+        }
+        if (pedido.getDecisoesVp() != null && !pedido.getDecisoesVp().isEmpty()) {
+            List<EqvtTDecisaoVpDTO> decisoes = pedido.getDecisoesVp().stream().map(dec -> {
+                EqvtTDecisaoVpDTO d = new EqvtTDecisaoVpDTO();
+                d.setNivel(dec.getNivel());
+                d.setFamilia(dec.getFamilia());
+                d.setDecisao(dec.getDecisao());
+                d.setObsVp(dec.getObsVp());
+                return d;
+            }).toList();
+            dto.setDecisoesVp(decisoes);
+        }
+
+        List<DocRelacaoDTO> documentos = docRelacaoService.buscarDocsComNomeTipoPorIdRelacao(pedido.getId());
+        dto.setDocumentos(documentos);
+
 
         return dto;
     }

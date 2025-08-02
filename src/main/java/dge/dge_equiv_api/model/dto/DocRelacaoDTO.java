@@ -12,7 +12,26 @@ public class DocRelacaoDTO {
     private String path;
     private String appCode;
     private MultipartFile file;
-    private String nProcesso; // <-- só para usar no path do arquivo
+    private String nProcesso;
+
+    public String getNomeTipoDocumento() {
+        return nomeTipoDocumento;
+    }
+
+    public void setNomeTipoDocumento(String nomeTipoDocumento) {
+        this.nomeTipoDocumento = nomeTipoDocumento;
+    }
+
+    public String getnProcesso() {
+        return nProcesso;
+    }
+
+    public void setnProcesso(String nProcesso) {
+        this.nProcesso = nProcesso;
+    }
+
+    private String nomeTipoDocumento;
+
 
     public String getNProcesso() {
         return nProcesso;

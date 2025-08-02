@@ -15,11 +15,9 @@ import dge.dge_equiv_api.notification.service.NotificationService;
 import dge.dge_equiv_api.process.service.ProcessService;
 import dge.dge_equiv_api.repository.*;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,6 +98,8 @@ public class EqvTPedidoCrudService {
         // 4. Create and save requisicao
         EqvTRequisicao requisicao = new EqvTRequisicao();
         copyRequisicaoFields(requisicao, requisicaoDTO);
+
+
         requisicao.setStatus(1);
         requisicao.setEtapa(1);
         requisicao.setDataCreate(LocalDate.now());

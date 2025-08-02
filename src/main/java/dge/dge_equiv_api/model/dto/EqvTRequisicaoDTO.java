@@ -16,6 +16,16 @@ public class EqvTRequisicaoDTO {
 
     private Integer userCreate;
     private Integer userUpdate;
+    private  Integer pessoaId;
+
+
+    public Integer getPessoaId() {
+        return pessoaId;
+    }
+
+    public void setPessoaId(Integer pessoaId) {
+        this.pessoaId = pessoaId;
+    }
 
     public Integer getEtapa() {
         return etapa;

@@ -8,4 +8,6 @@ import java.util.List;
 public interface DocRelacaoRepository extends JpaRepository<DocRelacaoEntity, Integer> {
     List<DocRelacaoEntity> findByIdRelacaoAndTipoRelacaoAndAppCode(Long idRelacao, String tipoRelacao, String appCode);
 
+    List<DocRelacaoEntity> findByIdRelacao(Integer idRelacao);
+
 }

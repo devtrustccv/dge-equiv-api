@@ -35,7 +35,37 @@ public class EqvtPedidoReporteDTO {
 
     private String Etapa;
 
-    private List<DocumentoDTO> documentos;
+    private List<DocumentoDTO> documentos1;
+    private List<EqvtTDecisaoVpDTO> decisoesVp;
+    private List<EqvtTDecisaoApDTO> decisoesAp;
+
+
+    private List<DocRelacaoDTO> documentos;
+
+    public List<EqvtTDecisaoApDTO> getDecisoesAp() {
+        return decisoesAp;
+    }
+
+    public void setDecisoesAp(List<EqvtTDecisaoApDTO> decisoesAp) {
+        this.decisoesAp = decisoesAp;
+    }
+
+    public List<DocRelacaoDTO> getDocumentos() {
+        return documentos;
+    }
+
+    public void setDocumentos(List<DocRelacaoDTO> documentos) {
+        this.documentos = documentos;
+    }
+
+    public List<EqvtTDecisaoVpDTO> getDecisoesVp() {
+        return decisoesVp;
+    }
+
+    public void setDecisoesVp(List<EqvtTDecisaoVpDTO> decisoesVp) {
+        this.decisoesVp = decisoesVp;
+    }
+
 
     public Integer getId() {
         return id;
@@ -156,13 +186,11 @@ public class EqvtPedidoReporteDTO {
         this.dataDespacho = dataDespacho;
     }
 
-    public List<DocumentoDTO> getDocumentos() {
-        return documentos;
+    public List<DocumentoDTO> getDocumentos1() {
+        return documentos1;
     }
 
-    public void setDocumentos(List<DocumentoDTO> documentos) {
-        this.documentos = documentos;
-    }
+
 
     // Novo getter que será serializado no JSON como "id"
 

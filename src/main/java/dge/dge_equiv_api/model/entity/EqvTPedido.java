@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Entity
@@ -43,6 +44,30 @@ public class EqvTPedido {
     private Integer Status;
 
     private String Etapa;
+
+    @OneToMany(mappedBy = "pedido", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<EqvtTDecisaoVp> decisoesVp;
+
+
+    @OneToMany(mappedBy = "idPedido", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<EqvtTDecisaoAp> decisoesAp;
+
+
+    public List<EqvtTDecisaoAp> getDecisoesAp() {
+        return decisoesAp;
+    }
+
+    public void setDecisoesAp(List<EqvtTDecisaoAp> decisoesAp) {
+        this.decisoesAp = decisoesAp;
+    }
+
+    public List<EqvtTDecisaoVp> getDecisoesVp() {
+        return decisoesVp;
+    }
+
+    public void setDecisoesVp(List<EqvtTDecisaoVp> decisoesVp) {
+        this.decisoesVp = decisoesVp;
+    }
 
     public String getEtapa() {
         return Etapa;
