@@ -40,7 +40,12 @@ public class DocRelacaoService {
             dto.setPath(doc.getPath());
             dto.setFileName(doc.getFileName());
             dto.setAppCode(doc.getAppCode());
-            dto.setFileName(eqvTTipoDocumentoService.buscarNomePorId(Integer.parseInt(dto.getIdTpDoc())));
+            String idTpDoc = dto.getIdTpDoc();
+
+            if (idTpDoc != null && !idTpDoc.equalsIgnoreCase("null") && !idTpDoc.isBlank()) {
+                dto.setFileName(eqvTTipoDocumentoService.buscarNomePorId(Integer.parseInt(idTpDoc)));
+            }
+
 
             dtos.add(dto);
         }
