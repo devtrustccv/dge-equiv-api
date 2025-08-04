@@ -41,8 +41,6 @@ public class DocRelacaoEntity {
     @Column(name = "user_create")
     private String userCreate;
 
-    @Column(name = "ano_escolar")
-    private String anoEscolar;
 
     @Column(name = "file_name")
     private String fileName;
@@ -133,13 +131,6 @@ public class DocRelacaoEntity {
         this.userCreate = userCreate;
     }
 
-    public String getAnoEscolar() {
-        return anoEscolar;
-    }
-
-    public void setAnoEscolar(String anoEscolar) {
-        this.anoEscolar = anoEscolar;
-    }
 
     public String getFileName() {
         return fileName;
