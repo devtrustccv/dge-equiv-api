@@ -23,9 +23,6 @@ public class DocRelacaoEntity {
     @Column(name = "id_relacao")
     private Long idRelacao;
 
-    @Column(name = "idtpdoc")
-    private Long idtpdoc;  // cuidado: esse campo pode ser redundante com id_tp_doc
-
     @Column(name = "id_tp_doc")
     private Long idTpDoc;
 
@@ -83,13 +80,7 @@ public class DocRelacaoEntity {
         this.idRelacao = idRelacao;
     }
 
-    public Long getIdtpdoc() {
-        return idtpdoc;
-    }
 
-    public void setIdtpdoc(Long idtpdoc) {
-        this.idtpdoc = idtpdoc;
-    }
 
     public Long getIdTpDoc() {
         return idTpDoc;
