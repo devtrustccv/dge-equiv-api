@@ -8,6 +8,7 @@ import dge.dge_equiv_api.certificado.dto.CertificadoEquivalenciaDTO;
 import dge.dge_equiv_api.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.document.service.DocumentService;
 import dge.dge_equiv_api.document.service.DocumentServiceImpl;
+import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.model.dto.*;
 import dge.dge_equiv_api.model.entity.*;
 import dge.dge_equiv_api.notification.dto.NotificationRequestDTO;
@@ -161,18 +162,18 @@ public class EqvTPedidoCrudService {
         // Se já foi selecionada uma instituição existente, não cria nada novo
         if (dto.getId() != null) {
             return instEnsinoRepository.findById(dto.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Instituição existente não encontrada com ID: " + dto.getId()));
+                    .orElseThrow(() -> new BusinessException("Instituição existente não encontrada com ID: " + dto.getId()));
         }
 
         // Validações para criação de nova instituição
         if (dto.getNome() == null || dto.getPais() == null) {
-            throw new IllegalArgumentException("Nome e país da instituição são obrigatórios.");
+            throw new BusinessException("Nome e país da instituição são obrigatórios.");
         }
 
         Optional<EqvTInstEnsino> existente = instEnsinoRepository.findByNomeIgnoreCaseAndPais(dto.getNome().trim(), dto.getPais().trim());
 
         if (existente.isPresent()) {
-            throw new IllegalArgumentException("Já existe uma instituição com o nome '" + dto.getNome() + "' para o país '" + dto.getPais() + "'.");
+            throw new BusinessException("Já existe uma instituição com o nome '" + dto.getNome() + "' para o país '" + globalGeografiaService.buscarNomePorCodigoPais(dto.getPais()) + "'.");
         }
 
         // Criação

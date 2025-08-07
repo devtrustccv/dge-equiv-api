@@ -31,6 +31,10 @@ public class DomainController {
     public Map<String, String> getDominioTipoDocumentoIdent() {
         return getDominioValores("TIPO_DOCUMENTO_IDENT");
     }
+    @GetMapping("/sexo")
+    public Map<String, String> getDominioTSexo() {
+        return getDominioValores("SEXO");
+    }
 
 
 
