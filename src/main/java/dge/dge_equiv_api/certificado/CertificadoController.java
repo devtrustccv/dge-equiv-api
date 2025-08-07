@@ -21,7 +21,7 @@ public class CertificadoController {
     }
 
 
-    @GetMapping("/certificado/{id}")
+    @GetMapping("/portal/{id}")
 
     public ResponseEntity<CertificadoEquivalenciaDTO> getCertificado(@PathVariable Integer id) {
         EqvtPedidoDTO pedido = crudService.findById(id); // seu método real aqui
