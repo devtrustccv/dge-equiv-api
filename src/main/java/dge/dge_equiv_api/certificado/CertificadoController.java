@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/certificado")
 public class CertificadoController {
@@ -23,14 +25,12 @@ public class CertificadoController {
 
     @GetMapping("/portal/{id}")
 
-    public ResponseEntity<CertificadoEquivalenciaDTO> getCertificado(@PathVariable Integer id) {
-        EqvtPedidoDTO pedido = crudService.findById(id); // seu método real aqui
-        if (pedido == null) {
+    public ResponseEntity<List<CertificadoEquivalenciaDTO>> getCertificadosPorRequisicao(@PathVariable Integer id) {
+        List<CertificadoEquivalenciaDTO> certificados = crudService.montarCertificadosPorRequisicao(id);
+        if (certificados == null || certificados.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-
-        CertificadoEquivalenciaDTO dto = crudService.montarCertificado(pedido);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(certificados);
     }
 
 }

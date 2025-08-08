@@ -281,6 +281,11 @@ public class EqvTPedidoCrudService {
         return convertToDTO(pedido);
     }
 
+
+
+
+
+
     private void salvarDocumentosDoPedido(EqvtPedidoDTO dto, EqvTPedido pedido) {
         List<DocumentoDTO> docs = dto.getDocumentos();
 
@@ -447,27 +452,46 @@ public class EqvTPedidoCrudService {
             log.error("Erro ao enviar email(s) de confirmação", e);
         }
     }
+    public List<EqvtPedidoDTO> findPedidosByRequisicaoId(Integer idRequisicao) {
+        // Aqui você faz a consulta no banco, exemplo com Spring Data JPA:
+        List<EqvTPedido> pedidos = pedidoRepository.findByRequisicaoId(idRequisicao);
 
+        // Converter lista de entidade para DTO (implemente o mapper conforme seu projeto)
+        return pedidos.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 
-
+    // Método para montar o certificado de um pedido
     public CertificadoEquivalenciaDTO montarCertificado(EqvtPedidoDTO pedidoDTO) {
         CertificadoEquivalenciaDTO dto = new CertificadoEquivalenciaDTO();
 
-        String id = AESUtil.encrypt(pedidoDTO.getId().toString());
-        String url = reporterConfig.getReporterEqvUrl() + "equiv/declaracao_equivalencia/" + id;
+        String idCriptografado = AESUtil.encrypt(pedidoDTO.getId().toString());
+        String url = reporterConfig.getReporterEqvUrl() + "equiv/declaracao_equivalencia/" + idCriptografado;
 
         dto.setFormacaoOriginal(pedidoDTO.getFormacaoProf());
         dto.setEntidadeOriginal(pedidoDTO.getInstEnsino() != null ? pedidoDTO.getInstEnsino().getNome() : null);
-        dto.setEquivalencia("Equivalência Profissional"); // se fixo ou regra
+        dto.setEquivalencia("Equivalência Profissional");
         dto.setNivelQualificacao(pedidoDTO.getNivel() != null ? pedidoDTO.getNivel().toString() : null);
         dto.setUrl(url);
-        dto.setDataEmissao(LocalDate.now());// por defenir
+        dto.setDataEmissao(LocalDate.now());
         dto.setEntidadeEmissora("DGERT - Direção-Geral do Emprego e das Relações de Trabalho");
-        dto.setNumeroProcesso(pedidoDTO.getRequisicao().getnProcesso().toString());
+        dto.setNumeroProcesso(pedidoDTO.getRequisicao() != null && pedidoDTO.getRequisicao().getnProcesso() != null
+                ? pedidoDTO.getRequisicao().getnProcesso().toString()
+                : null);
         dto.setPaisOrigem(pedidoDTO.getInstEnsino() != null ? pedidoDTO.getInstEnsino().getPais() : null);
 
         return dto;
     }
+
+    // Monta a lista de certificados para todos os pedidos da requisição
+    public List<CertificadoEquivalenciaDTO> montarCertificadosPorRequisicao(Integer idRequisicao) {
+        List<EqvtPedidoDTO> pedidos = findPedidosByRequisicaoId(idRequisicao);
+        return pedidos.stream()
+                .map(this::montarCertificado)
+                .collect(Collectors.toList());
+    }
+
 
 
     // ======== Helper methods para copiar campos ========

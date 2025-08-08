@@ -1,7 +1,9 @@
 package dge.dge_equiv_api.model.dto;
 import java.time.LocalDate;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import dge.dge_equiv_api.model.entity.EqvTPedido;
 import lombok.Data;
 
 @Data
@@ -17,7 +19,15 @@ public class EqvTRequisicaoDTO {
     private Integer userCreate;
     private Integer userUpdate;
     private  Integer pessoaId;
+    List<EqvTPedido> Pedidos;
 
+    public List<EqvTPedido> getPedidos() {
+        return Pedidos;
+    }
+
+    public void setPedidos(List<EqvTPedido> pedidos) {
+        Pedidos = pedidos;
+    }
 
     public Integer getPessoaId() {
         return pessoaId;
@@ -94,4 +104,6 @@ public class EqvTRequisicaoDTO {
     public void setUserUpdate(Integer userUpdate) {
         this.userUpdate = userUpdate;
     }
+
+
 }
