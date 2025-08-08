@@ -133,7 +133,7 @@ public class EqvTPedidoCrudService {
             pedidosSalvos.add(pedido);
             salvarDocumentosDoPedido(dto, pedido);
 
-            enviarEmailConfirmacao(requerente,pedido);
+            //enviarEmailConfirmacao(requerente,pedido);
 
             // 8. Send confirmation email
             result.add(convertToDTO(pedido));
