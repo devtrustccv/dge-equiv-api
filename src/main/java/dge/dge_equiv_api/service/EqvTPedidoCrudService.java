@@ -479,7 +479,7 @@ public class EqvTPedidoCrudService {
         dto.setNumeroProcesso(pedidoDTO.getRequisicao() != null && pedidoDTO.getRequisicao().getnProcesso() != null
                 ? pedidoDTO.getRequisicao().getnProcesso().toString()
                 : null);
-        dto.setPaisOrigem(pedidoDTO.getInstEnsino() != null ? pedidoDTO.getInstEnsino().getPais() : null);
+        dto.setPaisOrigem(globalGeografiaService.buscarNomePorCodigoPais(pedidoDTO.getInstEnsino().getPais()));
 
         return dto;
     }
