@@ -12,6 +12,15 @@ public class CertificadoEquivalenciaDTO {
     private String equivalencia;
     private String nivelQualificacao;
     private String url;
+    private Integer despacho;
+
+    public Integer getDespacho() {
+        return despacho;
+    }
+
+    public void setDespacho(Integer despacho) {
+        this.despacho = despacho;
+    }
 
     public String getUrl() {
         return url;

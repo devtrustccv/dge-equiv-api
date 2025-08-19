@@ -2,7 +2,6 @@ package dge.dge_equiv_api.certificado;
 
 
 import dge.dge_equiv_api.certificado.dto.CertificadoEquivalenciaDTO;
-import dge.dge_equiv_api.model.dto.EqvtPedidoDTO;
 import dge.dge_equiv_api.service.EqvTPedidoCrudService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

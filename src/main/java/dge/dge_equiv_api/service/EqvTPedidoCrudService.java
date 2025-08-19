@@ -8,6 +8,8 @@ import dge.dge_equiv_api.certificado.dto.CertificadoEquivalenciaDTO;
 import dge.dge_equiv_api.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.document.service.DocumentService;
 import dge.dge_equiv_api.document.service.DocumentServiceImpl;
+import dge.dge_equiv_api.duc.dto.DucModel;
+import dge.dge_equiv_api.duc.service.PagamentoService;
 import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.model.dto.*;
 import dge.dge_equiv_api.model.entity.*;
@@ -57,6 +59,8 @@ public class EqvTPedidoCrudService {
 
     @Autowired
     private ReporterConfig reporterConfig;
+    @Autowired
+    private PagamentoService pagamentoService;
 
 
     @Transactional
@@ -107,11 +111,12 @@ public class EqvTPedidoCrudService {
 
         requisicao = requisicaoRepository.save(requisicao);
 
+
         // 5. Start process BEFORE saving pedidos
         String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instituicoesProcessadas);
         requisicao.setnProcesso(Integer.valueOf(processInstanceId));
         requisicao = requisicaoRepository.save(requisicao);
-
+        //EqvTPagamento duc =   pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getnProcesso());
         // 6. Save pedidos and documents
         List<EqvtPedidoDTO> result = new ArrayList<>();
         List<EqvTPedido> pedidosSalvos = new ArrayList<>();
@@ -133,15 +138,16 @@ public class EqvTPedidoCrudService {
             pedidosSalvos.add(pedido);
             salvarDocumentosDoPedido(dto, pedido);
 
-            //enviarEmailConfirmacao(requerente,pedido);
+
 
             // 8. Send confirmation email
             result.add(convertToDTO(pedido));
         }
 
+
         // 7. Create acompanhamento
         criarAcompanhamento(requisicao, pedidosSalvos, pessoaId);
-
+        //enviarEmailConfirmacao(requerente,requisicao,duc);
 
 
 
@@ -283,9 +289,6 @@ public class EqvTPedidoCrudService {
 
 
 
-
-
-
     private void salvarDocumentosDoPedido(EqvtPedidoDTO dto, EqvTPedido pedido) {
         List<DocumentoDTO> docs = dto.getDocumentos();
 
@@ -405,53 +408,46 @@ public class EqvTPedidoCrudService {
 
 
     // enviar email
-    private void enviarEmailConfirmacao(EqvTRequerente requerente, EqvTPedido requisicao) {
+    private void enviarEmailConfirmacao(EqvTRequerente requerente, EqvTRequisicao requisicao,EqvTPagamento pagamento) {
         String nomeRequerente = requerente.getNome() != null ? requerente.getNome() : "";
-        String numeroPedido = requisicao.getRequisicao().getnProcesso() != null ? String.valueOf(requisicao.getRequisicao().getnProcesso()) : "";
-        String nomeFormacao = requisicao.getFormacaoProf() != null ? requisicao.getFormacaoProf() : "Formação não especificada";
-        String pais = globalGeografiaService.buscarNomePorCodigoPais(requisicao.getInstEnsino().getPais())  != null ? globalGeografiaService.buscarNomePorCodigoPais(requisicao.getInstEnsino().getPais()) : "País não especificado";
-        String nomeTecnico = "Técnico Responsável"; // Substitua dinamicamente se tiver o nome real
+        String numeroPedido = requisicao.getId() != null && requisicao.getnProcesso() != null
+                ? String.valueOf(requisicao.getnProcesso()) : "";
+
+        StringBuilder links = new StringBuilder();
+        
+                String urlPagamento = "http://portal.pagamento.cv?entidade=" + pagamento.getEntidade()
+                        + "&referencia=" + pagamento.getReferencia()
+                        + "&montante=" + pagamento.getTotal()
+                        + "&call_back_url=http://localhost:8080/dge/services/feedback/pagamento?duc=" + pagamento.getNuDuc();
+
+                links.append("<p>Link DUC: <a href=\"").append(urlPagamento).append("\">")
+                        .append(pagamento.getNuDuc()).append("</a></p>");
+                
+        String assuntoRequerente = "Confirmação de Recebimento - Pedido de Equivalência Profissional";
+        String mensagemRequerente =
+                "<p>Prezado(a) " + nomeRequerente + ",</p>" +
+                        "<p>Confirmamos o recebimento do seu pedido de equivalência profissional, registrado sob o número "
+                        + numeroPedido + ".</p>" +
+                        "<p>O seu pedido foi recebido pela Unidade de Coordenação do Sistema Nacional de Qualificações (UC-SNQ) "
+                        + "e será agora instruído e analisado.</p>" +
+                        "<p>Será informado(a) sobre o progresso em cada etapa do processo.</p>" +
+                        links.toString() +
+                        "<p>Com os melhores cumprimentos,</p>" +
+                        "<p>UC-SNQ – Sistema de Equivalência Profissional</p>";
+
+        NotificationRequestDTO dto = new NotificationRequestDTO();
+        dto.setAppName("equiv");
+        dto.setSubject(assuntoRequerente);
+        dto.setMessage(mensagemRequerente);
+        dto.setEmail(requerente.getEmail());
 
         try {
-            // Email para o requerente
-            String assuntoRequerente = "Confirmação de Recebimento - Pedido de Equivalência Profissional";
-            String mensagemRequerente =
-                    "<p>Exmo(a). Sr(a). <strong>" + nomeRequerente + "</strong>,</p>" +
-                            "<p>Confirmamos o recebimento do seu pedido de equivalência profissional, registrado sob o número <strong>" + numeroPedido + "</strong>.</p>" +
-                            "<p>O seu pedido foi recebido pela <strong>Unidade de Coordenação do Sistema Nacional de Qualificações (UC-SNQ)</strong> e será agora instruído e analisado.</p>" +
-                            "<p><strong>Será informado(a) sobre o progresso em cada etapa do processo.</strong></p>" +
-                            "<p>Atenciosamente,</p><p><strong>UC-SNQ</strong></p>";
-
-            NotificationRequestDTO dto1 = new NotificationRequestDTO();
-            dto1.setAppName("equiv");
-            dto1.setSubject(assuntoRequerente);
-            dto1.setMessage(mensagemRequerente);
-            dto1.setEmail(requerente.getEmail());
-            notificationService.enviarEmail(dto1);
-            log.info("Email de confirmação enviado para: {}", requerente.getEmail());
-
-            // Email para o técnico ou responsável institucional
-            String assuntoTecnico = "Novo Pedido de Equivalência Profissional Submetido";
-            String mensagemTecnico =
-                    "<p>Prezado(a) <strong>" + nomeTecnico + "</strong>,</p>" +
-                            "<p>Foi submetido um novo pedido de equivalência profissional por parte do(a) requerente <strong>" + nomeRequerente + "</strong>, " +
-                            "referente ao Formação de <strong>" + nomeFormacao + "</strong>, realizado em <strong>" + pais + "</strong>.</p>" +
-                            "<p>O processo encontra-se registado sob o número <strong>" + numeroPedido + "</strong> e aguarda análise inicial.</p>" +
-                            "<p>Por favor, aceda à plataforma para proceder com a verificação da documentação e validação da submissão.</p>" +
-                            "<p>Com os melhores cumprimentos,<br><strong>UC-SNQ – Sistema de Equivalência Profissional</strong></p>";
-
-            NotificationRequestDTO dto2 = new NotificationRequestDTO();
-            dto2.setAppName("equiv");
-            dto2.setSubject(assuntoTecnico);
-            dto2.setMessage(mensagemTecnico);
-            dto2.setEmail("barbosaadnilson931@gmail.com");
-            ///notificationService.enviarEmail(dto2);
-            log.info("Email institucional enviado para: uc-snq@instituicao.gov.cv");
-
+            notificationService.enviarEmail(dto);
         } catch (Exception e) {
-            log.error("Erro ao enviar email(s) de confirmação", e);
+            log.error("Erro ao enviar email de confirmação", e);
         }
     }
+
     public List<EqvtPedidoDTO> findPedidosByRequisicaoId(Integer idRequisicao) {
         // Aqui você faz a consulta no banco, exemplo com Spring Data JPA:
         List<EqvTPedido> pedidos = pedidoRepository.findByRequisicaoId(idRequisicao);
@@ -473,7 +469,9 @@ public class EqvTPedidoCrudService {
         dto.setEntidadeOriginal(pedidoDTO.getInstEnsino() != null ? pedidoDTO.getInstEnsino().getNome() : null);
         dto.setEquivalencia("Equivalência Profissional");
         dto.setNivelQualificacao(pedidoDTO.getNivel() != null ? pedidoDTO.getNivel().toString() : null);
-        dto.setUrl(url);
+        if (pedidoDTO.getDespacho() != null && pedidoDTO.getDespacho().equals("5")) {
+            dto.setUrl(url);
+        }
         dto.setDataEmissao(LocalDate.now());
         dto.setEntidadeEmissora("DGERT - Direção-Geral do Emprego e das Relações de Trabalho");
         dto.setNumeroProcesso(pedidoDTO.getRequisicao() != null && pedidoDTO.getRequisicao().getnProcesso() != null
