@@ -424,7 +424,7 @@ public class EqvTPedidoCrudService {
         String urlPagamento = mfkink + pagamento.getEntidade()
                 + "&referencia=" + pagamento.getReferencia()
                 + "&montante=" + pagamento.getTotal()
-                + "&call_back_url="+ducCheck+ pagamento.getNuDuc();
+                + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
         String linkPagamento = urlPagamento;
 
         String linkverduc = reporterDuc + pagamento.getNuDuc();
@@ -581,18 +581,11 @@ public class EqvTPedidoCrudService {
 //            docs.add(doc);
 //        }
 
-        if (pedido.getRequisicao() != null && pedido.getRequisicao().getnProcesso() != null) {
-            EqvTPagamento pagamento = pagamentoService.buscarPagamentoPorProcesso(pedido.getRequisicao().getnProcesso());
-            if (pagamento != null) {
-                String urlPagamento = mfkink + pagamento.getEntidade()
-                        + "&referencia=" + pagamento.getReferencia()
-                        + "&montante=" + pagamento.getTotal()
-                        + "&call_back_url="+ducCheck + pagamento.getNuDuc();
-                dto.setUrlPagamento(urlPagamento);
-            }
-        }
 
-        dto.setDocumentos(docs);
+
+
+
+        //dto.setDocumentos(docs);
 
 
         if (pedido.getRequerente() != null) {
@@ -631,6 +624,25 @@ public class EqvTPedidoCrudService {
             reqDTO.setDataCreate(pedido.getRequisicao().getDataCreate());
             reqDTO.setDataUpdate(pedido.getRequisicao().getDataUpdate());
             dto.setRequisicao(reqDTO);
+        }
+
+        if (pedido.getRequisicao() != null && pedido.getRequisicao().getnProcesso() != null) {
+            EqvTPagamento pagamento = pagamentoService.buscarPagamentoPorProcesso(pedido.getRequisicao().getnProcesso());
+            if (pagamento != null) {
+                String urlPagamento = mfkink + pagamento.getEntidade()
+                        + "&referencia=" + pagamento.getReferencia()
+                        + "&montante=" + pagamento.getTotal()
+                        + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
+
+                String linkverduc = reporterDuc + pagamento.getNuDuc();
+                dto.setUrlPagamento(urlPagamento);
+                dto.setNuDuc(pagamento.getNuDuc().toString());
+                dto.setEntidade(pagamento.getEntidade());
+                dto.setReferencia(pagamento.getReferencia().toString());
+                dto.setVerduc(linkverduc);
+
+            }
+
         }
 
         return dto;

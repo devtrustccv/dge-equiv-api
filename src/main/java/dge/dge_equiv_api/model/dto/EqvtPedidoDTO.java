@@ -32,8 +32,51 @@ public class EqvtPedidoDTO {
     private Integer Status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataDespacho;
-    private String urlPagamento;
+    private String urlDucPagamento;
+    private String nuDuc; // getter e setter
+   private  String entidade;
+   private  String referencia;
+   private  String verduc;
 
+    public String getUrlDucPagamento() {
+        return urlDucPagamento;
+    }
+
+    public void setUrlDucPagamento(String urlDucPagamento) {
+        this.urlDucPagamento = urlDucPagamento;
+    }
+
+    public String getNuDuc() {
+        return nuDuc;
+    }
+
+    public void setNuDuc(String nuDuc) {
+        this.nuDuc = nuDuc;
+    }
+
+    public String getEntidade() {
+        return entidade;
+    }
+
+    public void setEntidade(String entidade) {
+        this.entidade = entidade;
+    }
+
+    public String getReferencia() {
+        return referencia;
+    }
+
+    public void setReferencia(String referencia) {
+        this.referencia = referencia;
+    }
+
+    public String getVerduc() {
+        return verduc;
+    }
+
+    public void setVerduc(String verduc) {
+        this.verduc = verduc;
+    }
 
     private String Etapa;
 
@@ -56,11 +99,11 @@ public class EqvtPedidoDTO {
     }
 
     public String getUrlPagamento() {
-        return urlPagamento;
+        return urlDucPagamento;
     }
 
-    public void setUrlPagamento(String urlPagamento) {
-        this.urlPagamento = urlPagamento;
+    public void setUrlPagamento(String urlDucPagamento) {
+        this.urlDucPagamento = urlDucPagamento;
     }
 
     public void setStatus(Integer status) {
