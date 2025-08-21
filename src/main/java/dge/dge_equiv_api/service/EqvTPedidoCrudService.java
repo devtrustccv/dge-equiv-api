@@ -21,6 +21,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,13 +55,22 @@ public class EqvTPedidoCrudService {
     private NotificationService notificationService;
     @Autowired
     private ProcessService processService;
-   @Autowired
+    @Autowired
     private GlobalGeografiaService globalGeografiaService;
 
     @Autowired
     private ReporterConfig reporterConfig;
     @Autowired
     private PagamentoService pagamentoService;
+
+    @Value("${link.mf.duc}")
+    private String mfkink;
+
+    @Value("${link.api.duc.check}")
+    private String ducCheck;
+
+    @Value("${link.report.integration.sigof.duc}")
+    private String reporterDuc;
 
 
     @Transactional
@@ -116,7 +126,7 @@ public class EqvTPedidoCrudService {
         String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instituicoesProcessadas);
         requisicao.setnProcesso(Integer.valueOf(processInstanceId));
         requisicao = requisicaoRepository.save(requisicao);
-        //EqvTPagamento duc =   pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getnProcesso());
+        EqvTPagamento duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getnProcesso());
         // 6. Save pedidos and documents
         List<EqvtPedidoDTO> result = new ArrayList<>();
         List<EqvTPedido> pedidosSalvos = new ArrayList<>();
@@ -139,7 +149,6 @@ public class EqvTPedidoCrudService {
             salvarDocumentosDoPedido(dto, pedido);
 
 
-
             // 8. Send confirmation email
             result.add(convertToDTO(pedido));
         }
@@ -147,8 +156,7 @@ public class EqvTPedidoCrudService {
 
         // 7. Create acompanhamento
         criarAcompanhamento(requisicao, pedidosSalvos, pessoaId);
-        //enviarEmailConfirmacao(requerente,requisicao,duc);
-
+        //enviarEmailConfirmacao(requerente, requisicao, duc);
 
 
         return result;
@@ -218,7 +226,7 @@ public class EqvTPedidoCrudService {
 
     private void criarAcompanhamento(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId) {
         try {
-            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidos,pessoaId);
+            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidos, pessoaId);
             if (acompanhamento != null) {
                 acompanhamentoService.criarAcompanhamento(acompanhamento);
                 log.info("Acompanhamento criado para processo {}", requisicao.getnProcesso());
@@ -286,7 +294,6 @@ public class EqvTPedidoCrudService {
                 .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com ID: " + id));
         return convertToDTO(pedido);
     }
-
 
 
     private void salvarDocumentosDoPedido(EqvtPedidoDTO dto, EqvTPedido pedido) {
@@ -400,7 +407,7 @@ public class EqvTPedidoCrudService {
         List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
         return pedidos.stream().map(pedido -> {
             EqvtPedidoDTO dto = convertToDTO(pedido);
-            dto.setDocumentos(documentService.getDocumentosPorRelacao(pedido.getId(), "SOLITACAO","equiv"));
+            dto.setDocumentos(documentService.getDocumentosPorRelacao(pedido.getId(), "SOLITACAO", "equiv"));
             log.info("Encontrados {} documentos para o pedido {}", dto.getDocumentos().size(), pedido.getId());
             return dto;
         }).collect(Collectors.toList());
@@ -408,32 +415,36 @@ public class EqvTPedidoCrudService {
 
 
     // enviar email
-    private void enviarEmailConfirmacao(EqvTRequerente requerente, EqvTRequisicao requisicao,EqvTPagamento pagamento) {
+    private void enviarEmailConfirmacao(EqvTRequerente requerente, EqvTRequisicao requisicao, EqvTPagamento pagamento) {
         String nomeRequerente = requerente.getNome() != null ? requerente.getNome() : "";
         String numeroPedido = requisicao.getId() != null && requisicao.getnProcesso() != null
                 ? String.valueOf(requisicao.getnProcesso()) : "";
 
-        StringBuilder links = new StringBuilder();
-        
-                String urlPagamento = "http://portal.pagamento.cv?entidade=" + pagamento.getEntidade()
-                        + "&referencia=" + pagamento.getReferencia()
-                        + "&montante=" + pagamento.getTotal()
-                        + "&call_back_url=http://localhost:8080/dge/services/feedback/pagamento?duc=" + pagamento.getNuDuc();
 
-                links.append("<p>Link DUC: <a href=\"").append(urlPagamento).append("\">")
-                        .append(pagamento.getNuDuc()).append("</a></p>");
-                
+        String urlPagamento = mfkink + pagamento.getEntidade()
+                + "&referencia=" + pagamento.getReferencia()
+                + "&montante=" + pagamento.getTotal()
+                + "&call_back_url="+ducCheck+ pagamento.getNuDuc();
+        String linkPagamento = urlPagamento;
+
+        String linkverduc = reporterDuc + pagamento.getNuDuc();
+
         String assuntoRequerente = "Confirmação de Recebimento - Pedido de Equivalência Profissional";
+
         String mensagemRequerente =
-                "<p>Prezado(a) " + nomeRequerente + ",</p>" +
-                        "<p>Confirmamos o recebimento do seu pedido de equivalência profissional, registrado sob o número "
-                        + numeroPedido + ".</p>" +
-                        "<p>O seu pedido foi recebido pela Unidade de Coordenação do Sistema Nacional de Qualificações (UC-SNQ) "
-                        + "e será agora instruído e analisado.</p>" +
-                        "<p>Será informado(a) sobre o progresso em cada etapa do processo.</p>" +
-                        links.toString() +
+                "<p>Prezado(a)  <strong> " + nomeRequerente + "</strong>,</p>" +
+                        "<p>O seu pedido de equivalência foi registado com sucesso sob o número  <strong> " + numeroPedido + " </strong>.</p>" +
+                        "<p>Para dar seguimento ao processo, é necessário efetuar o pagamento da taxa correspondente através do Documento Único de Cobrança (DUC).</p>" +
+                        "<p>Por favor, utilize o link abaixo para gerar e pagar o seu DUC:</p>" +
+                        "<p><a href=\"" + linkPagamento + "\" style=\"color: blue; text-decoration: underline;\">" +
+                        "Clique aqui para realizar o pagamento do DUC</a></p>" +
+                        "<p><a href=\"" + linkverduc + "\" style=\"color: blue; text-decoration: underline;\">" +
+                        "Clique aqui para ver o DUC gerado</a></p>" +
+                        "<p>O processamento do seu pedido só será iniciado após a confirmação do pagamento.</p>" +
+                        "<p>Agradecemos a sua atenção e colaboração.</p>" +
                         "<p>Com os melhores cumprimentos,</p>" +
                         "<p>UC-SNQ – Sistema de Equivalência Profissional</p>";
+
 
         NotificationRequestDTO dto = new NotificationRequestDTO();
         dto.setAppName("equiv");
@@ -489,7 +500,6 @@ public class EqvTPedidoCrudService {
                 .map(this::montarCertificado)
                 .collect(Collectors.toList());
     }
-
 
 
     // ======== Helper methods para copiar campos ========
@@ -570,6 +580,17 @@ public class EqvTPedidoCrudService {
 //                    + "&appCode=equiv");
 //            docs.add(doc);
 //        }
+
+        if (pedido.getRequisicao() != null && pedido.getRequisicao().getnProcesso() != null) {
+            EqvTPagamento pagamento = pagamentoService.buscarPagamentoPorProcesso(pedido.getRequisicao().getnProcesso());
+            if (pagamento != null) {
+                String urlPagamento = mfkink + pagamento.getEntidade()
+                        + "&referencia=" + pagamento.getReferencia()
+                        + "&montante=" + pagamento.getTotal()
+                        + "&call_back_url="+ducCheck + pagamento.getNuDuc();
+                dto.setUrlPagamento(urlPagamento);
+            }
+        }
 
         dto.setDocumentos(docs);
 

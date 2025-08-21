@@ -32,6 +32,7 @@ public class EqvtPedidoDTO {
     private Integer Status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataDespacho;
+    private String urlPagamento;
 
 
     private String Etapa;
@@ -52,6 +53,14 @@ public class EqvtPedidoDTO {
 
     public void setEtapa(String etapa) {
         Etapa = etapa;
+    }
+
+    public String getUrlPagamento() {
+        return urlPagamento;
+    }
+
+    public void setUrlPagamento(String urlPagamento) {
+        this.urlPagamento = urlPagamento;
     }
 
     public void setStatus(Integer status) {

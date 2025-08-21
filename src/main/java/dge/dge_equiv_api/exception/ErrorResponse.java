@@ -1,22 +1,32 @@
 package dge.dge_equiv_api.exception;
 
-public class ErrorResponse {
-    private String message;
+import java.time.LocalDateTime;
 
-    public ErrorResponse(String message) {
+public class ErrorResponse {
+
+    private String message;
+    private String details;
+    private LocalDateTime timestamp;
+
+    public ErrorResponse(String message, String details) {
         this.message = message;
+        this.details = details;
+        this.timestamp = LocalDateTime.now();
     }
 
-    // getter e setter
     public String getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public String getDetails() {
+        return details;
     }
 
-
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
 
 }
+
+
 

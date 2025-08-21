@@ -3,10 +3,7 @@ package dge.dge_equiv_api.controller;
 import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.certificado.dto.CertificadoEquivalenciaDTO;
 import dge.dge_equiv_api.document.service.DocumentServiceImpl;
-import dge.dge_equiv_api.model.dto.EqvtPedidoDTO;
-import dge.dge_equiv_api.model.dto.EqvtPedidoReporteDTO;
-import dge.dge_equiv_api.model.dto.PortalPedidosDTO;
-import dge.dge_equiv_api.model.dto.PortalPedidosRespostaDTO;
+import dge.dge_equiv_api.model.dto.*;
 import dge.dge_equiv_api.service.EqvTPedidoCrudService;
 import dge.dge_equiv_api.service.EqvTPedidoService;
 import io.micrometer.common.lang.NonNull;
@@ -71,7 +68,9 @@ public class EqvTPedidoController {
             return ResponseEntity.ok().body(resposta);
         } catch (Exception e) {
             logger.error("Erro ao criar pedidos: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body("Erro ao criar pedidos: " + e.getMessage());
+            var result = new ResponseDto();
+            result.setMessage("Erro ao criar pedidos: " + e.getMessage());
+            return ResponseEntity.badRequest().body(result);
         }
     }
     @GetMapping("/portal/{id}")

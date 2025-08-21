@@ -38,7 +38,7 @@ public class PagamentoService {
                     .queryParam("obs", "teste duc equiv")
                     .toUriString();
 
-            System.out.println(url);
+            System.out.println("saida....."+url);
 
             // Usa GET porque não há body
             DucModel duc = restTemplate.postForObject(url, null,DucModel.class);
@@ -78,5 +78,10 @@ public class PagamentoService {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    public EqvTPagamento buscarPagamentoPorProcesso(Integer nProcesso) {
+        return pagamentoRepository.findBynrProcesso(nProcesso)
+                .orElse(null); // retorna null se não houver pagamento
     }
 }
