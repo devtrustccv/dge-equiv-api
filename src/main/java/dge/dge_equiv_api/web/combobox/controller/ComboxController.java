@@ -1,15 +1,13 @@
 package dge.dge_equiv_api.web.combobox.controller;
 
-import dge.dge_equiv_api.model.entity.EqvTInstEnsino;
-import dge.dge_equiv_api.model.entity.TipoDocumentoEntity;
-import dge.dge_equiv_api.repository.JpaEnstEnsinoRepository;
-import dge.dge_equiv_api.repository.JpaTipoDocumentoRepository;
+import dge.dge_equiv_api.infrastructure.primary.EqvTInstEnsino;
+import dge.dge_equiv_api.infrastructure.primary.TipoDocumentoEntity;
+import dge.dge_equiv_api.infrastructure.primary.repository.JpaEnstEnsinoRepository;
+import dge.dge_equiv_api.infrastructure.primary.repository.JpaTipoDocumentoRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;

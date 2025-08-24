@@ -1,7 +1,7 @@
 package dge.dge_equiv_api.service;
 
-import dge.dge_equiv_api.model.entity.GlobalGeografia;
-import dge.dge_equiv_api.repository.GlobalGeografiaRepository;
+import dge.dge_equiv_api.infrastructure.tertiary.GlobalGeografia;
+import dge.dge_equiv_api.infrastructure.tertiary.repository.GlobalGeografiaRepository;
 import org.springframework.stereotype.Service;
 
 @Service

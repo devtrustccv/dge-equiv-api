@@ -1,7 +1,7 @@
 package dge.dge_equiv_api.service;
 
-import dge.dge_equiv_api.model.entity.EqvTTipoDocumento;
-import dge.dge_equiv_api.repository.EqvTTipoDocumentoRepository;
+import dge.dge_equiv_api.infrastructure.primary.EqvTTipoDocumento;
+import dge.dge_equiv_api.infrastructure.primary.repository.EqvTTipoDocumentoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;

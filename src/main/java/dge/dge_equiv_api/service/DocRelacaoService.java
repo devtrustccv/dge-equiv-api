@@ -3,15 +3,12 @@ package dge.dge_equiv_api.service;
 
 
 import dge.dge_equiv_api.model.dto.DocRelacaoDTO;
-import dge.dge_equiv_api.model.dto.TipoDocumentoDTO;
-import dge.dge_equiv_api.model.entity.DocRelacaoEntity;
-import dge.dge_equiv_api.model.entity.EqvTTipoDocumento;
-import dge.dge_equiv_api.repository.DocRelacaoRepository;
-import dge.dge_equiv_api.repository.EqvTTipoDocumentoRepository;
+import dge.dge_equiv_api.infrastructure.tertiary.DocRelacaoEntity;
+import dge.dge_equiv_api.infrastructure.tertiary.repository.DocRelacaoRepository;
+import dge.dge_equiv_api.infrastructure.primary.repository.EqvTTipoDocumentoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class DocRelacaoService {

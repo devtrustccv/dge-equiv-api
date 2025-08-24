@@ -1,7 +1,7 @@
 package dge.dge_equiv_api.service;
 
-import dge.dge_equiv_api.model.entity.TblDomain;
-import dge.dge_equiv_api.repository.TblDomainRepository;
+import dge.dge_equiv_api.infrastructure.secondary.TblDomain;
+import dge.dge_equiv_api.infrastructure.secondary.repository.TblDomainRepository;
 import org.springframework.stereotype.Service;
 
 @Service

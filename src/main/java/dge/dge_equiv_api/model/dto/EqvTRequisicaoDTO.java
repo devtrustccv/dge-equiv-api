@@ -3,7 +3,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import dge.dge_equiv_api.model.entity.EqvTPedido;
+import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
 import lombok.Data;
 
 @Data

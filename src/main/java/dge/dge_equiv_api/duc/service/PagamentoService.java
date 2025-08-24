@@ -1,9 +1,9 @@
 package dge.dge_equiv_api.duc.service;
 
 import dge.dge_equiv_api.duc.dto.DucModel;
-import dge.dge_equiv_api.model.entity.EqvTPagamento;
-import dge.dge_equiv_api.model.entity.EqvTPedido;
-import dge.dge_equiv_api.repository.EqvTPagamentoRepository;
+import dge.dge_equiv_api.infrastructure.primary.EqvTPagamento;
+import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
+import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPagamentoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,8 +12,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor

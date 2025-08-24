@@ -1,9 +1,8 @@
 package dge.dge_equiv_api.service;
 
-import dge.dge_equiv_api.Utils.Criptolink;
 import dge.dge_equiv_api.model.dto.*;
-import dge.dge_equiv_api.model.entity.EqvTPedido;
-import dge.dge_equiv_api.repository.EqvTPedidoRepository;
+import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
+import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,19 +18,15 @@ public class EqvTPedidoService {
     private final GlobalGeografiaService globalGeografiaService;
     private final DocRelacaoService docRelacaoService;
 
-    private  final NivelQualificacaoService nivelQualificacaoService;
-    private  final FamiliaProfissionalService familiaProfissionalService;
 
     public EqvTPedidoService(EqvTPedidoRepository pedidoService, TblDomainService tblDomainService,
-                             GlobalGeografiaService globalGeografiaService, DocRelacaoService docRelacaoService, EqvTTipoDocumentoService eqvTTipoDocumentoService,
-                             NivelQualificacaoService nivelQualificacaoService,
-                             FamiliaProfissionalService familiaProfissionalService) {
+                             GlobalGeografiaService globalGeografiaService, DocRelacaoService docRelacaoService, EqvTTipoDocumentoService eqvTTipoDocumentoService
+                            ) {
         this.pedidoRepository = pedidoService;
         this.tblDomainService = tblDomainService;
         this.globalGeografiaService = globalGeografiaService;
         this.docRelacaoService = docRelacaoService;
-        this.nivelQualificacaoService = nivelQualificacaoService;
-        this.familiaProfissionalService = familiaProfissionalService;
+
     }
 
     public EqvtPedidoReporteDTO getPedidoDTOById(Integer id) {
