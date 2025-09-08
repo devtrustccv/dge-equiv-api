@@ -1,9 +1,15 @@
 package dge.dge_equiv_api.infrastructure.secondary;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
+@Builder
 @Entity
 @Table(name = "tbl_env")
 public class TblEnv {
@@ -14,19 +20,5 @@ public class TblEnv {
     @Column(name = "dad", nullable = false, unique = true)
     private String dad;
 
-    public Integer getId() {
-        return id;
-    }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getDad() {
-        return dad;
-    }
-
-    public void setDad(String dad) {
-        this.dad = dad;
-    }
 }
