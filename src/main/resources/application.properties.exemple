@@ -1,11 +1,26 @@
 spring.application.name=dge-equiv-api
 server.servlet.context-path=/api
-server.port=8086
+server.port=8087
 api.version=1.0
 spring.datasource.url=jdbc:postgresql://localhost:5432/db_dge_equivalencia
 spring.datasource.username=postgres
 spring.datasource.password=postgres
 spring.datasource.driver-class-name=org.postgresql.Driver
+
+
+
+# BD secundary (db_gestao_notificacao)
+spring.datasource.secondary.url=jdbc:postgresql://localhost:5432/db_igrp_dge
+spring.datasource.secondary.username=postgres
+spring.datasource.secondary.password=postgres
+spring.datasource.secondary.driver-class-name=org.postgresql.Driver
+
+
+# BD tertiary (db_igrp_dge)
+spring.datasource.tertiary.url=jdbc:postgresql://localhost:5432/db_dge_global
+spring.datasource.tertiary.username=postgres
+spring.datasource.tertiary.password=postgres
+spring.datasource.tertiary.driver-class-name=org.postgresql.Driver
 #spring.jpa.hibernate.ddl-auto=update
 spring.jpa.properties.hibernate.default_schema=public
 spring.jpa.properties.hibernate.format_sql=true
@@ -32,6 +47,8 @@ api.acompanhamento.create=https://deploy.devtrust.cv/dge-api/api-global/process
 api.acompanhamento.update=https://deploy.devtrust.cv/dge-api/api-global/process/update
 reporter.eqv.url=https://deploy.devtrust.cv/report-dge/
 process.equiv.start-url=http://localhost:8080/dge/services/process/start
-
-
+api.base.service.Duc=http://localhost:8083/api/duc/criar
+link.report.integration.sigof.duc=https://portalrep.gov.cv/reports/rwservlet?SIGOF_DUC&p_nu_duc=
+link.mf.duc=https://www.mf.gov.cv/web/mf/pagamento-duc?entidade=
+link.api.duc.check=http://localhost:8080/dge/services/feedback/pagamento?duc=
 
