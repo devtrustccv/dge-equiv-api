@@ -1,9 +1,11 @@
 package dge.dge_equiv_api.application.document.service;
 import dge.dge_equiv_api.Utils.RestClientHelper;
-import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
+import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
+import dge.dge_equiv_api.infrastructure.tertiary.DocRelacaoEntity;
+import dge.dge_equiv_api.infrastructure.tertiary.repository.DocRelacaoRepository;
 import io.micrometer.common.lang.NonNull;
 import io.micrometer.common.lang.Nullable;
 import jakarta.persistence.EntityNotFoundException;
@@ -18,6 +20,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -27,7 +32,8 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Autowired
     private EqvTPedidoRepository pedidoRepository; // Adicione esta injeção
-
+    @Autowired
+    private DocRelacaoRepository docRelacaoRepository;
 
 
     private final RestClientHelper restClientHelper;
@@ -63,7 +69,7 @@ public class DocumentServiceImpl implements DocumentService {
         body.add("fileName", dto.getFileName());
         String ext = getFileExtension(dto.getFile().getOriginalFilename());
 
-        var path = getPathFile(dto.getFileName(),  dto.getTipoRelacao(),  dto.getIdRelacao(), nProcesso, dto.getAppCode(), ext);
+        var path = getPathFile(dto.getFileName(), dto.getTipoRelacao(), dto.getIdRelacao(), nProcesso, dto.getAppCode(), ext);
         body.add("path", path);
 
         if (dto.getIdTpDoc() != null) {
@@ -112,71 +118,69 @@ public class DocumentServiceImpl implements DocumentService {
         return ""; // Sem extensão
     }
 
-    public String getPathFile(String fileName,  String tipoRelacao, Integer idRelacao, String nprocesso, String appCode, String ext) {
+    public String getPathFile(String fileName, String tipoRelacao, Integer idRelacao, String nprocesso, String appCode, String ext) {
         System.out.println("ext " + ext);
-        return appCode + "/"+LocalDateTime.now().getYear()+"/processos/"+tipoRelacao+"/"+nprocesso+"/"+idRelacao+"/"+fileName +"."+ ext;
+        return appCode + "/" + LocalDateTime.now().getYear() + "/processos/" + tipoRelacao + "/" + nprocesso + "/" + idRelacao + "/" + fileName + "." + ext;
     }
 
     public static String getBasePathForProcess(String appDad, @NonNull String processTypeKey, @Nullable String processInstanceID, @Nullable String taskKey) {
 
         var thisYear = new DateTime().year().getAsString();
-        var task = (taskKey == null || taskKey.isEmpty() ? "":taskKey+"/");
-        var processId = (processInstanceID == null || processInstanceID.isEmpty() ? "":processInstanceID+"/");
+        var task = (taskKey == null || taskKey.isEmpty() ? "" : taskKey + "/");
+        var processId = (processInstanceID == null || processInstanceID.isEmpty() ? "" : processInstanceID + "/");
 
-        return appDad+"/"+thisYear+"/processos/"+processTypeKey+"/"+processId+task;
+        return appDad + "/" + thisYear + "/processos/" + processTypeKey + "/" + processId + task;
     }
     //pegar doc no minio
 
-    public byte[] previewDocumento(Integer idRelacao, String tipoRelacao, String appCode, boolean download) {
-        String apiUrl = url + "/documentos/preview-by-tipo-rel"
-                + "?idRelacao=" + idRelacao
-                + "&tipoRelacao=" + tipoRelacao
-                + "&appCode=" + appCode
-                + "&download=" + download;
-
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Accept", MediaType.APPLICATION_OCTET_STREAM_VALUE);
-
-        ResponseEntity<byte[]> response = restClientHelper.sendRequest(
-                apiUrl,
-                HttpMethod.GET,
-                null,
-                byte[].class,
-                headers
-        );
-
-        System.out.println("link...."+apiUrl);
-
-        if (response.getStatusCode().is2xxSuccessful()) {
-            return response.getBody();
-        } else {
-            throw new RuntimeException("Erro ao buscar preview do documento: " + response.getStatusCode());
-        }
-    }
-
     @Override
-    public List<DocumentoDTO> getDocumentosPorRelacao(Integer idRelacao, String tipoRelacao, String appCode) {
-        String apiUrl = url + "/documentos/preview-by-tipo-rel"
-                + "?idRelacao=" + idRelacao
-                + "&tipoRelacao=" + tipoRelacao
-                + "&appCode=" + appCode;
+    public List<DocumentoResponseDTO> getDocumentosPorRelacao(Integer idRelacao, String tipoRelacao, String appCode) {
+        // Buscar documentos diretamente do banco local
+        List<DocRelacaoEntity> documentosEntity = docRelacaoRepository.findByIdRelacaoAndTipoRelacaoAndAppCode(
+                Long.valueOf(idRelacao), tipoRelacao, appCode);
 
-        ResponseEntity<DocumentoDTO[]> response = restClientHelper.sendRequest(
-                apiUrl,
-                HttpMethod.GET,
-                null,
-                DocumentoDTO[].class,
-                Collections.emptyMap()
-        );
+        List<DocumentoResponseDTO> documentosDTO = new ArrayList<>();
 
-        System.out.println("link......."+apiUrl);
-
-        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            return Arrays.asList(response.getBody());
-        } else {
-            //log.warn("Nenhum documento encontrado para idRelacao={} tipoRelacao={}", idRelacao, tipoRelacao);
-            return Collections.emptyList();
+        for (DocRelacaoEntity entity : documentosEntity) {
+            DocumentoResponseDTO dto = convertToDTO(entity);
+            documentosDTO.add(dto);
         }
+
+        return documentosDTO;
     }
 
+    private DocumentoResponseDTO convertToDTO(DocRelacaoEntity entity) {
+        DocumentoResponseDTO dto = new DocumentoResponseDTO();
+        dto.setId(Long.valueOf(entity.getId()));
+        dto.setFileName(entity.getFileName());
+        dto.setPath(entity.getPath());
+        dto.setTipoRelacao(entity.getTipoRelacao());
+        dto.setIdRelacao(Math.toIntExact(entity.getIdRelacao()));
+        dto.setIdTpDoc(String.valueOf(entity.getIdTpDoc()));
+        dto.setEstado(entity.getEstado());
+        dto.setAppCode(entity.getAppCode());
+
+        // Construir URL de preview
+        String previewUrl = buildPreviewUrl(entity.getPath(), false);
+        dto.setPreviewUrl(previewUrl);
+
+        return dto;
+    }
+
+    private String buildPreviewUrl(String path, boolean download) {
+        try {
+            if (path == null || path.isEmpty()) {
+                return "";
+            }
+
+            String encodedPath = URLEncoder.encode(path, StandardCharsets.UTF_8.toString());
+            return url + "/documentos/preview-by-path"
+                    + "?path=" + encodedPath
+                    + "&download=" + download;
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Erro ao codificar URL", e);
+        }
+
+
+    }
 }

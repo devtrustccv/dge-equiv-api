@@ -15,6 +15,7 @@ public class DocRelacaoDTO {
     private Integer idRelacao;
     private String tipoRelacao;
     private String estado;
+    private String name;
     private String idTpDoc;
     private String fileName;
     private String path;

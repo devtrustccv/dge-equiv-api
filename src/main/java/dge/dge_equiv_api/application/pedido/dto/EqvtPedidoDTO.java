@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
+import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,6 +47,7 @@ public class EqvtPedidoDTO {
     private String Etapa;
 
     private List<DocumentoDTO> documentos;
+    private List<DocumentoResponseDTO> documentosresp;
 
 
 

@@ -26,6 +26,9 @@ public class DocRelacaoEntity {
     @Column(name = "estado")
     private String estado;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "id_relacao")
     private Long idRelacao;
 

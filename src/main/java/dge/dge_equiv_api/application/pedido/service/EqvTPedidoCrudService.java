@@ -7,6 +7,7 @@ import dge.dge_equiv_api.application.certificado.config.ReporterConfig;
 import dge.dge_equiv_api.application.certificado.dto.CertificadoEquivalenciaDTO;
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
+import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import dge.dge_equiv_api.application.document.service.DocumentService;
 import dge.dge_equiv_api.application.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.application.duc.service.PagamentoService;
@@ -346,10 +347,10 @@ public class EqvTPedidoCrudService {
         try {
             AcompanhamentoDTO acomp = new AcompanhamentoDTO();
             acomp.setNumero(String.valueOf(requisicao.getNProcesso()));
-            acomp.setAppDad("EQUIV");
+            acomp.setAppDad("equiv");
             acomp.setPessoaId(pessoaId);
             acomp.setEntidadeNif(null);
-            acomp.setTipo("PEDIDO_RVCC");
+            acomp.setTipo("PEDIDO_EQUIV");
 
             // Combinações dos títulos
             String titulos = pedidos.stream()
@@ -369,7 +370,6 @@ public class EqvTPedidoCrudService {
             acomp.setPercentagem(10);
             acomp.setDataInicio(LocalDateTime.now());
             acomp.setDataFim(LocalDateTime.now());
-            //acomp.setDataFimPrevisto(LocalDate.now().plusDays(14));
             acomp.setEtapaAtual("Solicitacao");
             acomp.setEstado("EM_PROGRESSO");
             acomp.setEstadoDesc("Em Progresso");
@@ -390,30 +390,52 @@ public class EqvTPedidoCrudService {
             ));
             acomp.setOutputs(List.of());
 
-//            List<AcompanhamentoDTO.Anexo> anexos = List.of(
-//                    new AcompanhamentoDTO.Anexo("Certificado", LocalDateTime.now(), "https://www.dasinal.cv", false),
-//                    new AcompanhamentoDTO.Anexo("CNI", LocalDateTime.now(), "https://www.devtrust.cv", true)
-//            );
-//            acomp.setAnexos(anexos);
-
+            // BUSCAR DOCUMENTOS REAIS E CRIAR ANEXOS
+            List<AcompanhamentoDTO.Anexo> anexos = new ArrayList<>();
+            for (EqvTPedido pedido : pedidos) {
+                List<DocumentoResponseDTO> docs = documentService.getDocumentosPorRelacao(
+                        pedido.getId(),
+                        "SOLITACAO",
+                        "equiv"
+                );
+                for (DocumentoResponseDTO doc : docs) {
+                    AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo();
+                    anexo.setTitulo(doc.getName());
+                    anexo.setUrl(doc.getPreviewUrl()); // usa previewUrl para abrir
+                    anexos.add(anexo);
+                }
+            }
+            acomp.setAnexos(anexos);
 
             return acomp;
         } catch (Exception e) {
             log.error("Erro ao montar AcompanhamentoDTO", e);
-            return null;
+            throw new RuntimeException("Erro ao montar acompanhamento", e);
         }
     }
 
 
-    //pegar todos od pedidos e os seus documentos associoados
+
+
     public List<EqvtPedidoDTO> findPedidosComDocumentosByRequisicao(Integer requisicaoId) {
         EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
                 .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
+
         List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+
         return pedidos.stream().map(pedido -> {
             EqvtPedidoDTO dto = convertToDTO(pedido);
-            dto.setDocumentos(documentService.getDocumentosPorRelacao(pedido.getId(), "SOLITACAO", "equiv"));
-            log.info("Encontrados {} documentos para o pedido {}", dto.getDocumentos().size(), pedido.getId());
+
+            // Buscar documentos associados a este pedido do banco local
+            List<DocumentoResponseDTO> documentos = documentService.getDocumentosPorRelacao(
+                    pedido.getId(),
+                    "SOLITACAO",
+                    "equiv"
+            );
+
+            dto.setDocumentosresp(documentos);
+            log.info("Encontrados {} documentos para o pedido {}", documentos.size(), pedido.getId());
+
             return dto;
         }).collect(Collectors.toList());
     }

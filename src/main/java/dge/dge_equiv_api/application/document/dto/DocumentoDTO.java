@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
         private Integer idTpDoc;
     private String urlArquivo;
+    private String name;
     private MultipartFile file;
     private String nprocesso;
     public String getNprocesso() {
