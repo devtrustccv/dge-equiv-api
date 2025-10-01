@@ -81,9 +81,6 @@ public class EqvTPagamento {
     @Column(name = "user_pag_id")
     private BigDecimal userPagId;
 
-    @Column(name = "dmtipopagamento")
-    private String dmTipoPagamentoLegacy; // existe duas colunas parecidas, diferenciei no nome
-
     @Column(name = "dm_tipo_pagamento")
     private String dmTipoPagamento;
 
