@@ -132,7 +132,7 @@ public class EqvTPedidoCrudService {
         String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instituicoesProcessadas);
         requisicao.setNProcesso(Integer.valueOf(processInstanceId));
         requisicao = requisicaoRepository.save(requisicao);
-        //EqvTPagamento duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getNProcesso());
+        EqvTPagamento duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getNProcesso());
         // 6. Save pedidos and documents
         List<EqvtPedidoDTO> result = new ArrayList<>();
         List<EqvTPedido> pedidosSalvos = new ArrayList<>();
@@ -162,7 +162,7 @@ public class EqvTPedidoCrudService {
 
         // 7. Create acompanhamento
         criarAcompanhamento(requisicao, pedidosSalvos, pessoaId);
-        //enviarEmailConfirmacao(requerente, requisicao, duc);
+        enviarEmailConfirmacao(requerente, requisicao, duc);
 
 
         return result;

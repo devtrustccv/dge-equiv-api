@@ -1,38 +1,46 @@
 package dge.dge_equiv_api.application.pedido.mapper;
 
 import dge.dge_equiv_api.application.pedido.dto.*;
-import dge.dge_equiv_api.infrastructure.primary.EqvTInstEnsino;
-import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
-import dge.dge_equiv_api.infrastructure.primary.EqvTRequerente;
-import dge.dge_equiv_api.infrastructure.primary.EqvTRequisicao;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import dge.dge_equiv_api.infrastructure.primary.*;
+import org.mapstruct.*;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface PedidoMapper {
 
-    PedidoMapper INSTANCE = Mappers.getMapper(PedidoMapper.class);
+    @Mapping(target = "documentos", ignore = true)
+    @Mapping(target = "documentosresp", ignore = true)
+    @Mapping(target = "urlDucPagamento", ignore = true)
+    @Mapping(target = "nuDuc", ignore = true)
+    @Mapping(target = "entidade", ignore = true)
+    @Mapping(target = "referencia", ignore = true)
+    @Mapping(target = "verduc", ignore = true)
+    EqvtPedidoDTO toDto(EqvTPedido pedido);
 
-    // Pedido mappings
+    List<EqvtPedidoDTO> toDtoList(List<EqvTPedido> pedidos);
+
+    EqvTRequerenteDTO toRequerenteDto(EqvTRequerente requerente);
+    EqvTInstEnsinoDTO toInstEnsinoDto(EqvTInstEnsino instEnsino);
+    EqvTRequisicaoDTO toRequisicaoDto(EqvTRequisicao requisicao);
+
+    @Mapping(target = "despacho", source = "despacho")
+    PedidoSimplesDTO toSimplesDto(EqvtPedidoDTO pedido);
+
     EqvTPedido toEntity(EqvtPedidoDTO dto);
-    EqvtPedidoDTO toDTO(EqvTPedido entity);
-    List<EqvtPedidoDTO> toDTOList(List<EqvTPedido> entities);
-
-    // Requerente mappings
-    @Mapping(target = "habilitacao", expression = "java(dto.getHabilitacao() != null ? Integer.valueOf(dto.getHabilitacao()) : null)")
     EqvTRequerente toRequerenteEntity(EqvTRequerenteDTO dto);
-
-    @Mapping(target = "habilitacao", expression = "java(entity.getHabilitacao() != null ? String.valueOf(entity.getHabilitacao()) : null)")
-    EqvTRequerenteDTO toRequerenteDTO(EqvTRequerente entity);
-
-    // Instituição de Ensino mappings
     EqvTInstEnsino toInstEnsinoEntity(EqvTInstEnsinoDTO dto);
-    EqvTInstEnsinoDTO toInstEnsinoDTO(EqvTInstEnsino entity);
-
-    // Requisição mappings
     EqvTRequisicao toRequisicaoEntity(EqvTRequisicaoDTO dto);
-    EqvTRequisicaoDTO toRequisicaoDTO(EqvTRequisicao entity);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updatePedidoFromDto(EqvtPedidoDTO dto, @MappingTarget EqvTPedido pedido);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateRequerenteFromDto(EqvTRequerenteDTO dto, @MappingTarget EqvTRequerente requerente);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateInstEnsinoFromDto(EqvTInstEnsinoDTO dto, @MappingTarget EqvTInstEnsino instEnsino);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateRequisicaoFromDto(EqvTRequisicaoDTO dto, @MappingTarget EqvTRequisicao requisicao);
 }
