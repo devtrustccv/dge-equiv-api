@@ -370,7 +370,7 @@ public class EqvTPedidoCrudService {
             acomp.setPercentagem(10);
             acomp.setDataInicio(LocalDateTime.now());
             acomp.setDataFim(LocalDateTime.now());
-            acomp.setEtapaAtual("Solicitacao");
+            acomp.setEtapaAtual("Pagamento Análise");
             acomp.setEstado("EM_PROGRESSO");
             acomp.setEstadoDesc("Em Progresso");
 
@@ -378,6 +378,7 @@ public class EqvTPedidoCrudService {
             Map<String, String> detalhes = new LinkedHashMap<>();
             for (EqvTPedido p : pedidos) {
                 detalhes.put("Formação Profissional " + p.getId(), p.getFormacaoProf());
+                detalhes.put("Estado Duc ", "Pendente Pagamento");
             }
             acomp.setDetalhes(detalhes);
 

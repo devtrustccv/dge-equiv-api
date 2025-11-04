@@ -1,6 +1,7 @@
 package dge.dge_equiv_api.application.duc.service;
 
 import dge.dge_equiv_api.application.duc.dto.DucModel;
+import dge.dge_equiv_api.application.taxa.service.EqvTTaxaService;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPagamento;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPagamentoRepository;
@@ -22,16 +23,20 @@ public class PagamentoService {
 
     @Value("${api.base.service.Duc}")
     private String duc;
+
+    @Autowired
+    private EqvTTaxaService eqvTTaxaService ;
      @Autowired
     private  EqvTPagamentoRepository pagamentoRepository;
     public EqvTPagamento gerarDuc(EqvTPedido pedido, String nif, Integer nrProcesso) {
         try {
             RestTemplate restTemplate = new RestTemplate();
 
+            BigDecimal valortaxa = eqvTTaxaService.getValorAtivoParaPagamentoAnalise();
             // Monta URL com query params
             String url = UriComponentsBuilder
                     .fromHttpUrl(duc) // duc deve ser algo como "http://localhost:8083/api/duc/criar"
-                    .queryParam("valor", 1000)
+                    .queryParam("valor", 1000 )
                     .queryParam("nif", nif)
                     .queryParam("obs", "teste duc equiv")
                     .toUriString();
