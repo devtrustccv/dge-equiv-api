@@ -5,6 +5,7 @@ import dge.dge_equiv_api.application.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.application.pedido.dto.*;
 import dge.dge_equiv_api.application.pedido.service.EqvTPedidoCrudService;
 import dge.dge_equiv_api.application.pedido.service.EqvTPedidoService;
+import dge.dge_equiv_api.application.pedido.service.PedidoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;

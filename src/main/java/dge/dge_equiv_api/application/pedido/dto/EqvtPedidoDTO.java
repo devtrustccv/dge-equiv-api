@@ -43,6 +43,8 @@ public class EqvtPedidoDTO {
    private  String entidade;
    private  String referencia;
    private  String verduc;
+   private  String ValorDuc;
+
 
     private String Etapa;
 

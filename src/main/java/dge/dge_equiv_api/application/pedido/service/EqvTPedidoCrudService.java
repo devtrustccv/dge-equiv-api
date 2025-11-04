@@ -459,18 +459,19 @@ public class EqvTPedidoCrudService {
         String assuntoRequerente = "Confirmação de Recebimento - Pedido de Equivalência Profissional";
 
         String mensagemRequerente =
-                "<p>Prezado(a)  <strong> " + nomeRequerente + "</strong>,</p>" +
-                        "<p>O seu pedido de equivalência foi registado com sucesso sob o número  <strong> " + numeroPedido + " </strong>.</p>" +
+                "<p>Prezado(a) <strong>" + nomeRequerente + "</strong>,</p>" +
+                        "<p>O seu pedido de equivalência foi registado com sucesso sob o número <strong>" + numeroPedido + "</strong>.</p>" +
                         "<p>Para dar seguimento ao processo, é necessário efetuar o pagamento da taxa correspondente através do Documento Único de Cobrança (DUC).</p>" +
                         "<p>Por favor, utilize o link abaixo para gerar e pagar o seu DUC:</p>" +
-                        "<p><a href=\"" + linkPagamento + "\" style=\"color: blue; text-decoration: underline;\">" +
+                        "<p><a href=\"" + linkPagamento + "\" style=\"color: blue; text-decoration: underline;\" target=\"_blank\">" +
                         "Clique aqui para realizar o pagamento do DUC</a></p>" +
-                        "<p><a href=\"" + linkverduc + "\" style=\"color: blue; text-decoration: underline;\">" +
+                        "<p><a href=\"" + linkverduc + "\" style=\"color: blue; text-decoration: underline;\" target=\"_blank\">" +
                         "Clique aqui para ver o DUC gerado</a></p>" +
                         "<p>O processamento do seu pedido só será iniciado após a confirmação do pagamento.</p>" +
                         "<p>Agradecemos a sua atenção e colaboração.</p>" +
                         "<p>Com os melhores cumprimentos,</p>" +
                         "<p>UC-SNQ – Sistema de Equivalência Profissional</p>";
+
 
 
         NotificationRequestDTO dto = new NotificationRequestDTO();
@@ -666,6 +667,7 @@ public class EqvTPedidoCrudService {
                 dto.setNuDuc(pagamento.getNuDuc().toString());
                 dto.setEntidade(pagamento.getEntidade());
                 dto.setReferencia(pagamento.getReferencia().toString());
+                dto.setValorDuc(pagamento.getTotal().toString());
                 dto.setVerduc(linkverduc);
 
             }
