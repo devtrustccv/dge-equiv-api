@@ -1,11 +1,18 @@
 package dge.dge_equiv_api.application.acompanhamento.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class AcompanhamentoDTO {
 
     @JsonProperty("numero")
@@ -68,175 +75,14 @@ public class AcompanhamentoDTO {
     @JsonProperty("anexos")
     private List<Anexo> anexos;
 
-    public List<Anexo> getAnexos() {
-        return anexos;
-    }
-
-    public void setAnexos(List<Anexo> anexos) {
-        this.anexos = anexos;
-    }
-
-
-    // Getters e Setters
-
-    public String getNumero() {
-        return numero;
-    }
-
-    public void setNumero(String numero) {
-        this.numero = numero;
-    }
-
-    public String getAppDad() {
-        return appDad;
-    }
-
-    public void setAppDad(String appDad) {
-        this.appDad = appDad;
-    }
-
-    public Integer getPessoaId() {
-        return pessoaId;
-    }
-
-    public void setPessoaId(Integer pessoaId) {
-        this.pessoaId = pessoaId;
-    }
-
-    public String getEntidadeNif() {
-        return entidadeNif;
-    }
-
-    public void setEntidadeNif(String entidadeNif) {
-        this.entidadeNif = entidadeNif;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
-
-    public Integer getPercentagem() {
-        return percentagem;
-    }
-
-    public void setPercentagem(Integer percentagem) {
-        this.percentagem = percentagem;
-    }
-
-    public String getEntidade() {
-        return entidade;
-    }
-
-    public void setEntidade(String entidade) {
-        this.entidade = entidade;
-    }
-
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
-
-    public LocalDateTime getDataFim() {
-        return dataFim;
-    }
-
-    public void setDataFim(LocalDateTime dataFim) {
-        this.dataFim = dataFim;
-    }
-
-    public LocalDateTime getDataInicio() {
-        return dataInicio;
-    }
-
-    public void setDataInicio(LocalDateTime dataInicio) {
-        this.dataInicio = dataInicio;
-    }
-
-    public LocalDate getDataFimPrevisto() {
-        return dataFimPrevisto;
-    }
-
-    public void setDataFimPrevisto(LocalDate dataFimPrevisto) {
-        this.dataFimPrevisto = dataFimPrevisto;
-    }
-
-    public String getEtapaAtual() {
-        return etapaAtual;
-    }
-
-    public void setEtapaAtual(String etapaAtual) {
-        this.etapaAtual = etapaAtual;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public String getEstadoDesc() {
-        return estadoDesc;
-    }
-
-    public void setEstadoDesc(String estadoDesc) {
-        this.estadoDesc = estadoDesc;
-    }
-
-    public Map<String, String> getDetalhes() {
-        return detalhes;
-    }
-
-    public void setDetalhes(Map<String, String> detalhes) {
-        this.detalhes = detalhes;
-    }
-
-    public List<Comunicacao> getComunicacoes() {
-        return comunicacoes;
-    }
-
-    public void setComunicacoes(List<Comunicacao> comunicacoes) {
-        this.comunicacoes = comunicacoes;
-    }
-
-    public List<Evento> getEventos() {
-        return eventos;
-    }
-
-    public void setEventos(List<Evento> eventos) {
-        this.eventos = eventos;
-    }
-
-    public List<Output> getOutputs() {
-        return outputs;
-    }
-
-    public void setOutputs(List<Output> outputs) {
-        this.outputs = outputs;
-    }
-
-    // Subclasse Comunicacao
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Comunicacao {
         @JsonProperty("titulo")
         private String titulo;
 
-        @JsonProperty("descricao")  // JSON usa "descricao" para essa propriedade
+        @JsonProperty("descricao")
         private String descricao;
 
         @JsonProperty("datetime")
@@ -244,44 +90,11 @@ public class AcompanhamentoDTO {
 
         @JsonProperty("items")
         private Map<String, String> items;
-
-        public <K, V> Comunicacao(String notificação, String faltamDocs, LocalDateTime now, Map<K,V> proximoPasso) {
-        }
-
-        public String getTitulo() {
-            return titulo;
-        }
-
-        public void setTitulo(String titulo) {
-            this.titulo = titulo;
-        }
-
-        public String getDescricao() {
-            return descricao;
-        }
-
-        public void setDescricao(String descricao) {
-            this.descricao = descricao;
-        }
-
-        public LocalDateTime getDatetime() {
-            return datetime;
-        }
-
-        public void setDatetime(LocalDateTime datetime) {
-            this.datetime = datetime;
-        }
-
-        public Map<String, String> getItems() {
-            return items;
-        }
-
-        public void setItems(Map<String, String> items) {
-            this.items = items;
-        }
     }
 
-    // Subclasse Evento
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Evento {
         @JsonProperty("titulo")
         private String titulo;
@@ -291,63 +104,22 @@ public class AcompanhamentoDTO {
 
         @JsonProperty("data")
         private LocalDateTime data;
-
-        public Evento(String s, String iniciado, LocalDateTime now) {
-        }
-
-        public String getTitulo() {
-            return titulo;
-        }
-
-        public void setTitulo(String titulo) {
-            this.titulo = titulo;
-        }
-
-        public String getDescricao() {
-            return descricao;
-        }
-
-        public void setDescricao(String descricao) {
-            this.descricao = descricao;
-        }
-
-        public LocalDateTime getData() {
-            return data;
-        }
-
-        public void setData(LocalDateTime data) {
-            this.data = data;
-        }
     }
 
-    // Subclasse Output
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Output {
         @JsonProperty("titulo")
         private String titulo;
 
         @JsonProperty("url")
         private String url;
-
-        public Output(String certificado, String wwww) {
-        }
-
-        public String getTitulo() {
-            return titulo;
-        }
-
-        public void setTitulo(String titulo) {
-            this.titulo = titulo;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
     }
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Anexo {
         @JsonProperty("titulo")
         private String titulo;
@@ -360,49 +132,5 @@ public class AcompanhamentoDTO {
 
         @JsonProperty("input")
         private boolean input;
-
-        public Anexo() {
-        }
-
-        public Anexo(String titulo, LocalDateTime datetime, String url, boolean input) {
-            this.titulo = titulo;
-            this.datetime = datetime;
-            this.url = url;
-            this.input = input;
-        }
-
-        public String getTitulo() {
-            return titulo;
-        }
-
-        public void setTitulo(String titulo) {
-            this.titulo = titulo;
-        }
-
-        public LocalDateTime getDatetime() {
-            return datetime;
-        }
-
-        public void setDatetime(LocalDateTime datetime) {
-            this.datetime = datetime;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public boolean isInput() {
-            return input;
-        }
-
-        public void setInput(boolean input) {
-            this.input = input;
-        }
     }
-
-
 }

@@ -12,6 +12,7 @@ import dge.dge_equiv_api.application.document.service.DocumentService;
 import dge.dge_equiv_api.application.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.application.duc.service.PagamentoService;
 import dge.dge_equiv_api.application.pedido.dto.*;
+import dge.dge_equiv_api.application.taxa.service.EqvTTaxaService;
 import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.infrastructure.primary.*;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTInstEnsinoRepository;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -67,6 +69,8 @@ public class EqvTPedidoCrudService {
     private ReporterConfig reporterConfig;
     @Autowired
     private PagamentoService pagamentoService;
+    @Autowired
+    private EqvTTaxaService taxaService;
 
     @Value("${link.mf.duc}")
     private String mfkink;
@@ -161,8 +165,8 @@ public class EqvTPedidoCrudService {
 
 
         // 7. Create acompanhamento
-        criarAcompanhamento(requisicao, pedidosSalvos, pessoaId);
-        enviarEmailConfirmacao(requerente, requisicao, duc);
+        criarAcompanhamento(requisicao, pedidosSalvos, pessoaId,duc);
+        enviarEmailConfirmacao(requerente, requisicao,duc);
 
 
         return result;
@@ -230,9 +234,9 @@ public class EqvTPedidoCrudService {
         }
     }
 
-    private void criarAcompanhamento(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId) {
+    private void criarAcompanhamento(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId, EqvTPagamento pagamento ) {
         try {
-            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidos, pessoaId);
+            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidos, pessoaId,pagamento);
             if (acompanhamento != null) {
                 acompanhamentoService.criarAcompanhamento(acompanhamento);
                 log.info("Acompanhamento criado para processo {}", requisicao.getNProcesso());
@@ -343,78 +347,108 @@ public class EqvTPedidoCrudService {
     }
 
     // criar  acompanhamento para cada  pedido
-    private AcompanhamentoDTO montarAcompanhamentoDTO(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId) {
+    private AcompanhamentoDTO montarAcompanhamentoDTO(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId, EqvTPagamento pagamento) {
         try {
+            // Combinações dos títulos
+            String titulos = pedidos.stream()
+                    .map(EqvTPedido::getFormacaoProf)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining(" | "));
+
+            // Nome da instituição
+            String entidade = pedidos.stream()
+                    .map(p -> p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null)
+                    .filter(Objects::nonNull)
+                    .findFirst().orElse(null);
+
+            // Detalhes
+            Map<String, String> detalhes = new LinkedHashMap<>();
+            detalhes.put("Número Processo", String.valueOf(requisicao.getNProcesso()));
+
+            for (int i = 0; i < pedidos.size(); i++) {
+                EqvTPedido p = pedidos.get(i);
+                detalhes.put("Formação " , p.getFormacaoProf());
+                detalhes.put("Estado Duc ", "Pendente");
+            }
+
+            // Eventos
+            List<AcompanhamentoDTO.Evento> eventos = List.of(
+                    new AcompanhamentoDTO.Evento(
+                            "Processo Criado",
+                            "Solicitação de equivalência registrada no sistema",
+                            LocalDateTime.now()
+                    ),
+                    new AcompanhamentoDTO.Evento(
+                            "Aguardando Pagamento",
+                            "Processo aguardando pagamento da taxa de análise",
+                            LocalDateTime.now()
+                    )
+            );
+
+            // Comunicações
+            BigDecimal valorTaxa = taxaService.getValorAtivoParaPagamentoAnalise();
+            List<AcompanhamentoDTO.Comunicacao> comunicacoes = List.of(
+                    new AcompanhamentoDTO.Comunicacao(
+                            "Pagamento Pendente",
+                            "Aguardando pagamento da taxa de análise para dar seguimento ao processo de equivalência.",
+                            LocalDateTime.now(),
+                            Map.of(
+                                    "valor", valorTaxa != null ? valorTaxa.toString() : "N/A",
+                                    "moeda", "CVE",
+                                    "Link Duc", pagamento.getLinkDuc(),
+                                    "estado", "Pendente"
+                            )
+                    )
+            );
+
+            // Anexos
+            List<AcompanhamentoDTO.Anexo> anexos = new ArrayList<>();
+            for (EqvTPedido pedido : pedidos) {
+                List<DocumentoResponseDTO> docs = documentService.getDocumentosPorRelacao(
+                        pedido.getId(),
+                        "SOLICITACAO",
+                        "equiv"
+                );
+                for (DocumentoResponseDTO doc : docs) {
+                    AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo(
+                            doc.getName(),
+                            LocalDateTime.now(), // Usa data atual já que doc.getDataCriacao() não existe
+                            doc.getPreviewUrl(),
+                            true
+                    );
+                    anexos.add(anexo);
+                }
+            }
+
+            // Cria o DTO
             AcompanhamentoDTO acomp = new AcompanhamentoDTO();
             acomp.setNumero(String.valueOf(requisicao.getNProcesso()));
             acomp.setAppDad("equiv");
             acomp.setPessoaId(pessoaId);
             acomp.setEntidadeNif(null);
             acomp.setTipo("PEDIDO_EQUIV");
-
-            // Combinações dos títulos
-            String titulos = pedidos.stream()
-                    .map(EqvTPedido::getFormacaoProf)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.joining(" | "));
             acomp.setTitulo("Pedido(s): " + titulos);
             acomp.setDescricao("Equivalência para " + titulos);
-
-            // Nome da instituição (se todas forem iguais, ou pegar da primeira)
-            String entidade = pedidos.stream()
-                    .map(p -> p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null)
-                    .filter(Objects::nonNull)
-                    .findFirst().orElse(null);
             acomp.setEntidade(entidade);
-
             acomp.setPercentagem(10);
-            acomp.setDataInicio(LocalDateTime.now());
-            acomp.setDataFim(LocalDateTime.now());
+            acomp.setDataInicio(LocalDateTime.now()); // Usa data atual
+            acomp.setDataFim(null);
+            acomp.setDataFimPrevisto(LocalDate.now().plusDays(30));
             acomp.setEtapaAtual("Pagamento Análise");
             acomp.setEstado("EM_PROGRESSO");
             acomp.setEstadoDesc("Em Progresso");
-
-            // Adiciona um mapa com todas as formações
-            Map<String, String> detalhes = new LinkedHashMap<>();
-            for (EqvTPedido p : pedidos) {
-                detalhes.put("Formação Profissional " + p.getId(), p.getFormacaoProf());
-                detalhes.put("Estado Duc ", "Pendente Pagamento");
-            }
             acomp.setDetalhes(detalhes);
-
-            acomp.setEventos(List.of(
-                    new AcompanhamentoDTO.Evento("Etapa 1", "Iniciado", LocalDateTime.now())
-            ));
-            acomp.setComunicacoes(List.of(
-                    new AcompanhamentoDTO.Comunicacao("Notificação", "", LocalDateTime.now(),
-                            Map.of("Proximo_Passo", "Análise"))
-            ));
-            acomp.setOutputs(List.of());
-
-            // BUSCAR DOCUMENTOS REAIS E CRIAR ANEXOS
-            List<AcompanhamentoDTO.Anexo> anexos = new ArrayList<>();
-            for (EqvTPedido pedido : pedidos) {
-                List<DocumentoResponseDTO> docs = documentService.getDocumentosPorRelacao(
-                        pedido.getId(),
-                        "SOLITACAO",
-                        "equiv"
-                );
-                for (DocumentoResponseDTO doc : docs) {
-                    AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo();
-                    anexo.setTitulo(doc.getName());
-                    anexo.setUrl(doc.getPreviewUrl()); // usa previewUrl para abrir
-                    anexos.add(anexo);
-                }
-            }
+            acomp.setEventos(eventos);
+            acomp.setComunicacoes(comunicacoes);
+            acomp.setOutputs(new ArrayList<>());
             acomp.setAnexos(anexos);
 
             return acomp;
         } catch (Exception e) {
-            log.error("Erro ao montar AcompanhamentoDTO", e);
+            log.error("Erro ao montar AcompanhamentoDTO para requisição: {}", requisicao.getId(), e);
             throw new RuntimeException("Erro ao montar acompanhamento", e);
         }
     }
-
 
 
 
