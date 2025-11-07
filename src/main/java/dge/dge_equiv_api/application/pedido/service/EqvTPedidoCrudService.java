@@ -389,14 +389,14 @@ public class EqvTPedidoCrudService {
             BigDecimal valorTaxa = taxaService.getValorAtivoParaPagamentoAnalise();
             List<AcompanhamentoDTO.Comunicacao> comunicacoes = List.of(
                     new AcompanhamentoDTO.Comunicacao(
-                            "Pagamento Pendente",
+                            "Pendente Pagamento ",
                             "Aguardando pagamento da taxa de análise para dar seguimento ao processo de equivalência.",
                             LocalDateTime.now(),
                             Map.of(
                                     "valor", valorTaxa != null ? valorTaxa.toString() : "N/A",
                                     "moeda", "CVE",
                                     "Link Duc", pagamento.getLinkDuc(),
-                                    "estado", "Pendente"
+                                    "estado", "Pendente Pagamento"
                             )
                     )
             );
