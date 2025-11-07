@@ -387,6 +387,11 @@ public class EqvTPedidoCrudService {
 
             // Comunicações
             BigDecimal valorTaxa = taxaService.getValorAtivoParaPagamentoAnalise();
+            String urlPagamento = mfkink + pagamento.getEntidade()
+                    + "&referencia=" + pagamento.getReferencia()
+                    + "&montante=" + pagamento.getTotal()
+                    + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
+            String linkPagamento = urlPagamento;
             List<AcompanhamentoDTO.Comunicacao> comunicacoes = List.of(
                     new AcompanhamentoDTO.Comunicacao(
                             "Pendente Pagamento ",
@@ -396,7 +401,9 @@ public class EqvTPedidoCrudService {
                                     "valor", valorTaxa != null ? valorTaxa.toString() : "N/A",
                                     "moeda", "CVE",
                                     "Link Duc", pagamento.getLinkDuc(),
+                                    "Link Pag Online", linkPagamento,
                                     "estado", "Pendente Pagamento"
+
                             )
                     )
             );
