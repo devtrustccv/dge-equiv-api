@@ -399,7 +399,6 @@ public class EqvTPedidoCrudService {
                             LocalDateTime.now(),
                             Map.of(
                                     "valor", valorTaxa != null ? valorTaxa.toString() : "N/A",
-                                    "moeda", "CVE",
                                     "Link Duc", pagamento.getLinkDuc(),
                                     "Link Pag Online", linkPagamento,
                                     "estado", "Pendente Pagamento"
@@ -440,7 +439,7 @@ public class EqvTPedidoCrudService {
             acomp.setPercentagem(10);
             acomp.setDataInicio(LocalDateTime.now()); // Usa data atual
             acomp.setDataFim(null);
-            acomp.setDataFimPrevisto(LocalDate.now().plusDays(30));
+            //acomp.setDataFimPrevisto(LocalDate.now().plusDays(30));
             acomp.setEtapaAtual("Pagamento Análise");
             acomp.setEstado("EM_PROGRESSO");
             acomp.setEstadoDesc("Em Progresso");
