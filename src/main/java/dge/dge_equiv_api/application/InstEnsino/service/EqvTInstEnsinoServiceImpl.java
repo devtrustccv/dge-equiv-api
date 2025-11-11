@@ -2,6 +2,7 @@ package dge.dge_equiv_api.application.InstEnsino.service;
 
 
 import dge.dge_equiv_api.application.InstEnsino.dto.InstituicaoPaisDTO;
+import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
 import dge.dge_equiv_api.application.pedido.dto.EqvTInstEnsinoDTO;
 import dge.dge_equiv_api.infrastructure.primary.EqvTInstEnsino;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTInstEnsinoRepository;
@@ -11,9 +12,12 @@ import org.springframework.stereotype.Service;
 public class EqvTInstEnsinoServiceImpl implements EqvTInstEnsinoService {
 
     private final EqvTInstEnsinoRepository repository;
+    private  final GlobalGeografiaService globalGeografiaService;
 
-    public EqvTInstEnsinoServiceImpl(EqvTInstEnsinoRepository repository) {
+    public EqvTInstEnsinoServiceImpl(EqvTInstEnsinoRepository repository, GlobalGeografiaService globalGeografiaService) {
         this.repository = repository;
+
+        this.globalGeografiaService = globalGeografiaService;
     }
 
     @Override
@@ -23,7 +27,7 @@ public class EqvTInstEnsinoServiceImpl implements EqvTInstEnsinoService {
 
         return InstituicaoPaisDTO.builder()
                 .id(inst.getId())
-                .pais(inst.getPais())
+                .pais(globalGeografiaService.buscarNomePorCodigoPais(inst.getPais()))
                 .build();
     }
 
