@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,14 +23,19 @@ import java.util.List;
 public class EqvtPedidoDTO {
     private Integer id;
     @JsonIgnore
-    private EqvTRequerenteDTO requerente;
 
+    private EqvTRequerenteDTO requerente;
+    @NotNull(message = "Instituição é obrigatório")
     private EqvTInstEnsinoDTO instEnsino;
     @JsonIgnore
     private EqvTRequisicaoDTO requisicao;
+    @NotNull(message = "Formação Profissional é obrigatório")
     private String formacaoProf;
+    @NotNull (message = "Carga horária é obrigatório")
     private Integer carga;
+    @NotNull (message = "Ano de início é obrigatório")
     private BigDecimal anoInicio;
+    @NotNull (message = "Ano de fim é obrigatório")
     private BigDecimal anoFim;
     private Integer nivel;
     private String familia;

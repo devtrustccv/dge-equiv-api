@@ -61,4 +61,7 @@ public class EqvTRequerente {
     @Column(name = "data_update")
     private LocalDate dataUpdate;
 
+    @Column(name = "id_pessoa")
+    private Integer idPessoa;
+
 }

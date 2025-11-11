@@ -12,6 +12,7 @@ import dge.dge_equiv_api.application.document.service.DocumentService;
 import dge.dge_equiv_api.application.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.application.duc.service.PagamentoService;
 import dge.dge_equiv_api.application.pedido.dto.*;
+import dge.dge_equiv_api.application.pessoa.PessoaService;
 import dge.dge_equiv_api.application.taxa.service.EqvTTaxaService;
 import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.infrastructure.primary.*;
@@ -72,6 +73,8 @@ public class EqvTPedidoCrudService {
     @Autowired
     private EqvTTaxaService taxaService;
 
+    private PessoaService pessoaService;
+
     @Value("${link.mf.duc}")
     private String mfkink;
 
@@ -102,11 +105,23 @@ public class EqvTPedidoCrudService {
             throw new IllegalArgumentException("RequerenteDTO não pode ser nulo");
         }
 
-        // 2. Save requerente
-        EqvTRequerente requerente = new EqvTRequerente();
-        requerente.setDateCreate(LocalDate.now());
-        copyRequerenteFields(requerente, requerenteDTO);
-        requerente = requerenteRepository.save(requerente);
+        // 2️ Verificar se já existe um requerente com este idPessoa
+        EqvTRequerente requerenteExistente = requerenteRepository.findByIdPessoa(pessoaId);
+        EqvTRequerente requerente;
+
+        if (requerenteExistente != null) {
+            // Já existe requerente com este idPessoa → reutiliza
+            log.info("Requerente já existente com idPessoa {} (id: {}).", pessoaId, requerenteExistente.getId());
+            requerente = requerenteExistente;
+        } else {
+            // Primeira vez → cria novo requerente com este idPessoa
+            log.info("Nenhum requerente encontrado com idPessoa {}. Criando novo requerente...", pessoaId);
+            requerente = new EqvTRequerente();
+            requerente.setDateCreate(LocalDate.now());
+            requerente.setIdPessoa(pessoaId);
+            copyRequerenteFields(requerente, requerenteDTO);
+            requerente = requerenteRepository.save(requerente);
+        }
 
         // 3. Process institutions first
         Map<Integer, EqvTInstEnsino> instituicoesProcessadas = new HashMap<>();
@@ -136,7 +151,19 @@ public class EqvTPedidoCrudService {
         String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instituicoesProcessadas);
         requisicao.setNProcesso(Integer.valueOf(processInstanceId));
         requisicao = requisicaoRepository.save(requisicao);
-        EqvTPagamento duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getNProcesso());
+       // gerar duc em caso de erro na faz nd
+
+        EqvTPagamento duc = null;
+
+        try {
+            duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getNProcesso());
+            log.info("DUC gerado com sucesso para o processo {}", requisicao.getNProcesso());
+        } catch (Exception e) {
+            log.error("Falha ao gerar DUC para o processo {}: {}", requisicao.getNProcesso(), e.getMessage());
+            // Interrompe o fluxo e envia mensagem ao front-end
+            throw new RuntimeException("Ocorreu um erro ao gerar o DUC. Por favor, tente novamente mais tarde.");
+        }
+
         // 6. Save pedidos and documents
         List<EqvtPedidoDTO> result = new ArrayList<>();
         List<EqvTPedido> pedidosSalvos = new ArrayList<>();
@@ -246,64 +273,6 @@ public class EqvTPedidoCrudService {
         }
     }
 
-
-//    public List<EqvtPedidoDTO> updatePedidosByRequisicaoId(Integer requisicaoId, PortalPedidosDTO dto) {
-//        EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
-//                .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
-//
-//        List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
-//
-//        if (dto.getRequisicao() != null) {
-//            copyRequisicaoFields(requisicao, dto.getRequisicao());
-//            requisicaoRepository.save(requisicao);
-//        }
-//
-//        EqvTRequerente requerente = null;
-//        if (dto.getRequerente() != null) {
-//            requerente = dto.getRequerente().getId() != null ?
-//                    requerenteRepository.findById(dto.getRequerente().getId()).orElse(new EqvTRequerente()) :
-//                    new EqvTRequerente();
-//
-//            copyRequerenteFields(requerente, dto.getRequerente());
-//            requerente = requerenteRepository.save(requerente);
-//        }
-//
-//        List<EqvtPedidoDTO> result = new ArrayList<>();
-//        List<EqvtPedidoDTO> pedidosDTO = dto.getPedidos();
-//
-//        for (int i = 0; i < pedidos.size(); i++) {
-//            EqvTPedido pedido = pedidos.get(i);
-//            EqvtPedidoDTO novo = pedidosDTO.get(i);
-//
-//            copyPedidoFields(pedido, novo);
-//            pedido.setRequerente(requerente);
-//            pedido.setRequisicao(requisicao);
-//            pedido = pedidoRepository.save(pedido);
-//
-//            salvarDocumentosDoPedido(novo, pedido);
-//            result.add(convertToDTO(pedido));
-//        }
-//
-//        return result;
-//    }
-
-//    public void deletePedido(Integer id) {
-//        if (!pedidoRepository.existsById(id)) {
-//            throw new EntityNotFoundException("Pedido não encontrado com ID: " + id);
-//        }
-//        pedidoRepository.deleteById(id);
-//        log.info("Pedido {} deletado com sucesso.", id);
-//    }
-
-    public List<EqvtPedidoDTO> findAll() {
-        return pedidoRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
-    }
-
-    public EqvtPedidoDTO findById(Integer id) {
-        EqvTPedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com ID: " + id));
-        return convertToDTO(pedido);
-    }
 
 
     private void salvarDocumentosDoPedido(EqvtPedidoDTO dto, EqvTPedido pedido) {

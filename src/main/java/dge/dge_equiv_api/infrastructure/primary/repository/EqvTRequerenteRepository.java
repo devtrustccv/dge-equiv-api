@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EqvTRequerenteRepository extends JpaRepository<EqvTRequerente, Integer> {
+    EqvTRequerente findByIdPessoa(Integer idPessoa);
 }
