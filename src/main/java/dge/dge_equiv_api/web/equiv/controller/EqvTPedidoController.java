@@ -45,7 +45,7 @@ public class EqvTPedidoController {
 
     @PostMapping(value = "/portal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createLote(@ModelAttribute PortalPedidosDTO lotePedidosDTO) {
-        try {
+
             List<EqvtPedidoDTO> created = crudService.createLotePedidosComRequisicaoERequerenteUnicos(
                     lotePedidosDTO.getPedidos(),
                     lotePedidosDTO.getRequisicao(),
@@ -65,12 +65,7 @@ public class EqvTPedidoController {
 
             logger.info("Pedidos criados com sucesso: {}", created.size());
             return ResponseEntity.ok().body(resposta);
-        } catch (Exception e) {
-            logger.error("Erro ao criar pedidos: {}", e.getMessage(), e);
-            var result = new ResponseDto();
-            result.setMessage("Erro ao criar pedidos: " + e.getMessage());
-            return ResponseEntity.badRequest().body(result);
-        }
+
     }
     @GetMapping("/portal/{id}")
     public ResponseEntity<List<EqvtPedidoDTO>> getPedidosComDocumentosPorRequisicao(@PathVariable Integer id) {
@@ -119,7 +114,7 @@ public class EqvTPedidoController {
     // ========================
     @GetMapping("/{encryptedId}")
     public ResponseEntity<?> getPedido(@PathVariable String encryptedId) {
-        try {
+
             String decryptedId = AESUtil.decrypt(encryptedId);
             Integer id = Integer.valueOf(decryptedId);
 
@@ -131,10 +126,7 @@ public class EqvTPedidoController {
 
             logger.info("Pedido encontrado para ID {}: {}", id, dto);
             return ResponseEntity.ok(dto);
-        } catch (Exception e) {
-            logger.error("Erro ao buscar pedido por ID criptografado: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body("ID inválido ou erro ao descriptografar.");
-        }
+
     }
 
 }

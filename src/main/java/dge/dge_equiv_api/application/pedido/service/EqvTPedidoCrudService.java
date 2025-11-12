@@ -404,7 +404,7 @@ public class EqvTPedidoCrudService {
             acomp.setTipo("PEDIDO_EQUIV");
             acomp.setTitulo("Pedido(s): " + titulos);
             acomp.setDescricao("Equivalência para " + titulos);
-            acomp.setEntidade(entidade);
+            acomp.setEntidade(null);
             acomp.setPercentagem(10);
             acomp.setDataInicio(LocalDateTime.now()); // Usa data atual
             acomp.setDataFim(null);
