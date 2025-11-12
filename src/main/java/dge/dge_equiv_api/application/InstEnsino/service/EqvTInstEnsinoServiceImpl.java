@@ -28,6 +28,7 @@ public class EqvTInstEnsinoServiceImpl implements EqvTInstEnsinoService {
         return InstituicaoPaisDTO.builder()
                 .id(inst.getId())
                 .pais(globalGeografiaService.buscarNomePorCodigoPais(inst.getPais()))
+                .codigo(inst.getPais())
                 .build();
     }
 

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class InstituicaoPaisDTO {
     private Integer id;
+    private String codigo;
     private String pais;
 }
 
