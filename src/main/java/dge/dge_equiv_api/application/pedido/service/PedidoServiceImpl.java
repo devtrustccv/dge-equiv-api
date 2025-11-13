@@ -382,9 +382,9 @@ public class PedidoServiceImpl implements PedidoService {
             }
             acomp.setDetalhes(detalhes);
 
-            acomp.setEventos(List.of(
-                    new AcompanhamentoDTO.Evento("Etapa 1", "Iniciado", LocalDateTime.now())
-            ));
+//            acomp.setEventos(List.of(
+//                    new AcompanhamentoDTO.Evento("Etapa 1", "Iniciado", LocalDateTime.now())
+//            ));
             acomp.setComunicacoes(List.of(
                     new AcompanhamentoDTO.Comunicacao("Notificação", "", LocalDateTime.now(),
                             Map.of("Proximo_Passo", "Análise"))

@@ -104,6 +104,9 @@ public class AcompanhamentoDTO {
 
         @JsonProperty("data")
         private LocalDateTime data;
+
+        @JsonProperty("items")
+        private Map<String, String> items;
     }
 
     @Data

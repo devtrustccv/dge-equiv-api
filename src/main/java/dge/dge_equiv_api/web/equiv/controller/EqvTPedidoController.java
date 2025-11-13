@@ -10,9 +10,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.web.bind.annotation.*;
+
+import java.sql.SQLNonTransientConnectionException;
 import java.util.List;
 
 
@@ -44,8 +49,8 @@ public class EqvTPedidoController {
     )
 
     @PostMapping(value = "/portal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createLote(@ModelAttribute PortalPedidosDTO lotePedidosDTO) {
-        try {
+    public ResponseEntity<?> createLote(@ModelAttribute PortalPedidosDTO lotePedidosDTO) throws CannotGetJdbcConnectionException, SQLNonTransientConnectionException {
+
             List<EqvtPedidoDTO> created = crudService.createLotePedidosComRequisicaoERequerenteUnicos(
                     lotePedidosDTO.getPedidos(),
                     lotePedidosDTO.getRequisicao(),
@@ -65,12 +70,7 @@ public class EqvTPedidoController {
 
             logger.info("Pedidos criados com sucesso: {}", created.size());
             return ResponseEntity.ok().body(resposta);
-        } catch (Exception e) {
-            logger.error("Erro ao criar pedidos: {}", e.getMessage(), e);
-            var result = new ResponseDto();
-            result.setMessage("Erro ao criar pedido , por favor, tente novamente mais tarde.");
-            return ResponseEntity.badRequest().body(result);
-        }
+
     }
     @GetMapping("/portal/{id}")
     public ResponseEntity<List<EqvtPedidoDTO>> getPedidosComDocumentosPorRequisicao(@PathVariable Integer id) {

@@ -341,28 +341,16 @@ public class EqvTPedidoCrudService {
             }
 
             // Eventos
-            List<AcompanhamentoDTO.Evento> eventos = List.of(
-                    new AcompanhamentoDTO.Evento(
-                            "Processo Criado",
-                            "Solicitação de equivalência registrada no sistema",
-                            LocalDateTime.now()
-                    ),
-                    new AcompanhamentoDTO.Evento(
-                            "Aguardando Pagamento",
-                            "Processo aguardando pagamento da taxa de análise",
-                            LocalDateTime.now()
-                    )
-            );
 
-            // Comunicações
             BigDecimal valorTaxa = taxaService.getValorAtivoParaPagamentoAnalise();
             String urlPagamento = mfkink + pagamento.getEntidade()
                     + "&referencia=" + pagamento.getReferencia()
                     + "&montante=" + pagamento.getTotal()
                     + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
             String linkPagamento = urlPagamento;
-            List<AcompanhamentoDTO.Comunicacao> comunicacoes = List.of(
-                    new AcompanhamentoDTO.Comunicacao(
+
+            List<AcompanhamentoDTO.Evento> eventos = List.of(
+                    new AcompanhamentoDTO.Evento(
                             "Pendente Pagamento ",
                             "Aguardando pagamento da taxa de análise para dar seguimento ao processo de equivalência.",
                             LocalDateTime.now(),
@@ -376,8 +364,7 @@ public class EqvTPedidoCrudService {
                     )
             );
 
-            // Anexos
-            List<AcompanhamentoDTO.Anexo> anexos = new ArrayList<>();
+   List<AcompanhamentoDTO.Anexo> anexos = new ArrayList<>();
             for (EqvTPedido pedido : pedidos) {
                 List<DocumentoResponseDTO> docs = documentService.getDocumentosPorRelacao(
                         pedido.getId(),
@@ -414,7 +401,7 @@ public class EqvTPedidoCrudService {
             acomp.setEstadoDesc("Em Progresso");
             acomp.setDetalhes(detalhes);
             acomp.setEventos(eventos);
-            acomp.setComunicacoes(comunicacoes);
+            //acomp.setComunicacoes(comunicacoes);
             acomp.setOutputs(new ArrayList<>());
             acomp.setAnexos(anexos);
 
