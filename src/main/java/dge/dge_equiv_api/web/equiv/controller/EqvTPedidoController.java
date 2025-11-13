@@ -8,6 +8,7 @@ import dge.dge_equiv_api.application.pedido.service.EqvTPedidoService;
 import dge.dge_equiv_api.application.pedido.service.PedidoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -49,7 +50,7 @@ public class EqvTPedidoController {
     )
 
     @PostMapping(value = "/portal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createLote(@ModelAttribute PortalPedidosDTO lotePedidosDTO) throws CannotGetJdbcConnectionException, SQLNonTransientConnectionException {
+    public ResponseEntity<?> createLote(@Valid @ModelAttribute PortalPedidosDTO lotePedidosDTO) {
 
             List<EqvtPedidoDTO> created = crudService.createLotePedidosComRequisicaoERequerenteUnicos(
                     lotePedidosDTO.getPedidos(),

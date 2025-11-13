@@ -21,10 +21,10 @@ public class EqvTRequerenteDTO {
     @Min(value = 100000000, message = "O NIF deve ter pelo menos 9 dígitos")
     private Integer nif;
 
-    @NotBlank(message = "O nome é obrigatório")
+    @NotNull(message = "O nome é obrigatório")
     private String nome;
 
-    @NotBlank(message = "O número do documento é obrigatório")
+    @NotNull(message = "O número do documento é obrigatório")
     private String docNumero;
 
     @NotNull(message = "A data de nascimento é obrigatória")
@@ -32,16 +32,16 @@ public class EqvTRequerenteDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataNascimento;
 
-    @NotBlank(message = "A nacionalidade é obrigatória")
+    @NotNull(message = "A nacionalidade é obrigatória")
     private String nacionalidade;
 
-    @NotBlank(message = "O sexo é obrigatório")
+    @NotNull(message = "O sexo é obrigatório")
     private String sexo;
 
-    @NotBlank(message = "A habilitação é obrigatória")
+    @NotNull(message = "A habilitação é obrigatória")
     private String habilitacao;
 
-    @NotBlank(message = "O tipo de documento de identificação é obrigatório")
+    @NotNull(message = "O tipo de documento de identificação é obrigatório")
     private String docIdentificacao;
 
     @NotNull(message = "A data de emissão do documento é obrigatória")
@@ -53,7 +53,7 @@ public class EqvTRequerenteDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dataValidadeDoc;
 
-    @NotBlank(message = "O email é obrigatório")
+    @NotNull(message = "O email é obrigatório")
     @Email(message = "O email informado não é válido")
     private String email;
 

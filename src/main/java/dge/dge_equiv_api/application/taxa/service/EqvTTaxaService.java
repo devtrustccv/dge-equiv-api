@@ -21,5 +21,12 @@ import java.math.BigDecimal;
                     .orElse(BigDecimal.ZERO);
         }
 
+    public BigDecimal getValorAtivoParaPagamentoCertificado() {
+        return taxaRepository
+                .findFirstByEstadoIgnoreCaseAndEtapaIgnoreCase("A", "pagCertificado")
+                .map(EqvTTaxa::getValor)
+                .orElse(BigDecimal.ZERO);
+    }
+
 
 }

@@ -318,6 +318,8 @@ public class EqvTPedidoCrudService {
     // criar  acompanhamento para cada  pedido
     private AcompanhamentoDTO montarAcompanhamentoDTO(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId, EqvTPagamento pagamento) {
         try {
+
+            BigDecimal valorTaxa = taxaService.getValorAtivoParaPagamentoAnalise();
             // Combinações dos títulos
             String titulos = pedidos.stream()
                     .map(EqvTPedido::getFormacaoProf)
@@ -332,17 +334,19 @@ public class EqvTPedidoCrudService {
 
             // Detalhes
             Map<String, String> detalhes = new LinkedHashMap<>();
-            detalhes.put("Número Processo", String.valueOf(requisicao.getNProcesso()));
+
 
             for (int i = 0; i < pedidos.size(); i++) {
                 EqvTPedido p = pedidos.get(i);
-                detalhes.put("Formação " , p.getFormacaoProf());
-                detalhes.put("Estado Duc ", "Pendente");
+                detalhes.put("Formação Solicitada " , p.getFormacaoProf());
+                detalhes.put("Instituição" , p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null);
+                detalhes.put("Taxa Análise ", taxaService.getValorAtivoParaPagamentoAnalise().toString() +" $00");
+                detalhes.put("Taxa Certificacado ", taxaService.getValorAtivoParaPagamentoCertificado().toString()+" $00");
             }
 
             // Eventos
 
-            BigDecimal valorTaxa = taxaService.getValorAtivoParaPagamentoAnalise();
+
             String urlPagamento = mfkink + pagamento.getEntidade()
                     + "&referencia=" + pagamento.getReferencia()
                     + "&montante=" + pagamento.getTotal()
@@ -351,15 +355,15 @@ public class EqvTPedidoCrudService {
 
             List<AcompanhamentoDTO.Evento> eventos = List.of(
                     new AcompanhamentoDTO.Evento(
-                            "Pendente Pagamento ",
-                            "Aguardando pagamento da taxa de análise para dar seguimento ao processo de equivalência.",
+                            "Pagamento Taxa Análise",
+                            "Processo Aguardando pagamento da taxa de análise.",
                             LocalDateTime.now(),
                             Map.of(
-                                    "valor", valorTaxa != null ? valorTaxa.toString() : "N/A",
-                                    "Link Duc", pagamento.getLinkDuc(),
-                                    "Link Pag Online", linkPagamento,
-                                    "estado", "Pendente Pagamento"
-
+                                    "Referencia", pagamento.getReferencia().toString(),
+                                    "Entidade", pagamento.getEntidade(),
+                                    "Valor", valorTaxa != null ? valorTaxa.toString() : "N/A",
+                                    "Pagar Online", linkPagamento,
+                                    "Ver duc", pagamento.getLinkDuc()
                             )
                     )
             );
@@ -391,7 +395,6 @@ public class EqvTPedidoCrudService {
             acomp.setTipo("PEDIDO_EQUIV");
             acomp.setTitulo("Pedido(s): " + titulos);
             acomp.setDescricao("Equivalência para " + titulos);
-            acomp.setEntidade(null);
             acomp.setPercentagem(10);
             acomp.setDataInicio(LocalDateTime.now()); // Usa data atual
             acomp.setDataFim(null);
@@ -403,7 +406,7 @@ public class EqvTPedidoCrudService {
             acomp.setEventos(eventos);
             //acomp.setComunicacoes(comunicacoes);
             acomp.setOutputs(new ArrayList<>());
-            acomp.setAnexos(anexos);
+            //acomp.setAnexos(anexos);
 
             return acomp;
         } catch (Exception e) {
