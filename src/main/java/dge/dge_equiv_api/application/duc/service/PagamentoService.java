@@ -24,10 +24,12 @@ public class PagamentoService {
     @Value("${api.base.service.Duc}")
     private String duc;
 
+
     @Autowired
     private EqvTTaxaService eqvTTaxaService ;
      @Autowired
     private  EqvTPagamentoRepository pagamentoRepository;
+
     public EqvTPagamento gerarDuc(EqvTPedido pedido, String nif, Integer nrProcesso) {
         try {
             RestTemplate restTemplate = new RestTemplate();
@@ -70,6 +72,7 @@ public class PagamentoService {
         pagamento.setEstado(1);
         pagamento.setNrProcesso(nrProcesso);
         pagamento.setEtapa("pagamento_analise");
+        pagamento.setIdTaxa(eqvTTaxaService.getValorAtivoParaPagamentoAnalise().intValue());
 
         System.out.println("Salvou pagamento: " + duc.getDuc());
         return pagamentoRepository.save(pagamento);

@@ -28,7 +28,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.BAD_REQUEST.value(),
-                "error", "Erro de validação",
                 "message", fieldErrors
         ));
     }
@@ -42,7 +41,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.BAD_REQUEST.value(),
-                "error", "Erro ao processar os dados do formulário",
                 "message", fieldErrors
         ));
     }
@@ -52,7 +50,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.BAD_REQUEST.value(),
-                "error", "Validação de negócio",
                 "message", ex.getMessage()
         ));
     }
@@ -66,7 +63,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.SERVICE_UNAVAILABLE.value(),
-                "error", "Erro de conexão com a base de dados",
                 "message", "Não foi possível estabelecer ligação com a base de dados. Tente novamente mais tarde."
         ));
     }
@@ -76,7 +72,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "error", "Erro ao aceder à base de dados",
                 "message", "Ocorreu um erro ao tentar ler ou gravar dados. Verifique os logs para mais detalhes."
         ));
     }
@@ -87,7 +82,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "error", "Erro interno no servidor",
                 "message", "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."
         ));
     }
