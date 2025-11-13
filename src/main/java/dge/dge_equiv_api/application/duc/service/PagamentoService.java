@@ -72,7 +72,7 @@ public class PagamentoService {
         pagamento.setEstado(1);
         pagamento.setNrProcesso(nrProcesso);
         pagamento.setEtapa("pagamento_analise");
-        pagamento.setIdTaxa(eqvTTaxaService.getValorAtivoParaPagamentoAnalise().intValue());
+        //pagamento.setIdTaxa(eqvTTaxaService.getValorAtivoParaPagamentoAnalise().intValue());
 
         System.out.println("Salvou pagamento: " + duc.getDuc());
         return pagamentoRepository.save(pagamento);
