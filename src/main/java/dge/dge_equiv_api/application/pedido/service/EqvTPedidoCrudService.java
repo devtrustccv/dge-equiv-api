@@ -185,14 +185,11 @@ public class EqvTPedidoCrudService {
             pedidosSalvos.add(pedido);
             salvarDocumentosDoPedido(dto, pedido);
 
-
             // 8. Send confirmation email
             result.add(convertToDTO(pedido));
         }
 
-
         // 7. Create acompanhamento
-
 
         try {
             criarAcompanhamento(requisicao, pedidosSalvos, pessoaId,duc);
@@ -385,7 +382,7 @@ public class EqvTPedidoCrudService {
             for (EqvTPedido pedido : pedidos) {
                 List<DocumentoResponseDTO> docs = documentService.getDocumentosPorRelacao(
                         pedido.getId(),
-                        "SOLICITACAO",
+                        "SOLITACAO",
                         "equiv"
                 );
                 for (DocumentoResponseDTO doc : docs) {
@@ -419,7 +416,7 @@ public class EqvTPedidoCrudService {
             acomp.setEventos(eventos);
             //acomp.setComunicacoes(comunicacoes);
             acomp.setOutputs(new ArrayList<>());
-            //acomp.setAnexos(anexos);
+            ///acomp.setAnexos(anexos);
             return acomp;
         } catch (Exception e) {
             log.error("Erro ao montar AcompanhamentoDTO para requisição: {}", requisicao.getId(), e);
