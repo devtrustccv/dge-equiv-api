@@ -353,6 +353,8 @@ public class EqvTPedidoCrudService {
                     + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
             String linkPagamento = urlPagamento;
 
+
+
             List<AcompanhamentoDTO.Evento> eventos = List.of(
                     new AcompanhamentoDTO.Evento(
                             "Pagamento Taxa Análise",
@@ -407,7 +409,15 @@ public class EqvTPedidoCrudService {
             //acomp.setComunicacoes(comunicacoes);
             acomp.setOutputs(new ArrayList<>());
             //acomp.setAnexos(anexos);
+            acomp.setEventos(List.of(
+                    new AcompanhamentoDTO.Evento(
+                            "Processo Criado",
+                            "Solicitação registrada no sistema.",
+                            LocalDateTime.now(),
+                            null
+                    )
 
+            ));
             return acomp;
         } catch (Exception e) {
             log.error("Erro ao montar AcompanhamentoDTO para requisição: {}", requisicao.getId(), e);
