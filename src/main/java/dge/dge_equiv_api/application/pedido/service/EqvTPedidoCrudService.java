@@ -192,7 +192,16 @@ public class EqvTPedidoCrudService {
 
 
         // 7. Create acompanhamento
-        criarAcompanhamento(requisicao, pedidosSalvos, pessoaId,duc);
+
+
+        try {
+            criarAcompanhamento(requisicao, pedidosSalvos, pessoaId,duc);
+            log.info("Acompanhamento criado para processo {}", requisicao.getNProcesso());
+        } catch (Exception e) {
+            log.error("Falha ao criar acompanhamento para o processo {}: {}", requisicao.getNProcesso(), e.getMessage());
+            // Interrompe o fluxo e envia mensagem ao front-end
+            throw new RuntimeException("Ocorreu um erro ao criar o acompanhamento. Por favor, tente novamente mais tarde.");
+        }
         enviarEmailConfirmacao(requerente, requisicao,duc);
 
 
@@ -355,10 +364,11 @@ public class EqvTPedidoCrudService {
 
 
 
+
             List<AcompanhamentoDTO.Evento> eventos = List.of(
                     new AcompanhamentoDTO.Evento(
-                            "Pagamento Taxa Análise",
-                            "Processo Aguardando pagamento da taxa de análise.",
+                            "Processo Criado",
+                            "Solicitação registrada no sistema.",
                             LocalDateTime.now(),
                             Map.of(
                                     "Referencia", pagamento.getReferencia().toString(),
@@ -369,6 +379,7 @@ public class EqvTPedidoCrudService {
                             )
                     )
             );
+
 
    List<AcompanhamentoDTO.Anexo> anexos = new ArrayList<>();
             for (EqvTPedido pedido : pedidos) {
@@ -401,7 +412,7 @@ public class EqvTPedidoCrudService {
             acomp.setDataInicio(LocalDateTime.now()); // Usa data atual
             acomp.setDataFim(null);
             //acomp.setDataFimPrevisto(LocalDate.now().plusDays(30));
-            acomp.setEtapaAtual("Pagamento Análise");
+            acomp.setEtapaAtual("Aguardando Pagamento Taxa Analise");
             acomp.setEstado("EM_PROGRESSO");
             acomp.setEstadoDesc("Em Progresso");
             acomp.setDetalhes(detalhes);
@@ -409,15 +420,6 @@ public class EqvTPedidoCrudService {
             //acomp.setComunicacoes(comunicacoes);
             acomp.setOutputs(new ArrayList<>());
             //acomp.setAnexos(anexos);
-            acomp.setEventos(List.of(
-                    new AcompanhamentoDTO.Evento(
-                            "Processo Criado",
-                            "Solicitação registrada no sistema.",
-                            LocalDateTime.now(),
-                            null
-                    )
-
-            ));
             return acomp;
         } catch (Exception e) {
             log.error("Erro ao montar AcompanhamentoDTO para requisição: {}", requisicao.getId(), e);
