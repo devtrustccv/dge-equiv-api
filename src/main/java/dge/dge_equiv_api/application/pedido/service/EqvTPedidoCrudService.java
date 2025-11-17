@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -309,7 +310,7 @@ public class EqvTPedidoCrudService {
                         .estado("A")
                         .appCode("equiv")
                         .idTpDoc(String.valueOf(doc.getIdTpDoc()))
-                        .fileName(doc.getNome())
+                        .fileName(normalizeText(doc.getNome()))
                         .file(doc.getFile())
                         .nProcesso(nProcesso) // Agora temos o número do processo
                         .build());
@@ -416,7 +417,7 @@ public class EqvTPedidoCrudService {
             acomp.setEventos(eventos);
             //acomp.setComunicacoes(comunicacoes);
             acomp.setOutputs(new ArrayList<>());
-            ///acomp.setAnexos(anexos);
+            acomp.setAnexos(anexos);
             return acomp;
         } catch (Exception e) {
             log.error("Erro ao montar AcompanhamentoDTO para requisição: {}", requisicao.getId(), e);
@@ -702,6 +703,13 @@ public class EqvTPedidoCrudService {
         dto.setDataDespacho(pedido.getDataDespacho());
 
         return dto;
+    }
+
+
+    public static String normalizeText(String input) {
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("[^\\p{ASCII}]", "")  // Remove acentos
+                .replaceAll("[/\\\\]", "");       // Remove barras "/" e "\"
     }
 
 
