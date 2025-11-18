@@ -93,30 +93,18 @@ public class EqvTPedidoCrudService {
             EqvTRequerenteDTO requerenteDTO,
             Integer pessoaId) {
 
-        //validar  pessoa id para o registro do acompanhamento
         if (pessoaId == null) {
-            throw new RuntimeException("O campo 'pessoaId' é obrigatório para o registro do acompanhamento. Por favor, forneça um valor válido.");
+            throw new RuntimeException("O campo 'pessoaId' é obrigatório.");
         }
-
-        // 1. Validate inputs
         if (pedidosDTO == null || pedidosDTO.isEmpty()) {
-            throw new IllegalArgumentException("Lista de pedidos não pode ser nula ou vazia");
+            throw new IllegalArgumentException("Lista de pedidos não pode ser nula ou vazia.");
         }
         if (requerenteDTO == null) {
-            throw new IllegalArgumentException("RequerenteDTO não pode ser nulo");
+            throw new IllegalArgumentException("RequerenteDTO não pode ser nulo.");
         }
 
-        // 2️ Verificar se já existe um requerente com este idPessoa
-        EqvTRequerente requerenteExistente = requerenteRepository.findByIdPessoa(pessoaId);
-        EqvTRequerente requerente;
-
-        if (requerenteExistente != null) {
-            // Já existe requerente com este idPessoa → reutiliza
-            log.info("Requerente já existente com idPessoa {} (id: {}).", pessoaId, requerenteExistente.getId());
-            requerente = requerenteExistente;
-        } else {
-            // Primeira vez → cria novo requerente com este idPessoa
-            log.info("Nenhum requerente encontrado com idPessoa {}. Criando novo requerente...", pessoaId);
+        EqvTRequerente requerente = requerenteRepository.findByIdPessoa(pessoaId);
+        if (requerente == null) {
             requerente = new EqvTRequerente();
             requerente.setDateCreate(LocalDate.now());
             requerente.setIdPessoa(pessoaId);
@@ -124,48 +112,30 @@ public class EqvTPedidoCrudService {
             requerente = requerenteRepository.save(requerente);
         }
 
-        // 3. Process institutions first
-        Map<Integer, EqvTInstEnsino> instituicoesProcessadas = new HashMap<>();
+        Map<Integer, EqvTInstEnsino> instMap = new HashMap<>();
         for (EqvtPedidoDTO dto : pedidosDTO) {
             if (dto.getInstEnsino() != null) {
                 EqvTInstEnsino inst = processarInstituicaoEnsino(dto.getInstEnsino());
-                instituicoesProcessadas.put(inst.getId(), inst);
+                instMap.put(inst.getId(), inst);
                 dto.getInstEnsino().setId(inst.getId());
-
             }
         }
 
-        // 4. Create and save requisicao
         EqvTRequisicao requisicao = new EqvTRequisicao();
         copyRequisicaoFields(requisicao, requisicaoDTO);
-
-
         requisicao.setStatus(1);
         requisicao.setEtapa(1);
         requisicao.setIdPessoa(pessoaId);
         requisicao.setDataCreate(LocalDate.now());
-
         requisicao = requisicaoRepository.save(requisicao);
 
-
-        // 5. Start process BEFORE saving pedidos
-        String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instituicoesProcessadas);
-        requisicao.setNProcesso(Integer.valueOf(processInstanceId));
-        requisicao = requisicaoRepository.save(requisicao);
-       // gerar duc em caso de erro na faz nd
-
-        EqvTPagamento duc = null;
-
+        EqvTPagamento duc;
         try {
-            duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getNProcesso());
-            log.info("DUC gerado com sucesso para o processo {}", requisicao.getNProcesso());
+            duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getId());
         } catch (Exception e) {
-            log.error("Falha ao gerar DUC para o processo {}: {}", requisicao.getNProcesso(), e.getMessage());
-            // Interrompe o fluxo e envia mensagem ao front-end
-            throw new RuntimeException("Ocorreu um erro ao gerar o DUC. Por favor, tente novamente mais tarde.");
+            throw new RuntimeException("Erro ao gerar o DUC.");
         }
 
-        // 6. Save pedidos and documents
         List<EqvtPedidoDTO> result = new ArrayList<>();
         List<EqvTPedido> pedidosSalvos = new ArrayList<>();
 
@@ -177,34 +147,33 @@ public class EqvTPedidoCrudService {
             pedido.setEtapa("Solicitação");
             pedido.setRequisicao(requisicao);
 
-            // Set institution if exists
             if (dto.getInstEnsino() != null && dto.getInstEnsino().getId() != null) {
-                pedido.setInstEnsino(instituicoesProcessadas.get(dto.getInstEnsino().getId()));
+                pedido.setInstEnsino(instMap.get(dto.getInstEnsino().getId()));
             }
 
             pedido = pedidoRepository.save(pedido);
             pedidosSalvos.add(pedido);
+
             salvarDocumentosDoPedido(dto, pedido);
 
-            // 8. Send confirmation email
             result.add(convertToDTO(pedido));
         }
 
-        // 7. Create acompanhamento
-
         try {
-            criarAcompanhamento(requisicao, pedidosSalvos, pessoaId,duc);
-            log.info("Acompanhamento criado para processo {}", requisicao.getNProcesso());
+            criarAcompanhamento(requisicao, pedidosSalvos, pessoaId, duc);
         } catch (Exception e) {
-            log.error("Falha ao criar acompanhamento para o processo {}: {}", requisicao.getNProcesso(), e.getMessage());
-            // Interrompe o fluxo e envia mensagem ao front-end
-            throw new RuntimeException("Ocorreu um erro ao criar o acompanhamento. Por favor, tente novamente mais tarde.");
+            throw new RuntimeException("Erro ao criar acompanhamento.");
         }
-        enviarEmailConfirmacao(requerente, requisicao,duc);
 
+        enviarEmailConfirmacao(requerente, requisicao, duc);
+
+        String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instMap);
+        requisicao.setNProcesso(Integer.valueOf(processInstanceId));
+        requisicaoRepository.save(requisicao);
 
         return result;
     }
+
 
     // Helper methods
     private EqvTInstEnsino processarInstituicaoEnsino(EqvTInstEnsinoDTO dto) {
@@ -388,7 +357,7 @@ public class EqvTPedidoCrudService {
                 );
                 for (DocumentoResponseDTO doc : docs) {
                     AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo(
-                            doc.getName(),
+                            doc.getFileName(),
                             LocalDateTime.now(), // Usa data atual já que doc.getDataCriacao() não existe
                             doc.getPreviewUrl(),
                             true
