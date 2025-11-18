@@ -33,6 +33,7 @@ public class EqvTPedidoService {
 
     }
 
+
     public EqvtPedidoReporteDTO getPedidoDTOById(Integer id) {
         Optional<EqvTPedido> pedidoOpt = pedidoRepository.findById(id);
         return pedidoOpt.map(this::toDto).orElse(null);
