@@ -388,7 +388,7 @@ public class EqvTPedidoCrudService {
                 );
                 for (DocumentoResponseDTO doc : docs) {
                     AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo(
-                            doc.getFileName(),
+                            doc.getName(),
                             LocalDateTime.now(), // Usa data atual já que doc.getDataCriacao() não existe
                             doc.getPreviewUrl(),
                             true
