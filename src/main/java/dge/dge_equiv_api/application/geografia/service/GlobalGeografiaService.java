@@ -18,5 +18,6 @@ public class GlobalGeografiaService {
                 .map(GlobalGeografia::getNome)
                 .orElse(null);
     }
+
 }
 
