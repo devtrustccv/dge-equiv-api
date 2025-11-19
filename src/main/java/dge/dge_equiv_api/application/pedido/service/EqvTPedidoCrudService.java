@@ -339,12 +339,12 @@ public class EqvTPedidoCrudService {
             List<AcompanhamentoDTO.Evento> eventos = List.of(
                     new AcompanhamentoDTO.Evento(
                             "Processo Criado",
-                            "Solicitação registrada no sistema.",
+                            "Solicitação registada no sistema. Aguardando pagamento da taxa de análise para dar início à avaliação.",
                             LocalDateTime.now(),
                             Map.of(
                                     "Referencia", pagamento.getReferencia().toString(),
                                     "Entidade", pagamento.getEntidade(),
-                                    "Valor", valorTaxa != null ? valorTaxa.toString() : "N/A",
+                                    "Valor", valorTaxa != null ? valorTaxa.toString() : "N/A" + " $00",
                                     "Pagar Online", linkPagamento,
                                     "Ver duc", pagamento.getLinkDuc()
                             )
