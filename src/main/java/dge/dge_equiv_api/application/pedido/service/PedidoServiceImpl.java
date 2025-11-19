@@ -475,10 +475,10 @@ public class PedidoServiceImpl implements PedidoService {
 
 
         NotificationRequestDTO dto = new NotificationRequestDTO();
-        dto.setAppName("equiv");
-        dto.setSubject(assuntoRequerente);
-        dto.setMessage(mensagemRequerente);
-        dto.setEmail(requerente.getEmail());
+//        dto.setAppName("equiv");
+//        dto.setSubject(assuntoRequerente);
+//        dto.setMessage(mensagemRequerente);
+//        dto.setEmail(requerente.getEmail());
 
         try {
             notificationService.enviarEmail(dto);
