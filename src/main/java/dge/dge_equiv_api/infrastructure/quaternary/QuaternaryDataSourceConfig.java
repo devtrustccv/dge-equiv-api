@@ -25,7 +25,7 @@ public class QuaternaryDataSourceConfig {
 
     @Bean(name = "quaternaryDataSource")
     @ConfigurationProperties(prefix = "spring.datasource.quaternary")
-    public DataSource quaternaryDataSource(@Value("${spring.datasource.tertiary.url}") String url,
+    public DataSource quaternaryDataSource(@Value("${spring.datasource.quaternary.url}") String url,
                                          @Value("${spring.datasource.tertiary.username}") String username,
                                          @Value("${spring.datasource.tertiary.password}") String password) {
 
@@ -39,7 +39,7 @@ public class QuaternaryDataSourceConfig {
 
     @Bean(name = "quaternaryEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean quaternaryEntityManagerFactory(EntityManagerFactoryBuilder builder,
-                                                                               @Qualifier("tertiaryDataSource") DataSource dataSource) {
+                                                                               @Qualifier("quaternaryDataSource") DataSource dataSource) {
 
         Map<String, Object> props = new HashMap<>();
         props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");

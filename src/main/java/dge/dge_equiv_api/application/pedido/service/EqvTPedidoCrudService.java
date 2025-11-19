@@ -24,6 +24,7 @@ import dge.dge_equiv_api.application.notification.dto.NotificationRequestDTO;
 import dge.dge_equiv_api.application.notification.service.NotificationService;
 import dge.dge_equiv_api.application.process.service.ProcessService;
 import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
+import dge.dge_equiv_api.infrastructure.quaternary.TNotificacaoConfigEmail;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,7 +132,7 @@ public class EqvTPedidoCrudService {
 
         EqvTPagamento duc;
         try {
-            duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getId());
+            duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getNProcesso(),requisicao);
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar o DUC.");
         }
@@ -168,7 +169,14 @@ public class EqvTPedidoCrudService {
             throw new RuntimeException("Erro ao criar acompanhamento.");
         }
 
-        enviarEmailConfirmacao(requerente, requisicao, duc);
+        Map<String, EqvTPedido> pedidosPorFormacao = pedidosSalvos.stream()
+                .collect(Collectors.toMap(
+                        EqvTPedido::getFormacaoProf,
+                        pedido -> pedido,
+                        (existing, replacement) -> existing
+                ));
+
+        enviarEmailDuc(duc, requerente, requisicao, pedidosPorFormacao);
 
         return result;
     }
@@ -236,9 +244,9 @@ public class EqvTPedidoCrudService {
         }
     }
 
-    private void criarAcompanhamento(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId, EqvTPagamento pagamento ) {
+    private void criarAcompanhamento(EqvTRequisicao requisicao, List<EqvTPedido> pedidos, Integer pessoaId, EqvTPagamento pagamento) {
         try {
-            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidos, pessoaId,pagamento);
+            AcompanhamentoDTO acompanhamento = montarAcompanhamentoDTO(requisicao, pedidos, pessoaId, pagamento);
             if (acompanhamento != null) {
                 acompanhamentoService.criarAcompanhamento(acompanhamento);
                 log.info("Acompanhamento criado para processo {}", requisicao.getNProcesso());
@@ -247,7 +255,6 @@ public class EqvTPedidoCrudService {
             log.error("Falha ao criar acompanhamento", e);
         }
     }
-
 
 
     private void salvarDocumentosDoPedido(EqvtPedidoDTO dto, EqvTPedido pedido) {
@@ -313,10 +320,10 @@ public class EqvTPedidoCrudService {
 
             for (int i = 0; i < pedidos.size(); i++) {
                 EqvTPedido p = pedidos.get(i);
-                detalhes.put("Formação Solicitada " , p.getFormacaoProf());
-                detalhes.put("Instituição" , p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null);
-                detalhes.put("Taxa Análise ", taxaService.getValorAtivoParaPagamentoAnalise().toString() +" $00");
-                detalhes.put("Taxa Certificacado ", taxaService.getValorAtivoParaPagamentoCertificado().toString()+" $00");
+                detalhes.put("Formação Solicitada ", p.getFormacaoProf());
+                detalhes.put("Instituição", p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null);
+                detalhes.put("Taxa Análise ", taxaService.getValorAtivoParaPagamentoAnalise().toString() + " $00");
+                detalhes.put("Taxa Certificacado ", taxaService.getValorAtivoParaPagamentoCertificado().toString() + " $00");
             }
 
             // Eventos
@@ -329,17 +336,15 @@ public class EqvTPedidoCrudService {
             String linkPagamento = urlPagamento;
 
 
-
-
             List<AcompanhamentoDTO.Evento> eventos = List.of(
                     new AcompanhamentoDTO.Evento(
                             "Processo Criado",
-                            "Solicitação registrada no sistema.",
+                            "Solicitação registada no sistema. Aguardando pagamento da taxa de análise para dar início à avaliação.",
                             LocalDateTime.now(),
                             Map.of(
                                     "Referencia", pagamento.getReferencia().toString(),
                                     "Entidade", pagamento.getEntidade(),
-                                    "Valor", valorTaxa != null ? valorTaxa.toString() : "N/A",
+                                    "Valor", valorTaxa != null ? valorTaxa.toString() : "N/A" + " $00",
                                     "Pagar Online", linkPagamento,
                                     "Ver duc", pagamento.getLinkDuc()
                             )
@@ -347,7 +352,7 @@ public class EqvTPedidoCrudService {
             );
 
 
-   List<AcompanhamentoDTO.Anexo> anexos = new ArrayList<>();
+            List<AcompanhamentoDTO.Anexo> anexos = new ArrayList<>();
             for (EqvTPedido pedido : pedidos) {
                 List<DocumentoResponseDTO> docs = documentService.getDocumentosPorRelacao(
                         pedido.getId(),
@@ -392,7 +397,6 @@ public class EqvTPedidoCrudService {
             throw new RuntimeException("Erro ao montar acompanhamento", e);
         }
     }
-
 
 
     public List<EqvtPedidoDTO> findPedidosComDocumentosByRequisicao(Integer requisicaoId) {
@@ -451,7 +455,6 @@ public class EqvTPedidoCrudService {
                         "<p>UC-SNQ – Sistema de Equivalência Profissional</p>";
 
 
-
         NotificationRequestDTO dto = new NotificationRequestDTO();
         dto.setAppCode("equiv");
         dto.setAssunto(assuntoRequerente);
@@ -465,51 +468,71 @@ public class EqvTPedidoCrudService {
         }
     }
 
-//    private void enviarEmailDuc(EqvTPagamento pagamento, EqvTRequerente requerente, EqvTRequisicao requisicao,Map<String, EqvTPedido> pedidosPorFormacao) {
-//        // monta URLs
-//        String nomeRequerente = requerente.getNome() != null ? requerente.getNome() : "";
-//        String numeroPedido = requisicao.getId() != null && requisicao.getNProcesso() != null
-//                ? String.valueOf(requisicao.getNProcesso()) : "";
-//
-//
-//        String urlPagamento = mfkink + pagamento.getEntidade()
-//                + "&referencia=" + pagamento.getReferencia()
-//                + "&montante=" + pagamento.getTotal()
-//                + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
-//        String linkPagamento = urlPagamento;
-//
-//        String linkverduc = reporterDuc + pagamento.getNuDuc();
-//
-//        // pegar algum pedido (primeiro) apenas para ilustrar no link
-//        EqvTPedido qualquerPedido = pedidosPorFormacao.values().stream().findFirst().orElse(null);
-//        String formacao = (qualquerPedido != null) ? qualquerPedido.getFormacaoProf() : "";
-//
-//        String linksHtml = "<a href=\"" + linkverduc + "\">Clique aqui para visualizar o DUC "
-//                + formacao + ".</a><br>" +
-//                "<a href=\"" + linkPagamento + "\">Clique aqui para pagar o DUC</a>";
-//
-//
-//        if (qualquerPedido != null) {
-//            String emailRequerente = qualquerPedido.getRequerente().getEmail();
-//
-//
-//                if (configEmail == null)
-//                    throw new IllegalArgumentException("Configuração de email com o código [EQV_SOLICITACAO_DUC] não existe em " + Core.getCurrentApp());
-//
-//
-//                NotificationRequestDTO dto = new NotificationRequestDTO();
-//                dto.setAppCode("equiv");
-//                dto.setAssunto(assunto);
-//                dto.setMensagem(mensagem);
-//                dto.setIdProcesso(String.valueOf(requisicao.getNProcesso()));
-//                dto.setTipoProcesso("");
-//                dto.setIdRelacao("");
-//                dto.setTipoRelacao("");
-//                dto.setEmail(emailRequerente);
-//
-//                notificationService.enviarEmail(dto);
-//            }
-//        }
+    private void enviarEmailDuc(EqvTPagamento pagamento,
+                                EqvTRequerente requerente,
+                                EqvTRequisicao requisicao,
+                                Map<String, EqvTPedido> pedidosPorFormacao) {
+
+        // dados do requerente e do pedido
+        String nomeRequerente = requerente.getNome() != null ? requerente.getNome() : "";
+        String numeroPedido = requisicao.getNProcesso() != null
+                ? String.valueOf(requisicao.getNProcesso())
+                : "";
+
+        // montar links
+        String linkPagamento = mfkink + pagamento.getEntidade()
+                + "&referencia=" + pagamento.getReferencia()
+                + "&montante=" + pagamento.getTotal()
+                + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
+
+        String linkVerDuc = reporterDuc + pagamento.getNuDuc();
+
+        // pegar um pedido qualquer para ilustrar
+        EqvTPedido qualquerPedido = pedidosPorFormacao.values().stream().findFirst().orElse(null);
+        String formacao = (qualquerPedido != null) ? qualquerPedido.getFormacaoProf() : "";
+
+        String linksHtml = "<a href=\"" + linkVerDuc + "\">Clique aqui para visualizar o DUC "
+                + formacao + ".</a><br>" +
+                "<a href=\"" + linkPagamento + "\">Clique aqui para pagar o DUC</a>";
+
+        if (qualquerPedido != null) {
+            String emailRequerente = qualquerPedido.getRequerente().getEmail();
+
+            // carregar configuração do email
+            TNotificacaoConfigEmail configEmail = notificationService.loadConfigNotification(
+
+                    "EQV_SOLICITACAO_DUC",
+                    "processo_equivalencia",
+                    "solitacao",
+                    "equiv"
+            );
+
+            if (configEmail == null) {
+                throw new IllegalArgumentException(
+                        "Configuração de email com o código [EQV_SOLICITACAO_DUC] não existe."
+                );
+            }
+
+            String assunto = configEmail.getAssunto();
+            String mensagem = configEmail.getMensagem()
+                    .replace("[NOME_REQUERENTE]", nomeRequerente)
+                    .replace("[NUMERO_PROCESSO]", numeroPedido)
+                    .replace("[LIMKS]", linksHtml);
+
+            // montar DTO e enviar
+            NotificationRequestDTO dto = new NotificationRequestDTO();
+            dto.setAppCode("equiv");
+            dto.setAssunto(assunto);
+            dto.setMensagem(mensagem);
+            dto.setIdProcesso(numeroPedido);
+            dto.setTipoProcesso(""); // se tiver dado do processo
+            dto.setIdRelacao("");     // se tiver dado da relacao
+            dto.setTipoRelacao("");   // se tiver dado da relacao
+            dto.setEmail(emailRequerente);
+
+            notificationService.enviarEmail(dto);
+        }
+    }
 
 
     public List<EqvtPedidoDTO> findPedidosByRequisicaoId(Integer idRequisicao) {
@@ -633,9 +656,6 @@ public class EqvTPedidoCrudService {
 //                    + "&appCode=equiv");
 //            docs.add(doc);
 //        }
-
-
-
 
 
         //dto.setDocumentos(docs);

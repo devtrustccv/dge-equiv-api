@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Entity
-@Table(name = "t_notificacao", schema = "public")
+@Table(name = "t_notificacao_config_email")
 public class TNotificacaoConfigEmail {
 
     @Id

@@ -4,6 +4,7 @@ import dge.dge_equiv_api.application.duc.dto.DucModel;
 import dge.dge_equiv_api.application.taxa.service.EqvTTaxaService;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPagamento;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
+import dge.dge_equiv_api.infrastructure.primary.EqvTRequisicao;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPagamentoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class PagamentoService {
      @Autowired
     private  EqvTPagamentoRepository pagamentoRepository;
 
-    public EqvTPagamento gerarDuc(EqvTPedido pedido, String nif, Integer nrProcesso) {
+    public EqvTPagamento gerarDuc(EqvTPedido pedido, String nif, Integer nrProcesso, EqvTRequisicao idrequisicao) {
         try {
             RestTemplate restTemplate = new RestTemplate();
 
@@ -48,7 +49,7 @@ public class PagamentoService {
             // Usa GET porque não há body
             DucModel duc = restTemplate.postForObject(url, null,DucModel.class);
 
-            return savePagamento(pedido, duc, nrProcesso);
+            return savePagamento(pedido, duc, nrProcesso,idrequisicao);
 
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar DUC via endpoint pai", e);
@@ -57,11 +58,14 @@ public class PagamentoService {
 
 
 
-    private EqvTPagamento savePagamento(EqvTPedido pedido, DucModel duc, Integer nrProcesso) {
+    private EqvTPagamento savePagamento(EqvTPedido pedido, DucModel duc, Integer nrProcesso, EqvTRequisicao requisicao) {
         EqvTPagamento pagamento = new EqvTPagamento();
 
         if (pedido != null) {
             pagamento.setIdPedido(pedido);
+        }
+        if (requisicao != null) {
+            pagamento.setIdRequisicao(requisicao);
         }
 
         pagamento.setNuDuc(toBigDecimal(duc.getDuc()));
@@ -72,6 +76,8 @@ public class PagamentoService {
         pagamento.setEstado(1);
         pagamento.setNrProcesso(nrProcesso);
         pagamento.setEtapa("pagamento_analise");
+
+
         //pagamento.setIdTaxa(eqvTTaxaService.getValorAtivoParaPagamentoAnalise().intValue());
 
         System.out.println("Salvou pagamento: " + duc.getDuc());
