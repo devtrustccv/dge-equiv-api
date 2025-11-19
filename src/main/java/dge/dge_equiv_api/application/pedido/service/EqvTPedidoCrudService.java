@@ -14,6 +14,7 @@ import dge.dge_equiv_api.application.duc.service.PagamentoService;
 import dge.dge_equiv_api.application.pedido.dto.*;
 import dge.dge_equiv_api.application.pessoa.PessoaService;
 import dge.dge_equiv_api.application.taxa.service.EqvTTaxaService;
+import dge.dge_equiv_api.domain.notification.NotificationBus;
 import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.infrastructure.primary.*;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTInstEnsinoRepository;
@@ -77,6 +78,8 @@ public class EqvTPedidoCrudService {
 
     private PessoaService pessoaService;
 
+    private NotificationBus notificationBus;
+
     @Value("${link.mf.duc}")
     private String mfkink;
 
@@ -130,12 +133,7 @@ public class EqvTPedidoCrudService {
         requisicao.setDataCreate(LocalDate.now());
         requisicao = requisicaoRepository.save(requisicao);
 
-        EqvTPagamento duc;
-        try {
-            duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getNProcesso(),requisicao);
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar o DUC.");
-        }
+
 
         List<EqvtPedidoDTO> result = new ArrayList<>();
         List<EqvTPedido> pedidosSalvos = new ArrayList<>();
@@ -143,6 +141,13 @@ public class EqvTPedidoCrudService {
         String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instMap);
         requisicao.setNProcesso(Integer.valueOf(processInstanceId));
         requisicaoRepository.save(requisicao);
+
+        EqvTPagamento duc;
+        try {
+            duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getNProcesso(),null);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar o DUC.");
+        }
 
 
         for (EqvtPedidoDTO dto : pedidosDTO) {
@@ -423,50 +428,7 @@ public class EqvTPedidoCrudService {
     }
 
 
-    // enviar email
-    private void enviarEmailConfirmacao(EqvTRequerente requerente, EqvTRequisicao requisicao, EqvTPagamento pagamento) {
-        String nomeRequerente = requerente.getNome() != null ? requerente.getNome() : "";
-        String numeroPedido = requisicao.getId() != null && requisicao.getNProcesso() != null
-                ? String.valueOf(requisicao.getNProcesso()) : "";
 
-
-        String urlPagamento = mfkink + pagamento.getEntidade()
-                + "&referencia=" + pagamento.getReferencia()
-                + "&montante=" + pagamento.getTotal()
-                + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
-        String linkPagamento = urlPagamento;
-
-        String linkverduc = reporterDuc + pagamento.getNuDuc();
-
-        String assuntoRequerente = "Confirmação de Recebimento - Pedido de Equivalência Profissional";
-
-        String mensagemRequerente =
-                "<p>Prezado(a) <strong>" + nomeRequerente + "</strong>,</p>" +
-                        "<p>O seu pedido de equivalência foi registado com sucesso sob o número <strong>" + numeroPedido + "</strong>.</p>" +
-                        "<p>Para dar seguimento ao processo, é necessário efetuar o pagamento da taxa correspondente através do Documento Único de Cobrança (DUC).</p>" +
-                        "<p>Por favor, utilize o link abaixo para gerar e pagar o seu DUC:</p>" +
-                        "<p><a href=\"" + linkPagamento + "\" style=\"color: blue; text-decoration: underline;\" target=\"_blank\">" +
-                        "Clique aqui para realizar o pagamento do DUC</a></p>" +
-                        "<p><a href=\"" + linkverduc + "\" style=\"color: blue; text-decoration: underline;\" target=\"_blank\">" +
-                        "Clique aqui para ver o DUC gerado</a></p>" +
-                        "<p>O processamento do seu pedido só será iniciado após a confirmação do pagamento.</p>" +
-                        "<p>Agradecemos a sua atenção e colaboração.</p>" +
-                        "<p>Com os melhores cumprimentos,</p>" +
-                        "<p>UC-SNQ – Sistema de Equivalência Profissional</p>";
-
-
-        NotificationRequestDTO dto = new NotificationRequestDTO();
-        dto.setAppCode("equiv");
-        dto.setAssunto(assuntoRequerente);
-        dto.setMensagem(mensagemRequerente);
-        dto.setEmail(requerente.getEmail());
-
-        try {
-            notificationService.enviarEmail(dto);
-        } catch (Exception e) {
-            log.error("Erro ao enviar email de confirmação", e);
-        }
-    }
 
     private void enviarEmailDuc(EqvTPagamento pagamento,
                                 EqvTRequerente requerente,
@@ -525,12 +487,12 @@ public class EqvTPedidoCrudService {
             dto.setAssunto(assunto);
             dto.setMensagem(mensagem);
             dto.setIdProcesso(numeroPedido);
-            dto.setTipoProcesso(""); // se tiver dado do processo
-            dto.setIdRelacao("");     // se tiver dado da relacao
-            dto.setTipoRelacao("");   // se tiver dado da relacao
+            dto.setIdRelacao(requisicao.getNProcesso().toString());     // se tiver dado da relacao
             dto.setEmail(emailRequerente);
 
-            notificationService.enviarEmail(dto);
+           notificationService.enviarEmail(dto);
+
+
         }
     }
 
