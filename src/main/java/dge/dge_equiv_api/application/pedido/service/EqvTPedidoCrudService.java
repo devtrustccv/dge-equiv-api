@@ -139,6 +139,11 @@ public class EqvTPedidoCrudService {
         List<EqvtPedidoDTO> result = new ArrayList<>();
         List<EqvTPedido> pedidosSalvos = new ArrayList<>();
 
+        String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instMap);
+        requisicao.setNProcesso(Integer.valueOf(processInstanceId));
+        requisicaoRepository.save(requisicao);
+
+
         for (EqvtPedidoDTO dto : pedidosDTO) {
             EqvTPedido pedido = new EqvTPedido();
             copyPedidoFields(pedido, dto);
@@ -153,9 +158,7 @@ public class EqvTPedidoCrudService {
 
             pedido = pedidoRepository.save(pedido);
             pedidosSalvos.add(pedido);
-
             salvarDocumentosDoPedido(dto, pedido);
-
             result.add(convertToDTO(pedido));
         }
 
@@ -166,10 +169,6 @@ public class EqvTPedidoCrudService {
         }
 
         enviarEmailConfirmacao(requerente, requisicao, duc);
-
-        String processInstanceId = iniciarProcessoComValidacao(requerente, pedidosDTO, instMap);
-        requisicao.setNProcesso(Integer.valueOf(processInstanceId));
-        requisicaoRepository.save(requisicao);
 
         return result;
     }
@@ -454,9 +453,9 @@ public class EqvTPedidoCrudService {
 
 
         NotificationRequestDTO dto = new NotificationRequestDTO();
-        dto.setAppName("equiv");
-        dto.setSubject(assuntoRequerente);
-        dto.setMessage(mensagemRequerente);
+        dto.setAppCode("equiv");
+        dto.setAssunto(assuntoRequerente);
+        dto.setMensagem(mensagemRequerente);
         dto.setEmail(requerente.getEmail());
 
         try {
@@ -465,6 +464,53 @@ public class EqvTPedidoCrudService {
             log.error("Erro ao enviar email de confirmação", e);
         }
     }
+
+//    private void enviarEmailDuc(EqvTPagamento pagamento, EqvTRequerente requerente, EqvTRequisicao requisicao,Map<String, EqvTPedido> pedidosPorFormacao) {
+//        // monta URLs
+//        String nomeRequerente = requerente.getNome() != null ? requerente.getNome() : "";
+//        String numeroPedido = requisicao.getId() != null && requisicao.getNProcesso() != null
+//                ? String.valueOf(requisicao.getNProcesso()) : "";
+//
+//
+//        String urlPagamento = mfkink + pagamento.getEntidade()
+//                + "&referencia=" + pagamento.getReferencia()
+//                + "&montante=" + pagamento.getTotal()
+//                + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
+//        String linkPagamento = urlPagamento;
+//
+//        String linkverduc = reporterDuc + pagamento.getNuDuc();
+//
+//        // pegar algum pedido (primeiro) apenas para ilustrar no link
+//        EqvTPedido qualquerPedido = pedidosPorFormacao.values().stream().findFirst().orElse(null);
+//        String formacao = (qualquerPedido != null) ? qualquerPedido.getFormacaoProf() : "";
+//
+//        String linksHtml = "<a href=\"" + linkverduc + "\">Clique aqui para visualizar o DUC "
+//                + formacao + ".</a><br>" +
+//                "<a href=\"" + linkPagamento + "\">Clique aqui para pagar o DUC</a>";
+//
+//
+//        if (qualquerPedido != null) {
+//            String emailRequerente = qualquerPedido.getRequerente().getEmail();
+//
+//
+//                if (configEmail == null)
+//                    throw new IllegalArgumentException("Configuração de email com o código [EQV_SOLICITACAO_DUC] não existe em " + Core.getCurrentApp());
+//
+//
+//                NotificationRequestDTO dto = new NotificationRequestDTO();
+//                dto.setAppCode("equiv");
+//                dto.setAssunto(assunto);
+//                dto.setMensagem(mensagem);
+//                dto.setIdProcesso(String.valueOf(requisicao.getNProcesso()));
+//                dto.setTipoProcesso("");
+//                dto.setIdRelacao("");
+//                dto.setTipoRelacao("");
+//                dto.setEmail(emailRequerente);
+//
+//                notificationService.enviarEmail(dto);
+//            }
+//        }
+
 
     public List<EqvtPedidoDTO> findPedidosByRequisicaoId(Integer idRequisicao) {
         // Aqui você faz a consulta no banco, exemplo com Spring Data JPA:

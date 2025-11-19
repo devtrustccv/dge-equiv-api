@@ -11,12 +11,17 @@ import lombok.NoArgsConstructor;
 @Builder
 public class NotificationRequestDTO {
 
+    private String mensagem;
+    private String assunto;
+    private String appCode;
     private String email;
-    private String message;
-    private String status;
-    private String subject;
-    private String appName;
-    private String from;
+    private String tipoProcesso;
+    private String idProcesso;
+    private String tipoRelacao;
+    private String idRelacao;
+    private String isAlert;
+
+
     //private List<FileDTO> files = new ArrayList<>();
 
 
