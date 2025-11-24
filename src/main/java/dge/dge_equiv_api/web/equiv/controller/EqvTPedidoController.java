@@ -4,7 +4,7 @@ import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.application.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.application.pedido.dto.*;
 import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoService;
-import dge.dge_equiv_api.application.pedido.service.EqvTPedidoServiceReporter;
+import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoServiceReporter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;

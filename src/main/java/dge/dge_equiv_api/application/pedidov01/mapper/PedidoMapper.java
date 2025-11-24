@@ -22,9 +22,9 @@ public interface PedidoMapper {
     @Mapping(target = "ValorDuc", ignore = true)
     @Mapping(target = "verduc", ignore = true)
     @Mapping(target = "despacho", source = "despacho")
-    @Mapping(target = "requerente", source = "requerente") // CORREÇÃO: removido ignore = true
-    @Mapping(target = "instEnsino", source = "instEnsino") // CORREÇÃO: removido ignore = true
-    @Mapping(target = "requisicao", source = "requisicao") // CORREÇÃO: removido ignore = true
+    @Mapping(target = "requerente", source = "requerente") 
+    @Mapping(target = "instEnsino", source = "instEnsino")
+    @Mapping(target = "requisicao", source = "requisicao")
     EqvtPedidoDTO toDTO(EqvTPedido pedido);
 
     List<EqvtPedidoDTO> toDTOList(List<EqvTPedido> pedidos);
@@ -70,7 +70,7 @@ public interface PedidoMapper {
     @Mapping(target = "dataUpdate", ignore = true)
     @Mapping(target = "userUpdate", ignore = true)
     @Mapping(target = "idPessoa", ignore = true)
-    @Mapping(target = "nProcesso",ignore = true)
+    @Mapping(target = "NProcesso",ignore = true)
     EqvTRequisicao toRequisicaoEntity(EqvTRequisicaoDTO dto);
 
     // ===================== MÉTODOS AUXILIARES =====================
