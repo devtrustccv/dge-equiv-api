@@ -26,8 +26,9 @@ public class ProcessService {
     private final RestClientHelper restClientHelper;
     private final ObjectMapper mapper;
 
-    @Value("${process.equiv.start-url}")
+    @Value("${process.equiv-url}")
     private String processStartUrl;
+
 
     /** Inicia o processo de equivalência */
     public String iniciarProcessoEquivalencia(EqvTRequerente requerente, List<EqvTPedido> pedidos) {
@@ -43,7 +44,7 @@ public class ProcessService {
 
         try {
             ResponseEntity<String> response = restClientHelper.sendRequest(
-                    processStartUrl,
+                    processStartUrl + "/start",
                     HttpMethod.POST,
                     dto,
                     String.class,
@@ -150,5 +151,23 @@ public class ProcessService {
         if (json == null || json.isBlank()) return null;
         JsonNode root = mapper.readTree(json);
         return root.path("processInstanceId").asText();
+    }
+
+    public   void  deleteProcess(String processId) {
+
+        try {
+            ResponseEntity<String> response = restClientHelper.sendRequest(
+                    processStartUrl+ "/delete/"+processId,
+                    HttpMethod.DELETE,
+                    null,
+                    String.class,
+                    null
+            );
+
+        } catch (Exception e) {
+            log.error("[ProcessEquiv] falha ao deletar processo: {}", e.getMessage(), e);
+            throw new RuntimeException("falha ao deletar processo.", e);
+        }
+
     }
 }

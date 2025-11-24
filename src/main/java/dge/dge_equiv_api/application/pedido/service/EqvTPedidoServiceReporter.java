@@ -15,7 +15,7 @@ import java.util.Optional;
 @Service
 
 
-public class EqvTPedidoService {
+public class EqvTPedidoServiceReporter {
 
     private final EqvTPedidoRepository pedidoRepository;
     private final TblDomainService tblDomainService;
@@ -23,8 +23,8 @@ public class EqvTPedidoService {
     private final DocRelacaoService docRelacaoService;
 
 
-    public EqvTPedidoService(EqvTPedidoRepository pedidoService, TblDomainService tblDomainService,
-                             GlobalGeografiaService globalGeografiaService, DocRelacaoService docRelacaoService, EqvTTipoDocumentoService eqvTTipoDocumentoService
+    public EqvTPedidoServiceReporter(EqvTPedidoRepository pedidoService, TblDomainService tblDomainService,
+                                     GlobalGeografiaService globalGeografiaService, DocRelacaoService docRelacaoService, EqvTTipoDocumentoService eqvTTipoDocumentoService
                             ) {
         this.pedidoRepository = pedidoService;
         this.tblDomainService = tblDomainService;
