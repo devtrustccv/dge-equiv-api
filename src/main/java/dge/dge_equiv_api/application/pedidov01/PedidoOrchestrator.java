@@ -108,8 +108,6 @@ public class PedidoOrchestrator {
             pedidoBusinessService.salvarDocumentosDosPedidos(pedidosDTO, pedidosSalvos);
             log.info("Documentos salvos");
 
-
-
             //  Cria acompanhamento
             pedidoBusinessService.criarAcompanhamento(requisicao, pedidosSalvos, pessoaId, duc);
             log.info("Acompanhamento criado");

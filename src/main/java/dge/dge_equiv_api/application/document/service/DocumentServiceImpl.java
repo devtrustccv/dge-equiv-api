@@ -192,7 +192,7 @@ public class DocumentServiceImpl implements DocumentService {
         String urls = url+"/documentos/public-url?file_path=" + path;
 
         PublicUrlResponse response =
-                restTemplate.getForObject(url, PublicUrlResponse.class);
+                restTemplate.getForObject(urls, PublicUrlResponse.class);
 
         return response != null ? response.getUrl() : null;
     }
