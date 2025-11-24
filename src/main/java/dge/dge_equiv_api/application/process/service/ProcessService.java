@@ -96,6 +96,7 @@ public class ProcessService {
         dto.setNome(r.getNome());
         dto.setEmail(r.getEmail());
         dto.setSexo(r.getSexo());
+        dto.setTelefonetelemovel(String.valueOf(r.getContato()));
         dto.setNacionalidade(r.getNacionalidade());
         dto.setData_de_nascimento_1(r.getDataNascimento() != null ? r.getDataNascimento().toString() : "");
         dto.setNif(r.getNif() != null ? r.getNif().toString() : "");

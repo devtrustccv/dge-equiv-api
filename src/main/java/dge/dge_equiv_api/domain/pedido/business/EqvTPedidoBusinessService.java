@@ -356,7 +356,7 @@ public class EqvTPedidoBusinessService {
                 for (DocumentoResponseDTO doc : docs) {
                     String path = doc.getPath();
 
-                    String publicUrl = gerarLinkPublico(path);
+                    String publicUrl = documentService.gerarLinkPublico(path);
                     AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo(
                             doc.getFileName(),
                             LocalDateTime.now(),
@@ -393,14 +393,7 @@ public class EqvTPedidoBusinessService {
         }
     }
 
-    String gerarLinkPublico(String path) {
-        String url = "https://deploy.devtrust.cv/dge-api/api-base-service/documentos/public-url?file_path=" + path;
 
-        PublicUrlResponse response =
-                restTemplate.getForObject(url, PublicUrlResponse.class);
-
-        return response != null ? response.getUrl() : null;
-    }
 
 
     public void enviarEmailDuc(EqvTPagamento pagamento, EqvTRequerente requerente,
