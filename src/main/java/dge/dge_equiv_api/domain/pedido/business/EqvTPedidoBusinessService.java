@@ -394,7 +394,7 @@ public class EqvTPedidoBusinessService {
     }
 
     String gerarLinkPublico(String path) {
-        String url = "http://localhost:8083/api/documentos/public-url?file_path=" + path;
+        String url = "https://deploy.devtrust.cv/dge-api/api-base-service/documentos/public-url?file_path=" + path;
 
         PublicUrlResponse response =
                 restTemplate.getForObject(url, PublicUrlResponse.class);
