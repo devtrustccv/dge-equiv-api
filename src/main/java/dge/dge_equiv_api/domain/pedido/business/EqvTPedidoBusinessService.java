@@ -4,6 +4,7 @@ import dge.dge_equiv_api.application.acompanhamento.dto.AcompanhamentoDTO;
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
+import dge.dge_equiv_api.application.document.dto.PublicUrlResponse;
 import dge.dge_equiv_api.application.document.service.DocumentService;
 import dge.dge_equiv_api.application.notification.dto.NotificationRequestDTO;
 import dge.dge_equiv_api.application.notification.service.NotificationService;
@@ -27,8 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriUtils;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -53,6 +57,7 @@ public class EqvTPedidoBusinessService {
     private final EqvTTaxaService taxaService;
     private final PedidoMapper pedidoMapper;
     private final GlobalGeografiaService globalGeografiaService;
+    private final RestTemplate restTemplate;
 
     @Value("${link.mf.duc}")
     private String mfkink;
@@ -345,11 +350,17 @@ public class EqvTPedidoBusinessService {
                         "SOLITACAO",
                         "equiv"
                 );
+
+
+
                 for (DocumentoResponseDTO doc : docs) {
+                    String path = doc.getPath();
+
+                    String publicUrl = gerarLinkPublico(path);
                     AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo(
                             doc.getFileName(),
                             LocalDateTime.now(),
-                            doc.getPreviewUrl(),
+                            publicUrl,
                             true
                     );
                     anexos.add(anexo);
@@ -382,6 +393,16 @@ public class EqvTPedidoBusinessService {
         }
     }
 
+    String gerarLinkPublico(String path) {
+        String url = "http://localhost:8083/api/documentos/public-url?file_path=" + path;
+
+        PublicUrlResponse response =
+                restTemplate.getForObject(url, PublicUrlResponse.class);
+
+        return response != null ? response.getUrl() : null;
+    }
+
+
     public void enviarEmailDuc(EqvTPagamento pagamento, EqvTRequerente requerente,
                                EqvTRequisicao requisicao, List<EqvTPedido> pedidos) {
         if (pedidos.isEmpty()) {
@@ -399,11 +420,7 @@ public class EqvTPedidoBusinessService {
 
         String linkVerDuc = reporterDuc + pagamento.getNuDuc();
 
-        EqvTPedido primeiroPedido = pedidos.get(0);
-        String formacao = primeiroPedido.getFormacaoProf();
-
-        String linksHtml = "<a href=\"" + linkVerDuc + "\">Clique aqui para visualizar o DUC "
-                + formacao + ".</a><br>" +
+        String linksHtml = "<a href=\"" + linkVerDuc + "\">Clique aqui para visualizar o DUC </a><br>" +
                 "<a href=\"" + linkPagamento + "\">Clique aqui para pagar o DUC</a>";
 
         String emailRequerente = requerente.getEmail();

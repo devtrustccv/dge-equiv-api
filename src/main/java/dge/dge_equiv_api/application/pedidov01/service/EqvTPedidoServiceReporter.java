@@ -2,7 +2,6 @@ package dge.dge_equiv_api.application.pedidov01.service;
 
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
 import dge.dge_equiv_api.application.pedido.dto.*;
-import dge.dge_equiv_api.application.pedido.service.EqvTTipoDocumentoService;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
 import dge.dge_equiv_api.application.document.service.DocRelacaoService;

@@ -1,4 +1,4 @@
-package dge.dge_equiv_api.application.pedido.service;
+package dge.dge_equiv_api.application.pedidov01.service;
 
 import dge.dge_equiv_api.infrastructure.primary.EqvTTipoDocumento;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTTipoDocumentoRepository;
