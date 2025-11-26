@@ -3,22 +3,17 @@ package dge.dge_equiv_api.web.equiv.controller;
 import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.application.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.application.pedido.dto.*;
-import dge.dge_equiv_api.application.pedido.service.EqvTPedidoCrudService;
-import dge.dge_equiv_api.application.pedido.service.EqvTPedidoService;
-import dge.dge_equiv_api.application.pedido.service.PedidoService;
+import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoService;
+import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoServiceReporter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.SQLNonTransientConnectionException;
 import java.util.List;
 
 
@@ -28,11 +23,11 @@ public class EqvTPedidoController {
 
     private static final Logger logger = LoggerFactory.getLogger(EqvTPedidoController.class);
 
-    private final EqvTPedidoService pedidoService;
-    private final EqvTPedidoCrudService crudService;
+    private final EqvTPedidoServiceReporter pedidoServiceReporter;
+    private final EqvTPedidoService crudService;
 
-    public EqvTPedidoController(EqvTPedidoService pedidoService, EqvTPedidoCrudService crudService, DocumentServiceImpl documentServiceImpl) {
-        this.pedidoService = pedidoService;
+    public EqvTPedidoController(EqvTPedidoServiceReporter pedidoServiceReporter, EqvTPedidoService crudService, DocumentServiceImpl documentServiceImpl) {
+        this.pedidoServiceReporter = pedidoServiceReporter;
         this.crudService = crudService;
     }
 
@@ -124,7 +119,7 @@ public class EqvTPedidoController {
             String decryptedId = AESUtil.decrypt(encryptedId);
             Integer id = Integer.valueOf(decryptedId);
 
-            EqvtPedidoReporteDTO dto = pedidoService.getPedidoDTOById(id);
+            EqvtPedidoReporteDTO dto = pedidoServiceReporter.getPedidoDTOById(id);
             if (dto == null) {
                 logger.warn("Pedido não encontrado para o ID descriptografado: {}", id);
                 return ResponseEntity.status(404).body("Pedido não encontrado.");

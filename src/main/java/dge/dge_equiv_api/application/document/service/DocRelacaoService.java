@@ -3,7 +3,7 @@ package dge.dge_equiv_api.application.document.service;
 
 
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
-import dge.dge_equiv_api.application.pedido.service.EqvTTipoDocumentoService;
+import dge.dge_equiv_api.application.pedidov01.service.EqvTTipoDocumentoService;
 import dge.dge_equiv_api.infrastructure.tertiary.DocRelacaoEntity;
 import dge.dge_equiv_api.infrastructure.tertiary.repository.DocRelacaoRepository;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTTipoDocumentoRepository;

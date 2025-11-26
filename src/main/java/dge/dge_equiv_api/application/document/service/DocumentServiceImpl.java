@@ -2,6 +2,7 @@ package dge.dge_equiv_api.application.document.service;
 import dge.dge_equiv_api.Utils.RestClientHelper;
 import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
+import dge.dge_equiv_api.application.document.dto.PublicUrlResponse;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
 import dge.dge_equiv_api.infrastructure.tertiary.DocRelacaoEntity;
@@ -17,6 +18,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -40,6 +42,8 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Value("${api.base.service.url}")
     private String url;
+    @Autowired
+    private RestTemplate restTemplate;
 
     public DocumentServiceImpl(RestClientHelper restClientHelper) {
         this.restClientHelper = restClientHelper;
@@ -182,5 +186,14 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
 
+    }
+
+  public   String gerarLinkPublico(String path) {
+        String urls = url+"/documentos/public-url?file_path=" + path;
+
+        PublicUrlResponse response =
+                restTemplate.getForObject(urls, PublicUrlResponse.class);
+
+        return response.getUrl();
     }
 }

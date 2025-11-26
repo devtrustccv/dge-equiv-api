@@ -146,7 +146,9 @@ public class EqvTPedidoCrudService {
         try {
             duc = pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(), requisicao.getNProcesso(),null);
         } catch (Exception e) {
+            processService.deleteProcess(processInstanceId);
             throw new RuntimeException("Erro ao gerar o DUC.");
+
         }
 
 
@@ -171,6 +173,7 @@ public class EqvTPedidoCrudService {
         try {
             criarAcompanhamento(requisicao, pedidosSalvos, pessoaId, duc);
         } catch (Exception e) {
+            processService.deleteProcess(processInstanceId);
             throw new RuntimeException("Erro ao criar acompanhamento.");
         }
 

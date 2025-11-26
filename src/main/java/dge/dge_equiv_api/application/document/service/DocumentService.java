@@ -11,4 +11,8 @@ public interface DocumentService {
 
 
     List<DocumentoResponseDTO> getDocumentosPorRelacao(Integer idRelacao, String tipoRelacao, String appCode);
+
+    String gerarLinkPublico(String path);
+
+
 }
