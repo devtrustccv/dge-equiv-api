@@ -38,10 +38,10 @@ public class AcompanhamentoService {
 
     public void criarAcompanhamento(AcompanhamentoDTO body) {
         try {
-            String token = authService.getToken();
+           // String token = authService.getToken();
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
+            //headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 

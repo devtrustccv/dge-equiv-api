@@ -194,6 +194,6 @@ public class DocumentServiceImpl implements DocumentService {
         PublicUrlResponse response =
                 restTemplate.getForObject(urls, PublicUrlResponse.class);
 
-        return response != null ? response.getUrl() : null;
+        return response.getUrl();
     }
 }
