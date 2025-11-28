@@ -2,6 +2,7 @@ package dge.dge_equiv_api.application.pedido.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
@@ -20,6 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EqvtPedidoDTO {
     private Integer id;
     @JsonIgnore
@@ -31,11 +33,11 @@ public class EqvtPedidoDTO {
     private EqvTRequisicaoDTO requisicao;
     @NotNull(message = "Formação Profissional é obrigatório")
     private String formacaoProf;
-    @NotNull (message = "Carga horária é obrigatório")
+    @NotNull(message = "Carga horária é obrigatório")
     private Integer carga;
-    @NotNull (message = "Ano de início é obrigatório")
+    @NotNull(message = "Ano de início é obrigatório")
     private BigDecimal anoInicio;
-    @NotNull (message = "Ano de fim é obrigatório")
+    @NotNull(message = "Ano de fim é obrigatório")
     private BigDecimal anoFim;
     private Integer nivel;
     private String familia;
@@ -46,19 +48,15 @@ public class EqvtPedidoDTO {
     private LocalDate dataDespacho;
     private String urlDucPagamento;
     private String nuDuc; // getter e setter
-   private  String entidade;
-   private  String referencia;
-   private  String verduc;
-   private  String ValorDuc;
-
+    private String entidade;
+    private String referencia;
+    private String verduc;
+    private String ValorDuc;
 
     private String Etapa;
 
     private List<DocumentoDTO> documentos;
     private List<DocumentoResponseDTO> documentosresp;
-
-
-
 
     @JsonProperty("id")
     public String getEncryptedId() {
@@ -69,7 +67,6 @@ public class EqvtPedidoDTO {
             return null;
         }
     }
-
 
 
 }

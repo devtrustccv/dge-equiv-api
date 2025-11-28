@@ -75,40 +75,18 @@ public class EqvTPedidoController {
     }
 
 
-    // ========================
-    // PUT - Atualizar pedidos
-    // ========================
-//    @Operation(
-//            summary = "Atualiza pedidos por ID da requisição",
-//            description = "Atualiza todos os pedidos associados à requisição especificada.",
-//            responses = {
-//                    @ApiResponse(responseCode = "200", description = "Pedidos atualizados com sucesso"),
-//                    @ApiResponse(responseCode = "400", description = "Erro ao atualizar os pedidos")
-//            }
-//    )
-//    @PutMapping(value = "/portal/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<?> updateLote(@PathVariable String id, @ModelAttribute PortalPedidosDTO lotePedidosDTO) {
-//        try {
-//            Integer requisicaoId = Integer.valueOf(id);
-//            List<EqvtPedidoDTO> updated = crudService.updatePedidosByRequisicaoId(requisicaoId, lotePedidosDTO);
-//
-//            if (updated.isEmpty()) {
-//                logger.warn("Nenhum pedido foi atualizado.");
-//                return ResponseEntity.badRequest().body("Não foi possível atualizar os pedidos.");
-//            }
-//
-//            PortalPedidosRespostaDTO resposta = new PortalPedidosRespostaDTO();
-//            resposta.setRequisicao(updated.getFirst().getRequisicao());
-//            resposta.setRequerente(updated.getFirst().getRequerente());
-//            resposta.setPedidos(updated);
-//
-//            logger.info("Pedidos atualizados com sucesso: {}", updated.size());
-//            return ResponseEntity.ok().body(resposta);
-//        } catch (Exception e) {
-//            logger.error("Erro ao atualizar pedidos: {}", e.getMessage(), e);
-//            return ResponseEntity.badRequest().body("Erro ao atualizar pedidos: " + e.getMessage());
-//        }
-//    }
+
+    @PutMapping(value = "/portal/requisicoes/{requisicaoId}/pedidos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<EqvtPedidoDTO>> updatePedidosByRequisicao(
+            @PathVariable Integer requisicaoId,
+            @ModelAttribute PortalPedidosDTO portalPedidosDTO,String numProcesso ) {
+
+        List<EqvtPedidoDTO> pedidosAtualizados = crudService
+                .updateLotePedidosComRequisicao(requisicaoId, portalPedidosDTO,numProcesso);
+
+        return ResponseEntity.ok(pedidosAtualizados);
+    }
+
 
     // ========================
     // GET - Buscar pedido por ID criptografado

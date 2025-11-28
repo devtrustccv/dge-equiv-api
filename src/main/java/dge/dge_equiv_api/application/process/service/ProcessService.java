@@ -13,6 +13,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,8 +63,38 @@ public class ProcessService {
         }
     }
 
+
+    public String avancarProcessoEquivalencia(EqvTRequerente requerente, List<EqvTPedido> pedidos, String numProcesso) {
+
+        ProcessEquivDto dto = new ProcessEquivDto();
+        preencherDadosRequerente(dto, requerente);
+        preencherDadosPedidos(dto, pedidos);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+
+        try {
+            ResponseEntity<String> response = restClientHelper.sendRequest(
+                    processStartUrl + "/advance/"+numProcesso,
+                    HttpMethod.POST,
+                    dto,
+                    String.class,
+                    headers
+            );
+
+            String processInstanceId = parseProcessId(response.getBody());
+
+            log.info("[ProcessEquiv] Processo iniciado com ID: {}", processInstanceId);
+            return processInstanceId;
+
+        } catch (Exception e) {
+            log.error("[ProcessEquiv] Falha ao iniciar processo: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao iniciar processo de equivalência.", e);
+        }
+    }
+
     // ================================================================
-    // VALIDAÇÕES
+    // VALIDAÇÕES Mapeamento na campos de igrp
     // ================================================================
     private void validarRequerente(EqvTRequerente r) {
         if (r == null) throw new IllegalArgumentException("Requerente não pode ser nulo.");
@@ -107,29 +138,58 @@ public class ProcessService {
     }
 
     private void preencherDadosPedidos(ProcessEquivDto dto, List<EqvTPedido> pedidos) {
-        dto.setFormacao_profissional__fk(mapOrEmpty(pedidos, EqvTPedido::getFormacaoProf));
+
+        if (dto == null) {
+            return; // nada a fazer
+        }
+
+        // Se pedidos for null, transforma em lista vazia
+        List<EqvTPedido> lista = pedidos == null ? Collections.emptyList() : pedidos;
+
+        dto.setFormacao_profissional__fk(
+                mapOrEmpty(lista, p -> p != null ? p.getFormacaoProf() : null)
+        );
         dto.setFormacao_profissional__fk_desc(dto.getFormacao_profissional__fk());
 
-        dto.setInstituicao_de_ensino_fk(mapOrEmpty(pedidos, p -> p.getInstEnsino().getNome()));
+        dto.setInstituicao_de_ensino_fk(
+                mapOrEmpty(lista, p -> p != null && p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null)
+        );
         dto.setInstituicao_de_ensino_fk_desc(dto.getInstituicao_de_ensino_fk());
 
-        dto.setPais_obtencao_fk(mapOrEmpty(pedidos, p -> p.getInstEnsino().getPais()));
+        dto.setPais_obtencao_fk(
+                mapOrEmpty(lista, p -> p != null && p.getInstEnsino() != null ? p.getInstEnsino().getPais() : null)
+        );
         dto.setPais_obtencao_fk_desc(dto.getPais_obtencao_fk());
 
-        dto.setAno_de_inicio_fk(mapOrEmptyString(pedidos, EqvTPedido::getAnoInicio));
+        dto.setAno_de_inicio_fk(
+                mapOrEmptyString(lista, p -> p != null ? p.getAnoInicio() : null)
+        );
         dto.setAno_de_inicio_fk_desc(dto.getAno_de_inicio_fk());
 
-        dto.setAno_conclusao_fk(mapOrEmptyString(pedidos, EqvTPedido::getAnoFim));
+        dto.setAno_conclusao_fk(
+                mapOrEmptyString(lista, p -> p != null ? p.getAnoFim() : null)
+        );
         dto.setAno_conclusao_fk_desc(dto.getAno_conclusao_fk());
 
-        dto.setCarga_horaria_fk(mapOrEmptyString(pedidos, EqvTPedido::getCarga));
+        dto.setCarga_horaria_fk(
+                mapOrEmptyString(lista, p -> p != null ? p.getCarga() : null)
+        );
         dto.setCarga_horaria_fk_desc(dto.getCarga_horaria_fk());
 
+        // Replicação
         dto.setFormacao_profissional1_fk(dto.getFormacao_profissional__fk());
         dto.setFormacao_profissional1_fk_desc(dto.getFormacao_profissional__fk_desc());
-        dto.setSeparatorlist_1_id(pedidos.stream().map(p -> "").toList());
-        dto.setSeparatorlist_2_id(pedidos.stream().map(p -> "").toList());
+
+        // Preenche listas separadoras com número correto de itens
+        dto.setSeparatorlist_1_id(
+                lista.stream().map(p -> "").toList()
+        );
+
+        dto.setSeparatorlist_2_id(
+                lista.stream().map(p -> "").toList()
+        );
     }
+
 
     // ================================================================
     // HELPERS

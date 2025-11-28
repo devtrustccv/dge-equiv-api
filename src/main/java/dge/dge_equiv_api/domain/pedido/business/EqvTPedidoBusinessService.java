@@ -23,6 +23,7 @@ import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTRequerenteRepository;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTRequisicaoRepository;
 import dge.dge_equiv_api.infrastructure.quaternary.TNotificacaoConfigEmail;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -396,6 +397,128 @@ public class EqvTPedidoBusinessService {
 
 
 
+
+
+    // upadte pedido e avancar etapa
+    public List<EqvtPedidoDTO> updatePedidosByRequisicaoId(Integer requisicaoId, PortalPedidosDTO dto) {
+        EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
+                .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
+
+        List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+
+        // Atualizar requisição se existir no DTO
+        if (dto.getRequisicao() != null) {
+            pedidoMapper.updateRequisicaoFromDTO(dto.getRequisicao(), requisicao);
+            requisicao.setDataUpdate(LocalDate.now());
+            requisicao = requisicaoRepository.save(requisicao);
+            log.info("Requisição atualizada com ID: {}", requisicao.getId());
+        }
+
+        EqvTRequerente requerente = null;
+        if (dto.getRequerente() != null) {
+            // Buscar o requerente atual da requisição
+            requerente = pedidos.stream()
+                    .findFirst()
+                    .map(EqvTPedido::getRequerente)
+                    .orElseThrow(() -> new BusinessException("Nenhum requerente encontrado para esta requisição"));
+
+            log.info("Encontrado requerente existente com ID: {} para atualização", requerente.getId());
+
+            // Atualizar os dados do requerente existente
+            pedidoMapper.updateRequerenteFromDTO(dto.getRequerente(), requerente);
+            requerente.setDataUpdate(LocalDate.now());
+            requerente = requerenteRepository.save(requerente);
+
+            log.info("Requerente ATUALIZADO com ID: {}", requerente.getId());
+        }
+
+        List<EqvtPedidoDTO> result = new ArrayList<>();
+        List<EqvtPedidoDTO> pedidosDTO = dto.getPedidos();
+
+        // Validar se o número de pedidos corresponde
+        if (pedidos.size() != pedidosDTO.size()) {
+            throw new BusinessException("Número de pedidos no DTO (" + pedidosDTO.size() +
+                    ") não corresponde ao número existente (" + pedidos.size() + ")");
+        }
+
+        // Processar cada pedido
+        for (int i = 0; i < pedidos.size(); i++) {
+            EqvTPedido pedido = pedidos.get(i);
+            EqvtPedidoDTO pedidoDTO = pedidosDTO.get(i);
+
+            // Atualizar dados básicos do pedido
+            pedidoMapper.updatePedidoFromDTO(pedidoDTO, pedido);
+
+            // Atualizar instituição de ensino se fornecida
+            if (pedidoDTO.getInstEnsino() != null) {
+                EqvTInstEnsino instituicao = processarInstituicaoEnsino(pedidoDTO.getInstEnsino());
+                pedido.setInstEnsino(instituicao);
+                log.info("Instituição de ensino atualizada para pedido {}: {}", pedido.getId(), instituicao.getNome());
+            }
+
+            // Atualizar relações - usar o requerente ATUALIZADO
+            if (requerente != null) {
+                pedido.setRequerente(requerente);
+            }
+            pedido.setRequisicao(requisicao);
+
+            // Salvar pedido atualizado
+            pedido = pedidoRepository.save(pedido);
+            log.info("Pedido atualizado com ID: {}", pedido.getId());
+
+            // Atualizar documentos
+            if (pedidoDTO.getDocumentos() != null && !pedidoDTO.getDocumentos().isEmpty()) {
+                log.info("Atualizando {} documentos para o pedido {}", pedidoDTO.getDocumentos().size(), pedido.getId());
+                salvarDocumentosDoPedido(pedidoDTO, pedido);
+            } else {
+                log.info("Nenhum documento para atualizar no pedido {}", pedido.getId());
+            }
+
+            result.add(pedidoMapper.toDTO(pedido));
+        }
+
+        // AVANÇAR PROCESSO (se numProcesso foi fornecido)
+        if (requisicao.getNProcesso() != null && !requisicao.getNProcesso().toString().trim().isEmpty()) {
+            try {
+                // Buscar o requerente atualizado (pode ser o mesmo ou novo)
+                EqvTRequerente requerenteParaProcesso = requerente != null ?
+                        requerente : pedidos.get(0).getRequerente();
+
+                if (requerenteParaProcesso != null) {
+                    String processInstanceId = avancarProcesso(
+                            requerenteParaProcesso,
+                            dto.getPedidos(),
+                            requisicao.getNProcesso().toString()
+                    );
+                    log.info("Processo avançado com sucesso. Instance ID: {}", processInstanceId);
+                }
+            } catch (Exception e) {
+                log.error("Erro ao avançar processo, mas pedidos foram atualizados. Erro: {}", e.getMessage());
+                throw e;
+            }
+        }
+
+        log.info("Atualização concluída para requisição ID: {} - {} pedidos atualizados",
+                requisicaoId, result.size());
+        return result;
+    }
+
+    public String avancarProcesso(EqvTRequerente requerente, List<EqvtPedidoDTO> pedidosDTO, String numProcesso) {
+        try {
+            List<EqvTPedido> pedidosTemporarios = new ArrayList<>();
+
+            for (EqvtPedidoDTO dto : pedidosDTO) {
+                EqvTPedido pedido = pedidoMapper.toEntity(dto);
+                pedidosTemporarios.add(pedido);
+            }
+
+            return processService.avancarProcessoEquivalencia(requerente, pedidosTemporarios, numProcesso);
+        } catch (Exception e) {
+            log.error("Falha ao avançar processo de equivalência para processo: {}", numProcesso, e);
+            throw new BusinessException("Não foi possível avançar o processo de equivalência");
+        }
+    }
+
     public void enviarEmailDuc(EqvTPagamento pagamento, EqvTRequerente requerente,
                                EqvTRequisicao requisicao, List<EqvTPedido> pedidos) {
         if (pedidos.isEmpty()) {
@@ -436,11 +559,12 @@ public class EqvTPedidoBusinessService {
                 .replace("[LIMKS]", linksHtml);
 
         NotificationRequestDTO dto = new NotificationRequestDTO();
-        dto.setAppCode("equiv");
+
         dto.setAssunto(assunto);
         dto.setMensagem(mensagem);
         dto.setIdProcesso(numeroPedido);
         dto.setIdRelacao(requisicao.getNProcesso().toString());
+        dto.setIsAlert("NAO");
         dto.setEmail(emailRequerente);
 
         notificationService.enviarEmail(dto);

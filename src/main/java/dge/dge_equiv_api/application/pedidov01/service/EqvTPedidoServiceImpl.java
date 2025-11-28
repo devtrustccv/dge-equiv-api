@@ -8,6 +8,7 @@ import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
 import dge.dge_equiv_api.application.pedido.dto.*;
 import dge.dge_equiv_api.application.pedidov01.PedidoOrchestrator;
 import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
+import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
 import dge.dge_equiv_api.infrastructure.primary.EqvTRequisicao;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
@@ -38,7 +39,6 @@ public class EqvTPedidoServiceImpl implements EqvTPedidoService {
 
     /**
      * Cria o lote de pedidos com requisição e requerente únicos.
-     * TODO: toda a lógica do fluxo está encapsulada no orchestrator.
      */
     @Override
     @Transactional
@@ -54,6 +54,47 @@ public class EqvTPedidoServiceImpl implements EqvTPedidoService {
                 requerenteDTO,
                 pessoaId
         );
+    }
+
+    /**
+     * Atualiza o lote de pedidos com requisição e requerente únicos.
+     */
+    @Override
+    @Transactional
+    public List<EqvtPedidoDTO> updateLotePedidosComRequisicao(
+            Integer requisicaoId,
+            PortalPedidosDTO portalPedidosDTO, String numProcesso) {
+
+        log.info("Iniciando atualização de pedidos para requisição ID: {}", requisicaoId);
+
+        // Validar dados de entrada
+        if (portalPedidosDTO == null) {
+            throw new IllegalArgumentException("PortalPedidosDTO não pode ser nulo");
+        }
+
+        if (portalPedidosDTO.getPedidos() == null || portalPedidosDTO.getPedidos().isEmpty()) {
+            throw new IllegalArgumentException("Lista de pedidos não pode ser nula ou vazia");
+        }
+
+        try {
+            // Delegar a lógica de atualização para o business service
+            List<EqvtPedidoDTO> pedidosAtualizados = pedidoOrchestrator.updatePedidosByRequisicaoId(
+                    requisicaoId,
+                    portalPedidosDTO
+
+
+
+            );
+
+            log.info("Atualização concluída para requisição ID: {} - {} pedidos atualizados",
+                    requisicaoId, pedidosAtualizados.size());
+
+            return pedidosAtualizados;
+
+        } catch (Exception e) {
+            log.error("Erro ao atualizar pedidos para requisição ID: {}", requisicaoId, e);
+            throw new BusinessException("Erro ao atualizar pedidos: " + e.getMessage());
+        }
     }
 
     /**

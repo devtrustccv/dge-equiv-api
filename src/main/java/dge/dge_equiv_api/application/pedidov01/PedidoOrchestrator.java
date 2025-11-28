@@ -3,6 +3,7 @@ package dge.dge_equiv_api.application.pedidov01;
 import dge.dge_equiv_api.application.pedido.dto.EqvTRequerenteDTO;
 import dge.dge_equiv_api.application.pedido.dto.EqvTRequisicaoDTO;
 import dge.dge_equiv_api.application.pedido.dto.EqvtPedidoDTO;
+import dge.dge_equiv_api.application.pedido.dto.PortalPedidosDTO;
 import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
 import dge.dge_equiv_api.application.process.service.ProcessService;
 import dge.dge_equiv_api.domain.pedido.business.EqvTPedidoBusinessService;
@@ -119,8 +120,9 @@ public class PedidoOrchestrator {
             List<EqvtPedidoDTO> result = pedidosSalvos.stream()
                     .map(pedidoMapper::toDTO)
                     .collect(Collectors.toList());
+
             //preencher dados pagamento
-            preencherDadosDUC(result,duc);
+            preencherDadosDUC(result, duc);
 
             log.info("Lote de pedidos criado com sucesso. Processo: {}", processInstanceId);
 
@@ -128,7 +130,7 @@ public class PedidoOrchestrator {
             return result;
 
         } catch (Exception e) {
-            log.error("Erro ao criar lote de pedidos" );
+            log.error("Erro ao criar lote de pedidos");
 
             // Rollback: remove processo iniciado E requisição se necessário
             if (processInstanceId != null) {
@@ -150,8 +152,15 @@ public class PedidoOrchestrator {
                 }
             }
 
-            throw new BusinessException("Erro ao criar lote de pedidos: " + e.getMessage() );
+            throw new BusinessException("Erro ao criar lote de pedidos: " + e.getMessage());
         }
+    }
+
+
+    // No PedidoOrchestrator.java
+    public List<EqvtPedidoDTO> updatePedidosByRequisicaoId(Integer requisicaoId, PortalPedidosDTO portalPedidosDTO) {
+
+        return pedidoBusinessService.updatePedidosByRequisicaoId(requisicaoId, portalPedidosDTO);
     }
 
     /**
