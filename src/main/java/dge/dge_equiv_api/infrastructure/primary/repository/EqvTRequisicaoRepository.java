@@ -10,5 +10,6 @@ import java.util.Optional;
 public interface EqvTRequisicaoRepository extends JpaRepository<EqvTRequisicao, Integer> {
     @Override
     Optional<EqvTRequisicao> findById(Integer integer);
+    Optional<EqvTRequisicao> findByNProcesso(Integer nProcesso); //findByNProcesso(String nProcesso)>
 }
 

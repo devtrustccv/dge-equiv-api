@@ -21,9 +21,4 @@ public class NotificationRequestDTO {
     private String idRelacao;
     private String isAlert;
 
-
-    //private List<FileDTO> files = new ArrayList<>();
-
-
-
 }

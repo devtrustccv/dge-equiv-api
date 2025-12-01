@@ -3,7 +3,6 @@ package dge.dge_equiv_api.application.InstEnsino.service;
 
 import dge.dge_equiv_api.application.InstEnsino.dto.InstituicaoPaisDTO;
 import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
-import dge.dge_equiv_api.application.pedido.dto.EqvTInstEnsinoDTO;
 import dge.dge_equiv_api.infrastructure.primary.EqvTInstEnsino;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTInstEnsinoRepository;
 import org.springframework.stereotype.Service;

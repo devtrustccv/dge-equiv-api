@@ -1,4 +1,4 @@
-package dge.dge_equiv_api.application.pedido.dto;
+package dge.dge_equiv_api.application.pedidov01.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;

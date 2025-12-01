@@ -1,4 +1,4 @@
-package dge.dge_equiv_api.application.pedido.dto;
+package dge.dge_equiv_api.application.pedidov01.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +16,7 @@ public class EqvtTDecisaoVpDTO {
     private String familia;
     private Integer decisao;
     private String obsVp;
+    private String motivo_retificado;
 
 }
 

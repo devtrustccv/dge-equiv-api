@@ -1,6 +1,10 @@
 package dge.dge_equiv_api.application.pedidov01.mapper;
 
-import dge.dge_equiv_api.application.pedido.dto.*;
+
+import dge.dge_equiv_api.application.pedidov01.dto.EqvTInstEnsinoDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvTRequerenteDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvTRequisicaoDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvtPedidoDTO;
 import dge.dge_equiv_api.infrastructure.primary.*;
 import org.mapstruct.*;
 import org.slf4j.Logger;
@@ -79,13 +83,13 @@ public interface PedidoMapper {
 
     // ===================== UPDATE METHODS =====================
 
-    // ✅ REQUISIÇÃO - Update completo
+    //  REQUISIÇÃO - Update completo
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "dataCreate", ignore = true)
     @Mapping(target = "dataUpdate", expression = "java(java.time.LocalDate.now())")
     void updateRequisicaoFromDTO(EqvTRequisicaoDTO dto, @MappingTarget EqvTRequisicao entity);
 
-    // ✅ REQUERENTE - Update completo (todos os campos que vierem no DTO)
+    //  REQUERENTE - Update completo (todos os campos que vierem no DTO)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "dateCreate", ignore = true)
     @Mapping(target = "idPessoa", ignore = true)
@@ -95,13 +99,13 @@ public interface PedidoMapper {
     @Mapping(target = "habilitacao", expression = "java(stringToInteger(dto.getHabilitacao()))")
     void updateRequerenteFromDTO(EqvTRequerenteDTO dto, @MappingTarget EqvTRequerente entity);
 
-    // ✅ INSTITUIÇÃO ENSINO - Update completo
+    // INSTITUIÇÃO ENSINO - Update completo
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "dateCreate", ignore = true)
     @Mapping(target = "status", ignore = true)
     void updateInstEnsinoFromDTO(EqvTInstEnsinoDTO dto, @MappingTarget EqvTInstEnsino entity);
 
-    // ✅ PEDIDO - Update completo
+    //  PEDIDO - Update completo
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "requerente", ignore = true)
     @Mapping(target = "instEnsino", ignore = true)

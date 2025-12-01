@@ -1,9 +1,9 @@
 package dge.dge_equiv_api.application.pedidov01;
 
-import dge.dge_equiv_api.application.pedido.dto.EqvTRequerenteDTO;
-import dge.dge_equiv_api.application.pedido.dto.EqvTRequisicaoDTO;
-import dge.dge_equiv_api.application.pedido.dto.EqvtPedidoDTO;
-import dge.dge_equiv_api.application.pedido.dto.PortalPedidosDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvTRequerenteDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvTRequisicaoDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvtPedidoDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.PortalPedidosDTO;
 import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
 import dge.dge_equiv_api.application.process.service.ProcessService;
 import dge.dge_equiv_api.domain.pedido.business.EqvTPedidoBusinessService;

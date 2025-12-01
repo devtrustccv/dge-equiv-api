@@ -22,7 +22,7 @@ public class EqvTRequisicao {
     private Integer etapa;
 
     @Column(name = "n_processo")
-    private Integer nProcesso;
+    private Integer NProcesso;
 
     @Column(name = "user_create")
     private Integer userCreate;

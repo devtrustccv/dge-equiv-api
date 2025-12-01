@@ -4,12 +4,11 @@ import dge.dge_equiv_api.application.acompanhamento.dto.AcompanhamentoDTO;
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
-import dge.dge_equiv_api.application.document.dto.PublicUrlResponse;
 import dge.dge_equiv_api.application.document.service.DocumentService;
 import dge.dge_equiv_api.application.notification.dto.NotificationRequestDTO;
 import dge.dge_equiv_api.application.notification.service.NotificationService;
-import dge.dge_equiv_api.application.pedido.dto.*;
 
+import dge.dge_equiv_api.application.pedidov01.dto.*;
 import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
 import dge.dge_equiv_api.application.process.service.ProcessService;
 import dge.dge_equiv_api.application.duc.service.PagamentoService;
@@ -30,10 +29,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -401,7 +398,7 @@ public class EqvTPedidoBusinessService {
 
     // upadte pedido e avancar etapa
     public List<EqvtPedidoDTO> updatePedidosByRequisicaoId(Integer requisicaoId, PortalPedidosDTO dto) {
-        EqvTRequisicao requisicao = requisicaoRepository.findById(requisicaoId)
+        EqvTRequisicao requisicao = requisicaoRepository.findByNProcesso(requisicaoId)
                 .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
 
         List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);

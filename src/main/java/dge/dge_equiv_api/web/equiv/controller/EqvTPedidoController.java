@@ -2,7 +2,10 @@ package dge.dge_equiv_api.web.equiv.controller;
 
 import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.application.document.service.DocumentServiceImpl;
-import dge.dge_equiv_api.application.pedido.dto.*;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvtPedidoDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvtPedidoReporteDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.PortalPedidosDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.PortalPedidosRespostaDTO;
 import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoService;
 import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoServiceReporter;
 import io.swagger.v3.oas.annotations.Operation;

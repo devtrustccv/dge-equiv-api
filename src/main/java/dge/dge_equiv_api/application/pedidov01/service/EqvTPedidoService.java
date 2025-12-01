@@ -1,7 +1,7 @@
 package dge.dge_equiv_api.application.pedidov01.service;
 
 import dge.dge_equiv_api.application.certificado.dto.CertificadoEquivalenciaDTO;
-import dge.dge_equiv_api.application.pedido.dto.*;
+import dge.dge_equiv_api.application.pedidov01.dto.*;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public interface EqvTPedidoService {
      */
     List<EqvtPedidoDTO> updateLotePedidosComRequisicao(
             Integer requisicaoId,
-            PortalPedidosDTO portalPedidosDTO,String numeroProcesso);
+            PortalPedidosDTO portalPedidosDTO, String numeroProcesso);
 
     /**
      * Retorna os pedidos de uma requisição, incluindo documentos.
