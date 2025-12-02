@@ -22,14 +22,14 @@ public class LogService {
     public LogService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
-    @Value("${api.base.service.url")
+    @Value("${api.base.service.url}")
     private  String logs;
     /**
      * Retorna TODOS os logs de uma decisão
      */
     public List<LogDTO> getLogsByDecisaoId(Integer decisaoId) {
         try {
-            String url = logs  + "api/?appDad=equiv&tableName=eqv_t_decisao_ap";
+            String url = logs  + "/logs?appDad=equiv&tableName=eqv_t_decisao_ap";
 
             ResponseEntity<List<LogDTO>> response = restTemplate.exchange(
                     url,
@@ -58,7 +58,7 @@ public class LogService {
      */
     public List<LogDTO> getParecerCnepLogsByDecisaoId(Integer decisaoId) {
         try {
-            String url = logs + "api/?appDad=equiv&tableName=eqv_t_decisao_ap";
+            String url = logs + "/logs?appDad=equiv&tableName=eqv_t_decisao_ap";
 
             ResponseEntity<List<LogDTO>> response = restTemplate.exchange(
                     url,
