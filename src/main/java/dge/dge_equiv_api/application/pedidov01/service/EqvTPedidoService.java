@@ -28,23 +28,12 @@ public interface EqvTPedidoService {
      */
     List<EqvtPedidoDTO> findPedidosComDocumentosByRequisicao(Integer requisicaoId);
 
-    /**
-     * Retorna os pedidos de uma requisição sem documentos.
-     */
-    List<EqvtPedidoDTO> findPedidosByRequisicaoId(Integer idRequisicao);
+
 
     /**
-     * Monta o DTO do certificado de equivalência para um pedido.
+     * Retorna pedidos com documentos por número de processo
      */
-    CertificadoEquivalenciaDTO montarCertificado(EqvtPedidoDTO pedidoDTO);
+    ProcessoPedidosDocumentosDTO getPedidosComDocumentosPorProcesso(String numeroProcesso);
 
-    /**
-     * Monta os certificados de equivalência para todos os pedidos de uma requisição.
-     */
-    List<CertificadoEquivalenciaDTO> montarCertificadosPorRequisicao(Integer idRequisicao);
 
-    /**
-     * Converte um pedido completo para DTO simples.
-     */
-    PedidoSimplesDTO convertToSimplesDTO(EqvtPedidoDTO pedido);
 }

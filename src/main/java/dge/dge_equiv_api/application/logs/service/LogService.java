@@ -38,10 +38,6 @@ public class LogService {
                     new ParameterizedTypeReference<List<LogDTO>>() {}
             );
 
-            if (response.getBody() == null) {
-                return Collections.emptyList();
-            }
-
             return response.getBody().stream()
                     .filter(log -> log.getTableId() != null)
                     .filter(log -> log.getTableId().equals(String.valueOf(decisaoId)))
@@ -66,10 +62,6 @@ public class LogService {
                     null,
                     new ParameterizedTypeReference<List<LogDTO>>() {}
             );
-
-            if (response.getBody() == null) {
-                return Collections.emptyList();
-            }
 
             return response.getBody().stream()
                     .filter(log -> log.getTableId() != null)

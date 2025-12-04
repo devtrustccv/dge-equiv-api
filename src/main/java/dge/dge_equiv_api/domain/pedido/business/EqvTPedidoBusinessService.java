@@ -5,6 +5,9 @@ import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import dge.dge_equiv_api.application.document.service.DocumentService;
+import dge.dge_equiv_api.application.motivo_retidicado.dto.MotivoRetificacaoResponseDTO;
+import dge.dge_equiv_api.application.motivo_retidicado.mapper.MotivoRetificacaoMapper;
+import dge.dge_equiv_api.application.motivo_retidicado.service.MotivoRetificacaoService;
 import dge.dge_equiv_api.application.notification.dto.NotificationRequestDTO;
 import dge.dge_equiv_api.application.notification.service.NotificationService;
 
@@ -54,8 +57,7 @@ public class EqvTPedidoBusinessService {
     private final PagamentoService pagamentoService;
     private final EqvTTaxaService taxaService;
     private final PedidoMapper pedidoMapper;
-    private final GlobalGeografiaService globalGeografiaService;
-    private final RestTemplate restTemplate;
+    private final MotivoRetificacaoService motivoRetificacaoService;
 
     @Value("${link.mf.duc}")
     private String mfkink;
@@ -314,8 +316,8 @@ public class EqvTPedidoBusinessService {
             Map<String, String> detalhes = new LinkedHashMap<>();
             for (int i = 0; i < pedidos.size(); i++) {
                 EqvTPedido p = pedidos.get(i);
-                detalhes.put("Formação Solicitada " + (i + 1), p.getFormacaoProf());
-                detalhes.put("Instituição " + (i + 1), p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null);
+                detalhes.put("Formação Solicitada " , p.getFormacaoProf());
+                detalhes.put("Instituição ", p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null);
             }
 
             detalhes.put("Taxa Análise", valorTaxa.toString() + " $00");
@@ -334,7 +336,7 @@ public class EqvTPedidoBusinessService {
                             Map.of(
                                     "Referencia", pagamento.getReferencia().toString(),
                                     "Entidade", pagamento.getEntidade(),
-                                    "Valor", valorTaxa != null ? valorTaxa.toString() : "N/A" + " $00",
+                                    "Valor", valorTaxa + " $00",
                                     "Pagar Online", urlPagamento,
                                     "Ver duc", pagamento.getLinkDuc()
                             )
@@ -390,10 +392,6 @@ public class EqvTPedidoBusinessService {
             throw new BusinessException("Erro ao montar acompanhamento" );
         }
     }
-
-
-
-
 
 
     // upadte pedido e avancar etapa
@@ -572,4 +570,117 @@ public class EqvTPedidoBusinessService {
                 .replaceAll("[^\\p{ASCII}]", "")
                 .replaceAll("[/\\\\]", "");
     }
+
+
+    public ProcessoPedidosDocumentosDTO getPedidosComDocumentosPorProcesso(String numeroProcesso) {
+        log.info("Buscando pedidos com documentos para processo: {}", numeroProcesso);
+
+        try {
+            // 1. Buscar a requisição pelo número de processo
+            EqvTRequisicao requisicao = requisicaoRepository.findByNProcesso(Integer.valueOf(numeroProcesso))
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Processo não encontrado com número: " + numeroProcesso));
+
+            // 2. Buscar os pedidos relacionados à requisição
+            List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+
+            if (pedidos.isEmpty()) {
+                throw new EntityNotFoundException(
+                        "Nenhum pedido encontrado para o processo: " + numeroProcesso);
+            }
+
+            // 3. Processar cada pedido com seus documentos
+            List<ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO> pedidosComDocumentos = pedidos.stream()
+                    .map(this::processarPedidoComDocumentos)
+                    .collect(Collectors.toList());
+
+            // 4. Montar o DTO de resposta
+            List<MotivoRetificacaoResponseDTO> motivosRetificacao =
+                    motivoRetificacaoService.buscarMotivoRetificacaoPorProcesso(Integer.valueOf(numeroProcesso));
+
+            return ProcessoPedidosDocumentosDTO.builder()
+                    .numeroProcesso(numeroProcesso)
+                    .motivosRetificacao(motivosRetificacao)
+                    .pedidos(pedidosComDocumentos)
+                    .build();
+
+        } catch (EntityNotFoundException e) {
+            log.warn("Processo não encontrado: {}", numeroProcesso);
+            throw e;
+        } catch (Exception e) {
+            log.error("Erro ao buscar pedidos com documentos para processo: {}", numeroProcesso, e);
+            throw new BusinessException("Erro ao obter pedidos e documentos do processo");
+        }
+    }
+
+    /**
+     * Processa um pedido extraindo suas informações e documentos
+     */
+    private ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO processarPedidoComDocumentos(EqvTPedido pedido) {
+        // 1. Mapear informações básicas do pedido
+        ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO pedidoDTO = ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO.builder()
+                .id(pedido.getId())
+                .formacaoProf(pedido.getFormacaoProf())
+                .instituicaoEnsino(pedido.getInstEnsino() != null ?
+                        pedido.getInstEnsino().getNome() : null)
+                .paisInstituicao(pedido.getInstEnsino() != null ?
+                        pedido.getInstEnsino().getPais() : null)
+                .anoFim(pedido.getAnoFim())
+                .anoInicio(pedido.getAnoInicio())
+                .documentos(new ArrayList<>()) // Inicializar lista vazia
+                .build();
+
+        try {
+            // 2. Buscar documentos do pedido
+            List<DocumentoResponseDTO> documentosResponse = documentService.getDocumentosPorRelacao(
+                    pedido.getId(),
+                    "SOLITACAO",
+                    "equiv"
+            );
+
+            if (documentosResponse != null && !documentosResponse.isEmpty()) {
+                // 3. Converter documentos para o formato específico
+                List<ProcessoPedidosDocumentosDTO.DocumentoInfoDTO> documentosInfo = documentosResponse.stream()
+                        .map(this::converterDocumentoParaInfoDTO)
+                        .filter(Objects::nonNull) // Filtrar documentos nulos
+                        .collect(Collectors.toList());
+
+                pedidoDTO.setDocumentos(documentosInfo);
+            }
+
+        } catch (Exception e) {
+            log.warn("Erro ao buscar documentos do pedido {}: {}", pedido.getId(), e.getMessage());
+            // Continuar mesmo sem documentos
+        }
+
+        return pedidoDTO;
+    }
+
+    /**
+     * Converte DocumentoResponseDTO para DocumentoInfoDTO
+     */
+    private ProcessoPedidosDocumentosDTO.DocumentoInfoDTO converterDocumentoParaInfoDTO(DocumentoResponseDTO docResponse) {
+        try {
+            // Criar DTO com todas as informações do documento
+            return ProcessoPedidosDocumentosDTO.DocumentoInfoDTO.builder()
+                    .id(docResponse.getId())
+                    .fileName(docResponse.getFileName())
+                    .path(docResponse.getPath())
+                    .tipoRelacao(docResponse.getTipoRelacao())
+                    .idRelacao(docResponse.getIdRelacao())
+                    .idTpDoc(docResponse.getIdTpDoc())
+                    .estado(docResponse.getEstado())
+                    .appCode(docResponse.getAppCode())
+                    .previewUrl(docResponse.getPreviewUrl())
+                    .build();
+
+        } catch (Exception e) {
+            log.warn("Erro ao converter documento {}: {}", docResponse.getId(), e.getMessage());
+            return null;
+        }
+    }
+
+
+
+
 }

@@ -8,6 +8,7 @@ import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
 import dge.dge_equiv_api.application.pedidov01.PedidoOrchestrator;
 import dge.dge_equiv_api.application.pedidov01.dto.*;
 import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
+import dge.dge_equiv_api.domain.pedido.business.EqvTPedidoBusinessService;
 import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
 import dge.dge_equiv_api.infrastructure.primary.EqvTRequisicao;
@@ -34,8 +35,7 @@ public class EqvTPedidoServiceImpl implements EqvTPedidoService {
     private final EqvTRequisicaoRepository requisicaoRepository;
     private final DocumentService documentService;
     private final PedidoMapper pedidoMapper;
-    private final ReporterConfig reporterConfig;
-    private final GlobalGeografiaService globalGeografiaService;
+    private final EqvTPedidoBusinessService pedidoBusinessService;
 
     /**
      * Cria o lote de pedidos com requisição e requerente únicos.
@@ -82,8 +82,6 @@ public class EqvTPedidoServiceImpl implements EqvTPedidoService {
                     requisicaoId,
                     portalPedidosDTO
 
-
-
             );
 
             log.info("Atualização concluída para requisição ID: {} - {} pedidos atualizados",
@@ -123,57 +121,17 @@ public class EqvTPedidoServiceImpl implements EqvTPedidoService {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * Retorna os pedidos de uma requisição sem documentos.
-     */
     @Override
-    public List<EqvtPedidoDTO> findPedidosByRequisicaoId(Integer idRequisicao) {
-        return pedidoRepository.findByRequisicaoId(idRequisicao).stream()
-                .map(pedidoMapper::toDTO)
-                .collect(Collectors.toList());
+    public ProcessoPedidosDocumentosDTO getPedidosComDocumentosPorProcesso(String numeroProcesso) {
+        log.info("Buscando pedidos com documentos para processo: {}", numeroProcesso);
+
+        // Delegar a chamada para o business service
+        return pedidoBusinessService.getPedidosComDocumentosPorProcesso(numeroProcesso);
     }
 
-    /**
-     * Monta o DTO do certificado de equivalência para um pedido.
-     */
-    @Override
-    public CertificadoEquivalenciaDTO montarCertificado(EqvtPedidoDTO pedidoDTO) {
-        CertificadoEquivalenciaDTO dto = new CertificadoEquivalenciaDTO();
 
-        String idCriptografado = AESUtil.encrypt(pedidoDTO.getId().toString());
-        String url = reporterConfig.getReporterEqvUrl() + "equiv/declaracao_equivalencia/" + idCriptografado;
 
-        dto.setFormacaoOriginal(pedidoDTO.getFormacaoProf());
-        dto.setEntidadeOriginal(pedidoDTO.getInstEnsino() != null ? pedidoDTO.getInstEnsino().getNome() : null);
-        dto.setEquivalencia("Equivalência Profissional");
-        dto.setNivelQualificacao(pedidoDTO.getNivel() != null ? pedidoDTO.getNivel().toString() : null);
 
-        if ("5".equals(pedidoDTO.getDespacho())) {
-            dto.setUrl(url);
-        }
 
-        dto.setDataEmissao(java.time.LocalDate.now());
-        dto.setEntidadeEmissora("DGERT - Direção-Geral do Emprego e das Relações de Trabalho");
-        dto.setNumeroProcesso(pedidoDTO.getRequisicao() != null && pedidoDTO.getRequisicao().getNProcesso() != null
-                ? pedidoDTO.getRequisicao().getNProcesso().toString()
-                : null);
 
-        if (pedidoDTO.getInstEnsino() != null && pedidoDTO.getInstEnsino().getPais() != null) {
-            dto.setPaisOrigem(globalGeografiaService.buscarNomePorCodigoPais(pedidoDTO.getInstEnsino().getPais()));
-        }
-
-        return dto;
-    }
-
-    @Override
-    public List<CertificadoEquivalenciaDTO> montarCertificadosPorRequisicao(Integer idRequisicao) {
-        // Pode ser implementado posteriormente chamando montarCertificado para cada pedido
-        return List.of();
-    }
-
-    @Override
-    public PedidoSimplesDTO convertToSimplesDTO(EqvtPedidoDTO pedido) {
-        // Pode ser implementado conforme necessidade
-        return null;
-    }
 }
