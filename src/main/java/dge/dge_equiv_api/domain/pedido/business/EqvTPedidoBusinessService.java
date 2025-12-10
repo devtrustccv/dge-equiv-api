@@ -227,8 +227,8 @@ public class EqvTPedidoBusinessService {
 
             return processService.iniciarProcessoEquivalencia(requerente, pedidosTemporarios);
         } catch (Exception e) {
-            log.error("Falha ao iniciar processo de equivalência" );
-            throw new BusinessException("Não foi possível iniciar o processo de equivalência" );
+            log.error("Falha ao iniciar processo de equivalência");
+            throw new BusinessException("Não foi possível iniciar o processo de equivalência");
         }
     }
 
@@ -238,8 +238,8 @@ public class EqvTPedidoBusinessService {
             return pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(),
                     requisicao.getNProcesso(), null);
         } catch (Exception e) {
-            log.error("Erro ao gerar DUC" );
-            throw new BusinessException("Erro ao gerar o DUC." );
+            log.error("Erro ao gerar DUC");
+            throw new BusinessException("Erro ao gerar o DUC.");
         }
     }
 
@@ -283,8 +283,8 @@ public class EqvTPedidoBusinessService {
 
                 log.info("Documento {} salvo com sucesso para processo {}", doc.getNome(), nProcesso);
             } catch (Exception e) {
-                log.error("Erro ao salvar documento {}", doc.getNome() );
-                throw new BusinessException("Erro ao salvar documento: " + doc.getNome() );
+                log.error("Erro ao salvar documento {}", doc.getNome());
+                throw new BusinessException("Erro ao salvar documento: " + doc.getNome());
             }
         }
     }
@@ -298,8 +298,8 @@ public class EqvTPedidoBusinessService {
                 log.info("Acompanhamento criado para processo {}", requisicao.getNProcesso());
             }
         } catch (Exception e) {
-            log.error("Falha ao criar acompanhamento" );
-            throw new BusinessException("Erro ao criar acompanhamento" );
+            log.error("Falha ao criar acompanhamento");
+            throw new BusinessException("Erro ao criar acompanhamento");
         }
     }
 
@@ -316,7 +316,7 @@ public class EqvTPedidoBusinessService {
             Map<String, String> detalhes = new LinkedHashMap<>();
             for (int i = 0; i < pedidos.size(); i++) {
                 EqvTPedido p = pedidos.get(i);
-                detalhes.put("Formação Solicitada " , p.getFormacaoProf());
+                detalhes.put("Formação Solicitada ", p.getFormacaoProf());
                 detalhes.put("Instituição ", p.getInstEnsino() != null ? p.getInstEnsino().getNome() : null);
             }
 
@@ -350,7 +350,6 @@ public class EqvTPedidoBusinessService {
                         "SOLITACAO",
                         "equiv"
                 );
-
 
 
                 for (DocumentoResponseDTO doc : docs) {
@@ -388,8 +387,8 @@ public class EqvTPedidoBusinessService {
 
             return acomp;
         } catch (Exception e) {
-            log.error("Erro ao montar AcompanhamentoDTO para requisição: {}", requisicao.getId() );
-            throw new BusinessException("Erro ao montar acompanhamento" );
+            log.error("Erro ao montar AcompanhamentoDTO para requisição: {}", requisicao.getId());
+            throw new BusinessException("Erro ao montar acompanhamento");
         }
     }
 
@@ -599,6 +598,9 @@ public class EqvTPedidoBusinessService {
                     motivoRetificacaoService.buscarMotivoRetificacaoPorProcesso(Integer.valueOf(numeroProcesso));
 
             return ProcessoPedidosDocumentosDTO.builder()
+                    .nif(pedidos.get(0).getRequerente().getNif() != null ? pedidos.get(0).getRequerente().getNif().toString() : null)
+                    .email(pedidos.get(0).getRequerente().getEmail())
+                    .telefone(pedidos.get(0).getRequerente().getContato() != null ? pedidos.get(0).getRequerente().getContato() : null)
                     .numeroProcesso(numeroProcesso)
                     .motivosRetificacao(motivosRetificacao)
                     .pedidos(pedidosComDocumentos)
@@ -621,12 +623,14 @@ public class EqvTPedidoBusinessService {
         ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO pedidoDTO = ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO.builder()
                 .id(pedido.getId())
                 .formacaoProf(pedido.getFormacaoProf())
-                .instituicaoEnsino(pedido.getInstEnsino() != null ?
-                        pedido.getInstEnsino().getNome() : null)
+                .instituicaoEnsino(pedido.getInstEnsino().getId() != null ?
+                        pedido.getInstEnsino().getId() : null)
+                .instituicaoEnsinoNome(pedido.getInstEnsino().getNome())
                 .paisInstituicao(pedido.getInstEnsino() != null ?
                         pedido.getInstEnsino().getPais() : null)
                 .anoFim(pedido.getAnoFim())
                 .anoInicio(pedido.getAnoInicio())
+                .carga(pedido.getCarga())
                 .documentos(new ArrayList<>()) // Inicializar lista vazia
                 .build();
 
@@ -679,8 +683,6 @@ public class EqvTPedidoBusinessService {
             return null;
         }
     }
-
-
 
 
 }

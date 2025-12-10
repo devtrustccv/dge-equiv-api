@@ -19,6 +19,9 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProcessoPedidosDocumentosDTO {
 
+    private String nif;
+    private String email;
+    private Integer telefone;
     private String numeroProcesso;
     private List<MotivoRetificacaoResponseDTO> motivosRetificacao;
     private List<PedidoDocumentosDTO> pedidos;
@@ -31,7 +34,9 @@ public class ProcessoPedidosDocumentosDTO {
     public static class PedidoDocumentosDTO {
         private Integer id;
         private String formacaoProf;
-        private String instituicaoEnsino;
+        private Integer instituicaoEnsino;
+        private String instituicaoEnsinoNome;
+        private Integer carga;
         private BigDecimal anoInicio;
         private BigDecimal anoFim;
         private String paisInstituicao;
