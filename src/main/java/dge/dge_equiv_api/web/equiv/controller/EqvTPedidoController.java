@@ -14,7 +14,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -88,6 +91,8 @@ public class EqvTPedidoController {
     }
 
 
+
+
     // ========================
     // GET - Buscar pedido por ID criptografado
     // ========================
@@ -116,6 +121,24 @@ public class EqvTPedidoController {
             @PathVariable String numeroProcesso) {
         ProcessoPedidosDocumentosDTO resultado = crudService.getPedidosComDocumentosPorProcesso(numeroProcesso);
         return ResponseEntity.ok(resultado);
+    }
+
+    @Operation(summary = "Verifica se algum pedido de um processo está em 'alter_solic'")
+    @GetMapping("/processo/{numeroProcesso}/verificar-etapa-solic")
+    public ResponseEntity<Map<String, Object>> verificarAlterSolic(
+            @PathVariable String numeroProcesso) {
+
+        boolean resultado = crudService.verificarPedidosEmAlterSolic(numeroProcesso);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("numeroProcesso", numeroProcesso);
+        response.put("saida", resultado);
+        response.put("mensagem", resultado ?
+                "Este processo pode ser alterado" :
+                "Este processo não pode ser alterado");
+        response.put("timestamp", LocalDateTime.now().toString());
+
+        return ResponseEntity.ok(response);
     }
 
 

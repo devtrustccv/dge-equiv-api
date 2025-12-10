@@ -36,4 +36,8 @@ public interface EqvTPedidoService {
     ProcessoPedidosDocumentosDTO getPedidosComDocumentosPorProcesso(String numeroProcesso);
 
 
+    boolean verificarPedidosEmAlterSolic(String numeroProcesso);
+
+
+
 }

@@ -688,4 +688,82 @@ public class EqvTPedidoBusinessService {
     }
 
 
+    // Adicione este método na classe EqvTPedidoBusinessService
+    public VerificacaoEtapaResponseDTO verificarPedidosEmAlterSolicComDetalhes(String numeroProcesso) {
+        log.info("Verificando pedidos em alter_solic com detalhes para processo: {}", numeroProcesso);
+
+        try {
+            // 1. Buscar a requisição pelo número de processo
+            Integer numeroProcessoInt = Integer.valueOf(numeroProcesso);
+            EqvTRequisicao requisicao = requisicaoRepository.findByNProcesso(numeroProcessoInt)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Processo não encontrado com número: " + numeroProcesso));
+
+            // 2. Buscar os pedidos relacionados à requisição
+            List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+
+            if (pedidos.isEmpty()) {
+                return VerificacaoEtapaResponseDTO.builder()
+                        .temAlteracao(false)
+                        .totalPedidos(0)
+                        .pedidosEmAlteracao(0)
+                        .numeroProcesso(numeroProcesso)
+                        .pedidosDetalhados(List.of())
+                        .build();
+            }
+
+            // 3. Filtrar pedidos em "alter_solic" e mapear para DTO
+            List<VerificacaoEtapaResponseDTO.PedidoEtapaDTO> pedidosDetalhados = pedidos.stream()
+                    .filter(pedido -> {
+                        String etapa = pedido.getEtapa();
+                        return etapa != null && etapa.equalsIgnoreCase("alter_solic");
+                    })
+                    .map(pedido -> VerificacaoEtapaResponseDTO.PedidoEtapaDTO.builder()
+                            .id(pedido.getId())
+                            .formacaoProf(pedido.getFormacaoProf())
+                            .etapa(pedido.getEtapa())
+                            .instituicao(pedido.getInstEnsino() != null ?
+                                    pedido.getInstEnsino().getNome() : null)
+                            .status(pedido.getStatus())
+                            .build())
+                    .collect(Collectors.toList());
+
+            return VerificacaoEtapaResponseDTO.builder()
+                    .temAlteracao(!pedidosDetalhados.isEmpty())
+                    .totalPedidos(pedidos.size())
+                    .pedidosEmAlteracao(pedidosDetalhados.size())
+                    .numeroProcesso(numeroProcesso)
+                    .pedidosDetalhados(pedidosDetalhados)
+                    .build();
+
+        } catch (NumberFormatException e) {
+            log.error("Número de processo inválido: {}", numeroProcesso);
+            return VerificacaoEtapaResponseDTO.builder()
+                    .temAlteracao(false)
+                    .totalPedidos(0)
+                    .pedidosEmAlteracao(0)
+                    .numeroProcesso(numeroProcesso)
+                    .pedidosDetalhados(List.of())
+                    .build();
+        } catch (EntityNotFoundException e) {
+            log.warn("Processo não encontrado: {}", numeroProcesso);
+            return VerificacaoEtapaResponseDTO.builder()
+                    .temAlteracao(false)
+                    .totalPedidos(0)
+                    .pedidosEmAlteracao(0)
+                    .numeroProcesso(numeroProcesso)
+                    .pedidosDetalhados(List.of())
+                    .build();
+        } catch (Exception e) {
+            log.error("Erro ao verificar pedidos em alter_solic para processo: {}", numeroProcesso, e);
+            return VerificacaoEtapaResponseDTO.builder()
+                    .temAlteracao(false)
+                    .totalPedidos(0)
+                    .pedidosEmAlteracao(0)
+                    .numeroProcesso(numeroProcesso)
+                    .pedidosDetalhados(List.of())
+                    .build();
+        }
+    }
+
 }
