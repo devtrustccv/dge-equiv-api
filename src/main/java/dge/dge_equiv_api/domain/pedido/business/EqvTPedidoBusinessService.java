@@ -601,6 +601,7 @@ public class EqvTPedidoBusinessService {
                     .nif(pedidos.get(0).getRequerente().getNif() != null ? pedidos.get(0).getRequerente().getNif().toString() : null)
                     .email(pedidos.get(0).getRequerente().getEmail())
                     .telefone(pedidos.get(0).getRequerente().getContato() != null ? pedidos.get(0).getRequerente().getContato() : null)
+                    .habilitacao(pedidos.get(0).getRequerente().getHabilitacao() != null ? pedidos.get(0).getRequerente().getHabilitacao() : null)
                     .numeroProcesso(numeroProcesso)
                     .motivosRetificacao(motivosRetificacao)
                     .pedidos(pedidosComDocumentos)

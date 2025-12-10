@@ -22,6 +22,7 @@ public class ProcessoPedidosDocumentosDTO {
     private String nif;
     private String email;
     private Integer telefone;
+    private  Integer habilitacao;
     private String numeroProcesso;
     private List<MotivoRetificacaoResponseDTO> motivosRetificacao;
     private List<PedidoDocumentosDTO> pedidos;
