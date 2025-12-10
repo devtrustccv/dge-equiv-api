@@ -58,6 +58,7 @@ public class EqvTPedidoBusinessService {
     private final EqvTTaxaService taxaService;
     private final PedidoMapper pedidoMapper;
     private final MotivoRetificacaoService motivoRetificacaoService;
+    private final GlobalGeografiaService globalGeografiaService;
 
     @Value("${link.mf.duc}")
     private String mfkink;
@@ -629,6 +630,7 @@ public class EqvTPedidoBusinessService {
                 .instituicaoEnsinoNome(pedido.getInstEnsino().getNome())
                 .paisInstituicao(pedido.getInstEnsino() != null ?
                         pedido.getInstEnsino().getPais() : null)
+                .paisNome(globalGeografiaService.buscarNomePorCodigoPais(pedido.getInstEnsino().getPais()!=null ? pedido.getInstEnsino().getPais() : ""))
                 .anoFim(pedido.getAnoFim())
                 .anoInicio(pedido.getAnoInicio())
                 .carga(pedido.getCarga())

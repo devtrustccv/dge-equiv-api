@@ -41,6 +41,7 @@ public class ProcessoPedidosDocumentosDTO {
         private BigDecimal anoInicio;
         private BigDecimal anoFim;
         private String paisInstituicao;
+        private String paisNome;
         private List<DocumentoInfoDTO> documentos;
     }
 
