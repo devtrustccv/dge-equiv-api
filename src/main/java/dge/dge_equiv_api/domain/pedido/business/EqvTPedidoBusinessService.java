@@ -100,13 +100,24 @@ public class EqvTPedidoBusinessService {
             throw new BusinessException("O campo 'pessoaId' é obrigatório.");
         }
 
+        // Buscar requerente existente pelo pessoaId
         EqvTRequerente requerente = requerenteRepository.findByIdPessoa(pessoaId);
+
         if (requerente == null) {
+            // Criar novo requerente
             requerente = pedidoMapper.toRequerenteEntity(requerenteDTO);
             requerente.setDateCreate(LocalDate.now());
             requerente.setIdPessoa(pessoaId);
-            requerente = requerenteRepository.save(requerente);
+            log.info("Novo requerente criado para pessoaId: {}", pessoaId);
+        } else {
+            // Atualizar dados do requerente existente
+            log.info("Requerente existente encontrado (ID: {}), atualizando dados", requerente.getId());
+            pedidoMapper.updateRequerenteFromDTO(requerenteDTO, requerente);
+            requerente.setDataUpdate(LocalDate.now()); // Adicionar campo de data de atualização se necessário
         }
+
+        requerente = requerenteRepository.save(requerente);
+        log.info("Requerente salvo/atualizado com ID: {}", requerente.getId());
 
         return requerente;
     }
@@ -396,12 +407,14 @@ public class EqvTPedidoBusinessService {
 
     // upadte pedido e avancar etapa
     public List<EqvtPedidoDTO> updatePedidosByRequisicaoId(Integer requisicaoId, PortalPedidosDTO dto) {
+        // Buscar requisição existente
         EqvTRequisicao requisicao = requisicaoRepository.findByNProcesso(requisicaoId)
                 .orElseThrow(() -> new EntityNotFoundException("Requisição não encontrada com ID: " + requisicaoId));
 
+        // Buscar pedidos existentes
         List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
 
-        // Atualizar requisição se existir no DTO
+        // Atualizar dados da requisição se fornecido no DTO
         if (dto.getRequisicao() != null) {
             pedidoMapper.updateRequisicaoFromDTO(dto.getRequisicao(), requisicao);
             requisicao.setDataUpdate(LocalDate.now());
@@ -409,9 +422,9 @@ public class EqvTPedidoBusinessService {
             log.info("Requisição atualizada com ID: {}", requisicao.getId());
         }
 
+        // Atualizar requerente somente se fornecido no DTO
         EqvTRequerente requerente = null;
         if (dto.getRequerente() != null) {
-            // Buscar o requerente atual da requisição
             requerente = pedidos.stream()
                     .findFirst()
                     .map(EqvTPedido::getRequerente)
@@ -419,8 +432,7 @@ public class EqvTPedidoBusinessService {
 
             log.info("Encontrado requerente existente com ID: {} para atualização", requerente.getId());
 
-            // Atualizar os dados do requerente existente
-            pedidoMapper.updateRequerenteFromDTO(dto.getRequerente(), requerente);
+            pedidoMapper.updateRequerenteFromDTOConditional(dto.getRequerente(), requerente);
             requerente.setDataUpdate(LocalDate.now());
             requerente = requerenteRepository.save(requerente);
 
@@ -442,7 +454,7 @@ public class EqvTPedidoBusinessService {
             EqvtPedidoDTO pedidoDTO = pedidosDTO.get(i);
 
             // Atualizar dados básicos do pedido
-            pedidoMapper.updatePedidoFromDTO(pedidoDTO, pedido);
+            pedidoMapper.updatePedidoFromDTOConditional(pedidoDTO, pedido);
 
             // Atualizar instituição de ensino se fornecida
             if (pedidoDTO.getInstEnsino() != null) {
@@ -451,17 +463,18 @@ public class EqvTPedidoBusinessService {
                 log.info("Instituição de ensino atualizada para pedido {}: {}", pedido.getId(), instituicao.getNome());
             }
 
-            // Atualizar relações - usar o requerente ATUALIZADO
+            // Associar requerente atualizado, se houver
             if (requerente != null) {
                 pedido.setRequerente(requerente);
             }
+            // Associar requisição
             pedido.setRequisicao(requisicao);
 
             // Salvar pedido atualizado
             pedido = pedidoRepository.save(pedido);
             log.info("Pedido atualizado com ID: {}", pedido.getId());
 
-            // Atualizar documentos
+            // Atualizar documentos do pedido
             if (pedidoDTO.getDocumentos() != null && !pedidoDTO.getDocumentos().isEmpty()) {
                 log.info("Atualizando {} documentos para o pedido {}", pedidoDTO.getDocumentos().size(), pedido.getId());
                 salvarDocumentosDoPedido(pedidoDTO, pedido);
@@ -472,10 +485,9 @@ public class EqvTPedidoBusinessService {
             result.add(pedidoMapper.toDTO(pedido));
         }
 
-        // AVANÇAR PROCESSO (se numProcesso foi fornecido)
+        // Avançar processo, se nProcesso estiver presente
         if (requisicao.getNProcesso() != null && !requisicao.getNProcesso().toString().trim().isEmpty()) {
             try {
-                // Buscar o requerente atualizado (pode ser o mesmo ou novo)
                 EqvTRequerente requerenteParaProcesso = requerente != null ?
                         requerente : pedidos.get(0).getRequerente();
 
@@ -497,6 +509,7 @@ public class EqvTPedidoBusinessService {
                 requisicaoId, result.size());
         return result;
     }
+
 
     public String avancarProcesso(EqvTRequerente requerente, List<EqvtPedidoDTO> pedidosDTO, String numProcesso) {
         try {
@@ -687,83 +700,5 @@ public class EqvTPedidoBusinessService {
         }
     }
 
-
-    // Adicione este método na classe EqvTPedidoBusinessService
-    public VerificacaoEtapaResponseDTO verificarPedidosEmAlterSolicComDetalhes(String numeroProcesso) {
-        log.info("Verificando pedidos em alter_solic com detalhes para processo: {}", numeroProcesso);
-
-        try {
-            // 1. Buscar a requisição pelo número de processo
-            Integer numeroProcessoInt = Integer.valueOf(numeroProcesso);
-            EqvTRequisicao requisicao = requisicaoRepository.findByNProcesso(numeroProcessoInt)
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Processo não encontrado com número: " + numeroProcesso));
-
-            // 2. Buscar os pedidos relacionados à requisição
-            List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
-
-            if (pedidos.isEmpty()) {
-                return VerificacaoEtapaResponseDTO.builder()
-                        .temAlteracao(false)
-                        .totalPedidos(0)
-                        .pedidosEmAlteracao(0)
-                        .numeroProcesso(numeroProcesso)
-                        .pedidosDetalhados(List.of())
-                        .build();
-            }
-
-            // 3. Filtrar pedidos em "alter_solic" e mapear para DTO
-            List<VerificacaoEtapaResponseDTO.PedidoEtapaDTO> pedidosDetalhados = pedidos.stream()
-                    .filter(pedido -> {
-                        String etapa = pedido.getEtapa();
-                        return etapa != null && etapa.equalsIgnoreCase("alter_solic");
-                    })
-                    .map(pedido -> VerificacaoEtapaResponseDTO.PedidoEtapaDTO.builder()
-                            .id(pedido.getId())
-                            .formacaoProf(pedido.getFormacaoProf())
-                            .etapa(pedido.getEtapa())
-                            .instituicao(pedido.getInstEnsino() != null ?
-                                    pedido.getInstEnsino().getNome() : null)
-                            .status(pedido.getStatus())
-                            .build())
-                    .collect(Collectors.toList());
-
-            return VerificacaoEtapaResponseDTO.builder()
-                    .temAlteracao(!pedidosDetalhados.isEmpty())
-                    .totalPedidos(pedidos.size())
-                    .pedidosEmAlteracao(pedidosDetalhados.size())
-                    .numeroProcesso(numeroProcesso)
-                    .pedidosDetalhados(pedidosDetalhados)
-                    .build();
-
-        } catch (NumberFormatException e) {
-            log.error("Número de processo inválido: {}", numeroProcesso);
-            return VerificacaoEtapaResponseDTO.builder()
-                    .temAlteracao(false)
-                    .totalPedidos(0)
-                    .pedidosEmAlteracao(0)
-                    .numeroProcesso(numeroProcesso)
-                    .pedidosDetalhados(List.of())
-                    .build();
-        } catch (EntityNotFoundException e) {
-            log.warn("Processo não encontrado: {}", numeroProcesso);
-            return VerificacaoEtapaResponseDTO.builder()
-                    .temAlteracao(false)
-                    .totalPedidos(0)
-                    .pedidosEmAlteracao(0)
-                    .numeroProcesso(numeroProcesso)
-                    .pedidosDetalhados(List.of())
-                    .build();
-        } catch (Exception e) {
-            log.error("Erro ao verificar pedidos em alter_solic para processo: {}", numeroProcesso, e);
-            return VerificacaoEtapaResponseDTO.builder()
-                    .temAlteracao(false)
-                    .totalPedidos(0)
-                    .pedidosEmAlteracao(0)
-                    .numeroProcesso(numeroProcesso)
-                    .pedidosDetalhados(List.of())
-                    .build();
-        }
-    }
 
 }
