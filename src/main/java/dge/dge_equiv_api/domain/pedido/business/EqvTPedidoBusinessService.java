@@ -460,6 +460,7 @@ public class EqvTPedidoBusinessService {
             if (pedidoDTO.getInstEnsino() != null) {
                 EqvTInstEnsino instituicao = processarInstituicaoEnsino(pedidoDTO.getInstEnsino());
                 pedido.setInstEnsino(instituicao);
+                pedido.setEtapa("Verificação Previa");
                 log.info("Instituição de ensino atualizada para pedido {}: {}", pedido.getId(), instituicao.getNome());
             }
 
@@ -597,6 +598,7 @@ public class EqvTPedidoBusinessService {
             // 2. Buscar os pedidos relacionados à requisição
             List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
 
+
             if (pedidos.isEmpty()) {
                 throw new EntityNotFoundException(
                         "Nenhum pedido encontrado para o processo: " + numeroProcesso);
@@ -610,16 +612,31 @@ public class EqvTPedidoBusinessService {
             // 4. Montar o DTO de resposta
             List<MotivoRetificacaoResponseDTO> motivosRetificacao =
                     motivoRetificacaoService.buscarMotivoRetificacaoPorProcesso(Integer.valueOf(numeroProcesso));
-
+            EqvTRequerente r = pedidos.get(0).getRequerente();
             return ProcessoPedidosDocumentosDTO.builder()
-                    .nif(pedidos.get(0).getRequerente().getNif() != null ? pedidos.get(0).getRequerente().getNif().toString() : null)
-                    .email(pedidos.get(0).getRequerente().getEmail())
-                    .telefone(pedidos.get(0).getRequerente().getContato() != null ? pedidos.get(0).getRequerente().getContato() : null)
-                    .habilitacao(pedidos.get(0).getRequerente().getHabilitacao() != null ? pedidos.get(0).getRequerente().getHabilitacao() : null)
+                    .idRequerente(r != null ? r.getId() : null)
+                    .nif(r != null && r.getNif() != null ? r.getNif() : null)
+                    .nome(r != null && r.getNome() != null ? r.getNome() : null)
+                    .docNumero(r != null && r.getDocNumero() != null ? r.getDocNumero() : null)
+                    .dataNascimento(r != null && r.getDataNascimento() != null ? r.getDataNascimento() : null)
+                    .nacionalidade(r != null && r.getNacionalidade() != null ? r.getNacionalidade() : null)
+                    .sexo(r != null && r.getSexo() != null ? r.getSexo() : null)
+                    .habilitacao(r != null && r.getHabilitacao() != null ? r.getHabilitacao().toString() : null)
+                    .docIdentificacao(r != null && r.getDocIdentificacao() != null ? r.getDocIdentificacao() : null)
+                    .dataEmissaoDoc(r != null && r.getDataEmissaoDoc() != null ? r.getDataEmissaoDoc() : null)
+                    .dataValidadeDoc(r != null && r.getDataValidadeDoc() != null ? r.getDataValidadeDoc() : null)
+                    .email(r != null && r.getEmail() != null ? r.getEmail() : null)
+                    .contato(r != null && r.getContato() != null ? r.getContato() : null)
+                    .userCreate(r != null ? r.getUserCreate() : null)
+                    .userUpdate(r != null ? r.getUserUpdate() : null)
+                    .dateCreate(r != null && r.getDateCreate() != null ? r.getDateCreate() : null)
+                    .dataUpdate(r != null && r.getDataUpdate() != null ? r.getDataUpdate() : null)
+                    .idPessoa(r != null ? r.getIdPessoa() : null)
                     .numeroProcesso(numeroProcesso)
                     .motivosRetificacao(motivosRetificacao)
                     .pedidos(pedidosComDocumentos)
                     .build();
+
 
         } catch (EntityNotFoundException e) {
             log.warn("Processo não encontrado: {}", numeroProcesso);

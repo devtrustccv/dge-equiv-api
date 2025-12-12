@@ -136,6 +136,9 @@ public interface PedidoMapper {
             entity.setNif(dto.getNif());
             log.debug("NIF atualizado: {}", dto.getNif());
         }
+        if (dto.getHabilitacao() != null) {
+            entity.setHabilitacao(stringToInteger(dto.getHabilitacao()));
+        }
         if (dto.getDocNumero() != null) {
             entity.setDocNumero(dto.getDocNumero());
             log.debug("DocNumero atualizado: {}", dto.getDocNumero());
@@ -192,10 +195,24 @@ public interface PedidoMapper {
 
         log.debug("Atualizando pedido ID: {} - Apenas campos não nulos", entity.getId());
 
-        // ✅ Atualizar apenas campos não nulos
+        // Atualizar apenas campos não nulos
         if (dto.getFormacaoProf() != null) {
             entity.setFormacaoProf(dto.getFormacaoProf());
         }
+        if (dto.getInstEnsino() != null) {
+            EqvTInstEnsino inst = new EqvTInstEnsino();
+            inst.setId(dto.getInstEnsino().getId());
+            entity.setInstEnsino(inst);
+        }
+        if (dto.getRequisicao() != null) {
+            EqvTRequisicao req = new EqvTRequisicao();
+            req.setId(dto.getRequisicao().getId());
+            entity.setRequisicao(req);
+        }
+        if (dto.getEtapa() != null) {
+            entity.setEtapa(dto.getEtapa());
+        }
+
         if (dto.getCarga() != null) {
             entity.setCarga(dto.getCarga());
         }
@@ -215,9 +232,14 @@ public interface PedidoMapper {
         if (dto.getNumDeclaracao() != null) {
             entity.setNumDeclaracao(dto.getNumDeclaracao());
         }
+        if (dto.getStatus() != null) {
+            entity.setStatus(dto.getStatus());
+        }
         if (dto.getDataDespacho() != null) {
             entity.setDataDespacho(dto.getDataDespacho());
         }
+
+
     }
 
     /**
@@ -234,6 +256,7 @@ public interface PedidoMapper {
         if (dto.getNProcesso() != null) {
             entity.setNProcesso(dto.getNProcesso());
         }
+
         if (dto.getDataCreate() != null) {
             entity.setDataCreate(dto.getDataCreate());
         }

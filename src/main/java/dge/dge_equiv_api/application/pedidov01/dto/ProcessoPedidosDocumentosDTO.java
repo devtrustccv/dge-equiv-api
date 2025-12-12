@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,10 +20,24 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProcessoPedidosDocumentosDTO {
 
-    private String nif;
+    private Integer idRequerente;
+    private Integer nif;
+    private String nome;
+    private String docNumero;
+    private LocalDate dataNascimento;
+    private String nacionalidade;
+    private String sexo;
+    private String habilitacao;
+    private String docIdentificacao;
+    private LocalDate dataEmissaoDoc;
+    private LocalDate dataValidadeDoc;
     private String email;
-    private Integer telefone;
-    private  Integer habilitacao;
+    private Integer contato;
+    private Integer userCreate;
+    private Integer userUpdate;
+    private LocalDate dateCreate;
+    private LocalDate dataUpdate;
+    private Integer idPessoa;
     private String numeroProcesso;
     private List<MotivoRetificacaoResponseDTO> motivosRetificacao;
     private List<PedidoDocumentosDTO> pedidos;
