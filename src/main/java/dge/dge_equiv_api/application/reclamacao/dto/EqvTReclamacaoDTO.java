@@ -1,5 +1,7 @@
 package dge.dge_equiv_api.application.reclamacao.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +16,7 @@ import java.util.List;
 public class EqvTReclamacaoDTO {
 
     private Long id;
+    @JsonIgnore
     private Long idPedido;
     private Long idRequisicao;
     private String observacao;

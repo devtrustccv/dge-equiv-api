@@ -10,5 +10,6 @@ public interface EqvTReclamacaoRepository extends JpaRepository<EqvTReclamacao, 
 
     // Buscar reclamação por ID do pedido
     Optional<EqvTReclamacao> findByIdPedido_Id(Long idPedido);
+    Optional<EqvTReclamacao> findById(Long id);
 
 }

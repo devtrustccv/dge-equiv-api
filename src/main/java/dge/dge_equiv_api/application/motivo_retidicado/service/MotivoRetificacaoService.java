@@ -2,9 +2,12 @@ package dge.dge_equiv_api.application.motivo_retidicado.service;
 
 import dge.dge_equiv_api.application.motivo_retidicado.dto.MotivoRetificacaoResponseDTO;
 import dge.dge_equiv_api.application.motivo_retidicado.mapper.MotivoRetificacaoMapper;
+import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
+import dge.dge_equiv_api.infrastructure.primary.EqvTRequisicao;
 import dge.dge_equiv_api.infrastructure.primary.EqvtTDecisaoVp;
 
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
+import dge.dge_equiv_api.infrastructure.primary.repository.EqvTRequisicaoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,7 @@ public class MotivoRetificacaoService {
 
     private final EqvTPedidoRepository pedidoRepository;
     private final MotivoRetificacaoMapper motivoRetificacaoMapper;
+    private final EqvTRequisicaoRepository requisicaoRepository;
 
     /**
      * Método principal usando MapStruct
@@ -56,5 +60,48 @@ public class MotivoRetificacaoService {
 
         // Usando MapStruct com método de lista
         return motivoRetificacaoMapper.toDtoList(decisoes);
+    }
+
+    public boolean verificarPedidosEmAlterSolic(String numeroProcesso) {
+        try {
+            // Converter número do processo para Integer
+            Integer numeroProcessoInt;
+            try {
+                numeroProcessoInt = Integer.valueOf(numeroProcesso);
+            } catch (NumberFormatException e) {
+                log.warn("Número de processo inválido: {}", numeroProcesso);
+                return false;
+            }
+
+            // Buscar a requisição pelo número do processo
+            EqvTRequisicao requisicao = requisicaoRepository.findByNProcesso(numeroProcessoInt)
+                    .orElse(null);
+
+            if (requisicao == null) {
+                log.warn("Processo não encontrado: {}", numeroProcesso);
+                return false;
+            }
+
+            // Buscar todos os pedidos da requisição
+            List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+
+            if (pedidos.isEmpty()) {
+                return false;
+            }
+
+            // Verificar se algum pedido tem etapa = "alter_solic"
+            for (EqvTPedido pedido : pedidos) {
+                if ("alter_solic".equalsIgnoreCase(pedido.getEtapa())) {
+                    return true;
+                }
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            log.error("Erro ao verificar etapa alter_solic para processo {}: {}",
+                    numeroProcesso, e.getMessage());
+            return false;
+        }
     }
 }

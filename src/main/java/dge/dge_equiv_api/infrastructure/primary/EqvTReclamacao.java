@@ -1,4 +1,5 @@
 package dge.dge_equiv_api.infrastructure.primary;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,7 +21,9 @@ public class EqvTReclamacao {
 
     @ManyToOne
     @JoinColumn(name = "id_pedido", referencedColumnName = "id")
+    @JsonIgnoreProperties({"requerente", "requisicao", "decisoesVp", "decisoesAp", "instEnsino"})
     private EqvTPedido idPedido;
+
 
     @ManyToOne
     @JoinColumn(name = "id_requisicao", referencedColumnName = "id")
@@ -36,10 +39,10 @@ public class EqvTReclamacao {
     private String anexo;
 
     @Column(name = "user_create", length = 100)
-    private String userCreate;
+    private Integer userCreate;
 
     @Column(name = "user_update", length = 100)
-    private String userUpdate;
+    private Integer userUpdate;
 
     @Column(name = "date_create")
     private LocalDate dateCreate;

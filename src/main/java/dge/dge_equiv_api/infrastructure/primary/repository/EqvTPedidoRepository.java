@@ -17,6 +17,9 @@ import java.util.List;
 
        List<EqvTPedido> findByRequisicaoId(Integer requisicaoId);
 
+       List<EqvTPedido> findByRequisicaoNProcesso(Integer nProcesso);
+
+
     /**
      * Query OTIMIZADA usando JOIN FETCH para evitar N+1
      * Traz tudo em uma única consulta ao banco

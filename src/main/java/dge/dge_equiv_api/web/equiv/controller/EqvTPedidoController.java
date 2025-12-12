@@ -123,23 +123,23 @@ public class EqvTPedidoController {
         return ResponseEntity.ok(resultado);
     }
 
-    @Operation(summary = "Verifica se algum pedido de um processo está em 'alter_solic'")
-    @GetMapping("/processo/{numeroProcesso}/verificar-etapa-solic")
-    public ResponseEntity<Map<String, Object>> verificarAlterSolic(
-            @PathVariable String numeroProcesso) {
-
-        boolean resultado = crudService.verificarPedidosEmAlterSolic(numeroProcesso);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("numeroProcesso", numeroProcesso);
-        response.put("saida", resultado);
-        response.put("mensagem", resultado ?
-                "Este processo pode ser alterado" :
-                "Este processo não pode ser alterado");
-        response.put("timestamp", LocalDateTime.now().toString());
-
-        return ResponseEntity.ok(response);
-    }
+//    @Operation(summary = "Verifica se algum pedido de um processo está em 'alter_solic'")
+//    @GetMapping("/processo/{numeroProcesso}/verificar-etapa-solic")
+//    public ResponseEntity<Map<String, Object>> verificarAlterSolic(
+//            @PathVariable String numeroProcesso) {
+//
+//        boolean resultado = crudService.verificarPedidosEmAlterSolic(numeroProcesso);
+//
+//        Map<String, Object> response = new HashMap<>();
+//        response.put("numeroProcesso", numeroProcesso);
+//        response.put("saida", resultado);
+//        response.put("mensagem", resultado ?
+//                "Este processo pode ser alterado" :
+//                "Este processo não pode ser alterado");
+//        response.put("timestamp", LocalDateTime.now().toString());
+//
+//        return ResponseEntity.ok(response);
+//    }
 
 
 

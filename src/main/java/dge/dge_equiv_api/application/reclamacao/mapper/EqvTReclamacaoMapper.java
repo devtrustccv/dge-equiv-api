@@ -21,8 +21,6 @@ public class EqvTReclamacaoMapper {
         dto.setObservacao(entity.getObservacao());
         dto.setDecisao(entity.getDecisao());
         dto.setAnexo(entity.getAnexo());
-        dto.setUserCreate(entity.getUserCreate());
-        dto.setUserUpdate(entity.getUserUpdate());
         dto.setDateCreate(entity.getDateCreate());
         dto.setDateUpdate(entity.getDateUpdate());
 
@@ -49,8 +47,6 @@ public class EqvTReclamacaoMapper {
         entity.setObservacao(dto.getObservacao());
         entity.setDecisao(dto.getDecisao());
         entity.setAnexo(dto.getAnexo());
-        entity.setUserCreate(dto.getUserCreate());
-        entity.setUserUpdate(dto.getUserUpdate());
         entity.setDateCreate(dto.getDateCreate());
         entity.setDateUpdate(dto.getDateUpdate());
 
@@ -76,14 +72,7 @@ public class EqvTReclamacaoMapper {
         if (dto.getAnexo() != null) {
             entity.setAnexo(dto.getAnexo());
         }
-        if (dto.getUserUpdate() != null) {
-            entity.setUserUpdate(dto.getUserUpdate());
-        }
-        if (dto.getDateUpdate() != null) {
-            entity.setDateUpdate(dto.getDateUpdate());
-        } else {
-            entity.setDateUpdate(LocalDate.now());
-        }
+
 
         return entity;
     }

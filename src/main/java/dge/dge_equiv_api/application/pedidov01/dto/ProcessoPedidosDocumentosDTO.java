@@ -58,6 +58,8 @@ public class ProcessoPedidosDocumentosDTO {
         private String paisInstituicao;
         private String paisNome;
         private List<DocumentoInfoDTO> documentos;
+        private boolean podeAlterarSolic;
+        private String messagemEstado;
     }
 
     @Data

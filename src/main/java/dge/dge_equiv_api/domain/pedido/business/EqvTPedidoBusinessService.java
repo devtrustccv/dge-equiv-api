@@ -6,13 +6,13 @@ import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import dge.dge_equiv_api.application.document.service.DocumentService;
 import dge.dge_equiv_api.application.motivo_retidicado.dto.MotivoRetificacaoResponseDTO;
-import dge.dge_equiv_api.application.motivo_retidicado.mapper.MotivoRetificacaoMapper;
 import dge.dge_equiv_api.application.motivo_retidicado.service.MotivoRetificacaoService;
 import dge.dge_equiv_api.application.notification.dto.NotificationRequestDTO;
 import dge.dge_equiv_api.application.notification.service.NotificationService;
 
 import dge.dge_equiv_api.application.pedidov01.dto.*;
 import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
+import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoService;
 import dge.dge_equiv_api.application.process.service.ProcessService;
 import dge.dge_equiv_api.application.duc.service.PagamentoService;
 import dge.dge_equiv_api.application.taxa.service.EqvTTaxaService;
@@ -59,6 +59,7 @@ public class EqvTPedidoBusinessService {
     private final PedidoMapper pedidoMapper;
     private final MotivoRetificacaoService motivoRetificacaoService;
     private final GlobalGeografiaService globalGeografiaService;
+
 
     @Value("${link.mf.duc}")
     private String mfkink;
@@ -651,7 +652,23 @@ public class EqvTPedidoBusinessService {
      * Processa um pedido extraindo suas informações e documentos
      */
     private ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO processarPedidoComDocumentos(EqvTPedido pedido) {
-        // 1. Mapear informações básicas do pedido
+
+        boolean podeAlterar = false;
+        String mensagemEstado = null;
+
+        try {
+            podeAlterar = motivoRetificacaoService.verificarPedidosEmAlterSolic(
+                    pedido.getRequisicao().getNProcesso().toString()
+            );
+
+            mensagemEstado = podeAlterar
+                    ? "Este processo pode ser alterado"
+                    : "Este processo não pode ser alterado";
+
+        } catch (Exception e) {
+            log.error("Erro ao verificar etapa solicit: {}", e.getMessage());
+            mensagemEstado = "Não foi possível verificar o estado do processo";
+        }
         ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO pedidoDTO = ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO.builder()
                 .id(pedido.getId())
                 .formacaoProf(pedido.getFormacaoProf())
@@ -664,6 +681,8 @@ public class EqvTPedidoBusinessService {
                 .anoFim(pedido.getAnoFim())
                 .anoInicio(pedido.getAnoInicio())
                 .carga(pedido.getCarga())
+                .podeAlterarSolic(podeAlterar)
+                .messagemEstado(mensagemEstado)
                 .documentos(new ArrayList<>()) // Inicializar lista vazia
                 .build();
 
