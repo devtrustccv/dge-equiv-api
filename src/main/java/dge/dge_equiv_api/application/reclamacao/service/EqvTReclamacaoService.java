@@ -172,40 +172,6 @@ public class EqvTReclamacaoService {
                 );
 
         }
-        if (decisaoDespacho == 2 || decisaoDespacho == 1 && "1".equals(String.valueOf(saved.getDecisao()))) {
-
-            List<AcompanhamentoDTO.UrlItem> urls = List.of(
-                    new AcompanhamentoDTO.UrlItem(
-                            "Efetuar Reclamação",
-                            "teste"
-                    )
-            );
-
-            LocalDate dataDespacho = pedido.getDataDespacho();
-            LocalDate dataLimite = adicionarDiasUteis(dataDespacho, 5);
-            String dataLimiteStr = dataLimite.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-            String mensagem = "O seu processo recebeu um despacho de "
-                    + (decisaoDespacho == 2 ? "Indeferido" : "Deferido")
-                    + ". Pode apresentar reclamação até " + dataLimiteStr
-                    + ". Tem 5 dias úteis para apresentar a sua reclamação ou registar que não pretende reclamar.";
-
-
-            atualizarAcompanhamentoReficado(
-                    pedido.getRequisicao().getNProcesso().toString(),
-                    "equiv",
-                    pedido.getRequisicao().getIdPessoa(),
-                    "PEDIDO_EQUIV",
-                    "Alter solicitação",
-                    10,
-                    "EM_PROGRESSO",
-                    "em_processo",
-                    "Concluído",
-                    "Informamos que o seu processo de equivalência, registado sob o número "
-                            + pedido.getRequisicao().getNProcesso() + ", encontra-se finalizado.",
-                    null,mensagem,null,null,urls
-            );
-        }
-
 
         bpmDTO.setDespacho(String.valueOf(decisaoDespacho != null ? decisaoDespacho : 1));
         bpmDTO.setDespacho__fk(String.valueOf(decisaoDespacho != null ? decisaoDespacho : 1));
@@ -216,23 +182,6 @@ public class EqvTReclamacaoService {
 
         return saved;
     }
-
-    private LocalDate adicionarDiasUteis(LocalDate dataInicial, int diasUteis) {
-        LocalDate data = dataInicial;
-        int adicionados = 0;
-
-        while (adicionados < diasUteis) {
-            data = data.plusDays(1);
-            DayOfWeek dow = data.getDayOfWeek();
-
-            if (dow != DayOfWeek.SATURDAY && dow != DayOfWeek.SUNDAY) {
-                adicionados++;
-            }
-        }
-        return data;
-    }
-
-
 
     public String enviarReclamacaoParaAPIExterna(String nProcesso, ReclamacaoBPMDTO dadosBPM, EqvTReclamacaoDTO dadosReclamacao) {
 
