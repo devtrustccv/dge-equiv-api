@@ -460,7 +460,6 @@ public class EqvTPedidoBusinessService {
             if (pedidoDTO.getInstEnsino() != null) {
                 EqvTInstEnsino instituicao = processarInstituicaoEnsino(pedidoDTO.getInstEnsino());
                 pedido.setInstEnsino(instituicao);
-                pedido.setEtapa("Verificação Previa");
                 log.info("Instituição de ensino atualizada para pedido {}: {}", pedido.getId(), instituicao.getNome());
             }
 
@@ -472,6 +471,7 @@ public class EqvTPedidoBusinessService {
             pedido.setRequisicao(requisicao);
 
             // Salvar pedido atualizado
+            pedido.setEtapa("Verificação Previa");
             pedido = pedidoRepository.save(pedido);
             log.info("Pedido atualizado com ID: {}", pedido.getId());
 

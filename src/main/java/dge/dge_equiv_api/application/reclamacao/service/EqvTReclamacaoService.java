@@ -94,16 +94,31 @@ public class EqvTReclamacaoService {
             entity.setObservacao(dto.getObservacao());
             entity.setAnexo(dto.getAnexo());
             entity.setDateUpdate(LocalDate.now());
+            if (dto.getDecisao() == 1){
+                pedido.setEtapa("Pagamento Certificado");
+            }else {
+                pedido.setEtapa("Verificação Previa");
+            }
         } else {
             // CREATE
             entity = mapper.toEntity(dto);
             entity.setIdPedido(pedido);
+            entity.setDecisao(dto.getDecisao());
+            if (dto.getDecisao() == 1){
+                pedido.setEtapa("Pagamento Certificado");
+            }else {
+                pedido.setEtapa("Verificação Previa");
+            }
             //entity.setIdRequisicao(pedido.getRequisicao());
             entity.setDateCreate(LocalDate.now());
+
+
+
 
         }
 
         EqvTReclamacao saved = repository.save(entity);
+        repositoryPedido.save(pedido);
 
 
         salvarDocumentosDoPedido(dto, saved);
