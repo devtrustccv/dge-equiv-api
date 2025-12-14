@@ -5,6 +5,7 @@ import dge.dge_equiv_api.application.document.service.DocumentServiceImpl;
 import dge.dge_equiv_api.application.pedidov01.dto.*;
 import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoService;
 import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoServiceReporter;
+import dge.dge_equiv_api.application.reclamacao.dto.ReclamacaoViewDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -120,6 +121,12 @@ public class EqvTPedidoController {
     public ResponseEntity<ProcessoPedidosDocumentosDTO> getPedidosComDocumentosPorProcesso(
             @PathVariable String numeroProcesso) {
         ProcessoPedidosDocumentosDTO resultado = crudService.getPedidosComDocumentosPorProcesso(numeroProcesso);
+        return ResponseEntity.ok(resultado);
+    }
+    @GetMapping("/processo/reclamacao/{numeroProcesso}")
+    public ResponseEntity<ReclamacaoViewDTO> getPedidoParaReclamacao(
+            @PathVariable String numeroProcesso) {
+        ReclamacaoViewDTO resultado = crudService.getPedidoParaReclamacao(numeroProcesso);
         return ResponseEntity.ok(resultado);
     }
 

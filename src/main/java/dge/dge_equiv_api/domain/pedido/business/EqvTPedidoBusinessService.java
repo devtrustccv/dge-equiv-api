@@ -15,15 +15,13 @@ import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
 import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoService;
 import dge.dge_equiv_api.application.process.service.ProcessService;
 import dge.dge_equiv_api.application.duc.service.PagamentoService;
+import dge.dge_equiv_api.application.reclamacao.dto.ReclamacaoViewDTO;
 import dge.dge_equiv_api.application.taxa.service.EqvTTaxaService;
 import dge.dge_equiv_api.application.acompanhamento.service.AcompanhamentoService;
 import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
 import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.infrastructure.primary.*;
-import dge.dge_equiv_api.infrastructure.primary.repository.EqvTInstEnsinoRepository;
-import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
-import dge.dge_equiv_api.infrastructure.primary.repository.EqvTRequerenteRepository;
-import dge.dge_equiv_api.infrastructure.primary.repository.EqvTRequisicaoRepository;
+import dge.dge_equiv_api.infrastructure.primary.repository.*;
 import dge.dge_equiv_api.infrastructure.quaternary.TNotificacaoConfigEmail;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +48,7 @@ public class EqvTPedidoBusinessService {
     private final EqvTRequerenteRepository requerenteRepository;
     private final EqvTInstEnsinoRepository instEnsinoRepository;
     private final EqvTRequisicaoRepository requisicaoRepository;
+    private final EqvtTDecisaoDespachoRepository despachoRepository;
     private final DocumentService documentService;
     private final AcompanhamentoService acompanhamentoService;
     private final NotificationService notificationService;
@@ -648,9 +647,78 @@ public class EqvTPedidoBusinessService {
         }
     }
 
+    public ReclamacaoViewDTO getPedidoParaReclamacao(String numeroProcesso) {
+        try {
+
+
+            // 1. Buscar a requisição pelo número de processo
+            EqvTRequisicao requisicao = requisicaoRepository
+                    .findByNProcesso(Integer.valueOf(numeroProcesso))
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Processo não encontrado com número: " + numeroProcesso));
+
+            // 2. Buscar os pedidos relacionados à requisição
+            List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+
+            if (pedidos.isEmpty()) {
+                throw new EntityNotFoundException(
+                        "Nenhum pedido encontrado para o processo: " + numeroProcesso);
+            }
+
+            boolean podeAlterar = false;
+            String mensagemEstado;
+
+            try {
+                podeAlterar = motivoRetificacaoService.verificarPedidosReclamado(
+                        requisicao.getNProcesso().toString()
+                );
+
+                mensagemEstado = podeAlterar
+                        ? "É possível efetuar a reclamação deste processo."
+                        : "Este processo já foi reclamado e não pode ser alterado.";
+
+
+            } catch (Exception e) {
+                log.error("Erro ao verificar etapa solicit: {}", e.getMessage());
+                mensagemEstado = "Não foi possível verificar o estado do processo";
+            }
+
+            // 3. Usar o primeiro pedido
+            EqvTPedido pedido = pedidos.get(0);
+            Optional<EqvtTDecisaoDespacho> optDespacho = despachoRepository.findByIdPedido(pedido);
+            Integer decisaoDespacho = optDespacho.map(EqvtTDecisaoDespacho::getDecisao).orElse(1);
+            LocalDate  data = optDespacho.map(EqvtTDecisaoDespacho::getDataCreate).orElse(null);
+
+
+            return ReclamacaoViewDTO.builder()
+                    .numeroProcesso(requisicao.getNProcesso())
+                    .numeroApresentacao(pedido.getId())
+                    .numeroApresentacao(pedido.getId())
+                    .paisObtencao(
+                            globalGeografiaService.buscarNomePorCodigoPais(
+                                    pedido.getInstEnsino().getPais()
+                            )
+                    )
+                    .instituicaoFtp(pedido.getInstEnsino().getNome())
+                    .cargaHoraria(pedido.getCarga())
+                    .despacho(Integer.valueOf(1).equals(decisaoDespacho) ? "Deferido" : "Indeferido")
+                    .dataDespacho(data)
+                    .podeAlterarSolic(podeAlterar)
+                    .messagemEstado(mensagemEstado)
+                    .build();
+
+        } catch (EntityNotFoundException e) {
+            log.warn("Processo não encontrado: {}", numeroProcesso);
+            throw e;
+        } catch (Exception e) {
+            log.error("Erro ao buscar pedidos para o processo: {}", numeroProcesso, e);
+            throw new BusinessException("Erro ao obter pedidos do processo");
+        }
+    }
+
     /**
-     * Processa um pedido extraindo suas informações e documentos
-     */
+         * Processa um pedido extraindo suas informações e documentos
+         */
     private ProcessoPedidosDocumentosDTO.PedidoDocumentosDTO processarPedidoComDocumentos(EqvTPedido pedido) {
 
         boolean podeAlterar = false;

@@ -8,6 +8,7 @@ import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
 import dge.dge_equiv_api.application.pedidov01.PedidoOrchestrator;
 import dge.dge_equiv_api.application.pedidov01.dto.*;
 import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
+import dge.dge_equiv_api.application.reclamacao.dto.ReclamacaoViewDTO;
 import dge.dge_equiv_api.domain.pedido.business.EqvTPedidoBusinessService;
 import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
@@ -128,6 +129,12 @@ public class EqvTPedidoServiceImpl implements EqvTPedidoService {
         // Delegar a chamada para o business service
         return pedidoBusinessService.getPedidosComDocumentosPorProcesso(numeroProcesso);
     }
+
+    public ReclamacaoViewDTO getPedidoParaReclamacao(String numeroProcesso){
+
+        return pedidoBusinessService.getPedidoParaReclamacao(numeroProcesso);
+    }
+
 
 
 

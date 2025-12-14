@@ -2,6 +2,7 @@ package dge.dge_equiv_api.application.pedidov01.service;
 
 import dge.dge_equiv_api.application.certificado.dto.CertificadoEquivalenciaDTO;
 import dge.dge_equiv_api.application.pedidov01.dto.*;
+import dge.dge_equiv_api.application.reclamacao.dto.ReclamacaoViewDTO;
 
 import java.util.List;
 
@@ -34,6 +35,10 @@ public interface EqvTPedidoService {
      * Retorna pedidos com documentos por número de processo
      */
     ProcessoPedidosDocumentosDTO getPedidosComDocumentosPorProcesso(String numeroProcesso);
+
+    ReclamacaoViewDTO getPedidoParaReclamacao (String numeroProcesso);
+
+
 
 
 

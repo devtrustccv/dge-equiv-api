@@ -104,4 +104,47 @@ public class MotivoRetificacaoService {
             return false;
         }
     }
+
+    public boolean verificarPedidosReclamado(String numeroProcesso) {
+        try {
+            // Converter número do processo para Integer
+            Integer numeroProcessoInt;
+            try {
+                numeroProcessoInt = Integer.valueOf(numeroProcesso);
+            } catch (NumberFormatException e) {
+                log.warn("Número de processo inválido: {}", numeroProcesso);
+                return false;
+            }
+
+            // Buscar a requisição pelo número do processo
+            EqvTRequisicao requisicao = requisicaoRepository.findByNProcesso(numeroProcessoInt)
+                    .orElse(null);
+
+            if (requisicao == null) {
+                log.warn("Processo não encontrado: {}", numeroProcesso);
+                return false;
+            }
+
+            // Buscar todos os pedidos da requisição
+            List<EqvTPedido> pedidos = pedidoRepository.findByRequisicao(requisicao);
+
+            if (pedidos.isEmpty()) {
+                return false;
+            }
+
+            // Verificar se algum pedido tem etapa = "alter_solic"
+            for (EqvTPedido pedido : pedidos) {
+                if ("reclamacao".equalsIgnoreCase(pedido.getEtapa())) {
+                    return true;
+                }
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            log.error("Erro ao verificar etapa alter_solic para processo {}: {}",
+                    numeroProcesso, e.getMessage());
+            return false;
+        }
+    }
 }
