@@ -23,7 +23,7 @@ public class EqvTReclamacaoController {
     @PostMapping(value = "/{nProcesso}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> criarReclamacao(
             @PathVariable String nProcesso,
-            @RequestParam("observacao") String observacao,
+            @RequestParam(value = "observacao", required = false) String observacao,
             @RequestParam("decisao") Integer decisao,
             @RequestParam(value = "documento", required = false) MultipartFile documento) {
 

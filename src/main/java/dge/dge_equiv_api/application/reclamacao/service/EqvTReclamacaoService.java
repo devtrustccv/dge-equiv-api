@@ -93,11 +93,13 @@ public class EqvTReclamacaoService {
             entity = optReclamacao.get();
             entity.setObservacao(dto.getObservacao());
             entity.setAnexo(dto.getAnexo());
+            entity.setDateUpdate(LocalDate.now());
         } else {
             // CREATE
             entity = mapper.toEntity(dto);
             entity.setIdPedido(pedido);
-            entity.setIdRequisicao(pedido.getRequisicao());
+            //entity.setIdRequisicao(pedido.getRequisicao());
+            entity.setDateCreate(LocalDate.now());
 
         }
 
