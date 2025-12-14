@@ -1,4 +1,5 @@
 package dge.dge_equiv_api.infrastructure.primary;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,7 +26,9 @@ public class EqvTReclamacao {
     private EqvTPedido idPedido;
 
 
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "id_requisicao", referencedColumnName = "id")
     private EqvTRequisicao idRequisicao;
 

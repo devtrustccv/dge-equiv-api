@@ -83,9 +83,24 @@ public class EqvTReclamacaoService {
         // Assumindo que sempre pegamos o primeiro pedido relacionado
         EqvTPedido pedido = pedidos.get(0);
 
-        // Criar a reclamação associada ao pedido
-        EqvTReclamacao entity = mapper.toEntity(dto);
-        entity.setIdPedido(pedido);
+        Optional<EqvTReclamacao> optReclamacao =
+                repository.findByIdPedido(pedido);
+
+        EqvTReclamacao entity;
+
+        if (optReclamacao.isPresent()) {
+            // UPDATE VÁLIDO
+            entity = optReclamacao.get();
+            entity.setObservacao(dto.getObservacao());
+            entity.setAnexo(dto.getAnexo());
+        } else {
+            // CREATE
+            entity = mapper.toEntity(dto);
+            entity.setIdPedido(pedido);
+            entity.setIdRequisicao(pedido.getRequisicao());
+
+        }
+
         EqvTReclamacao saved = repository.save(entity);
 
 
@@ -316,7 +331,7 @@ public class EqvTReclamacaoService {
 
     public EqvTPagamento gerarDUC(Integer nif, Integer requisicao) {
         try {
-            return pagamentoService.gerarDuc(null, nif.toString(),
+            return pagamentoService.gerarDucRec(null, nif.toString(),
                     requisicao, null);
         } catch (Exception e) {
             log.error("Erro ao gerar DUC");
