@@ -2,9 +2,10 @@ package dge.dge_equiv_api.web.equiv.controller;
 
 import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.application.document.service.DocumentServiceImpl;
-import dge.dge_equiv_api.application.pedido.dto.*;
+import dge.dge_equiv_api.application.pedidov01.dto.*;
 import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoService;
 import dge.dge_equiv_api.application.pedidov01.service.EqvTPedidoServiceReporter;
+import dge.dge_equiv_api.application.reclamacao.dto.ReclamacaoViewDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -14,7 +15,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -75,40 +79,20 @@ public class EqvTPedidoController {
     }
 
 
-    // ========================
-    // PUT - Atualizar pedidos
-    // ========================
-//    @Operation(
-//            summary = "Atualiza pedidos por ID da requisição",
-//            description = "Atualiza todos os pedidos associados à requisição especificada.",
-//            responses = {
-//                    @ApiResponse(responseCode = "200", description = "Pedidos atualizados com sucesso"),
-//                    @ApiResponse(responseCode = "400", description = "Erro ao atualizar os pedidos")
-//            }
-//    )
-//    @PutMapping(value = "/portal/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<?> updateLote(@PathVariable String id, @ModelAttribute PortalPedidosDTO lotePedidosDTO) {
-//        try {
-//            Integer requisicaoId = Integer.valueOf(id);
-//            List<EqvtPedidoDTO> updated = crudService.updatePedidosByRequisicaoId(requisicaoId, lotePedidosDTO);
-//
-//            if (updated.isEmpty()) {
-//                logger.warn("Nenhum pedido foi atualizado.");
-//                return ResponseEntity.badRequest().body("Não foi possível atualizar os pedidos.");
-//            }
-//
-//            PortalPedidosRespostaDTO resposta = new PortalPedidosRespostaDTO();
-//            resposta.setRequisicao(updated.getFirst().getRequisicao());
-//            resposta.setRequerente(updated.getFirst().getRequerente());
-//            resposta.setPedidos(updated);
-//
-//            logger.info("Pedidos atualizados com sucesso: {}", updated.size());
-//            return ResponseEntity.ok().body(resposta);
-//        } catch (Exception e) {
-//            logger.error("Erro ao atualizar pedidos: {}", e.getMessage(), e);
-//            return ResponseEntity.badRequest().body("Erro ao atualizar pedidos: " + e.getMessage());
-//        }
-//    }
+
+    @PutMapping(value = "/portal/requisicoes/{requisicaoId}/pedidos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<EqvtPedidoDTO>> updatePedidosByRequisicao(
+            @PathVariable Integer requisicaoId,
+            @ModelAttribute PortalPedidosDTO portalPedidosDTO,String numProcesso ) {
+
+        List<EqvtPedidoDTO> pedidosAtualizados = crudService
+                .updateLotePedidosComRequisicao(requisicaoId, portalPedidosDTO,numProcesso);
+
+        return ResponseEntity.ok(pedidosAtualizados);
+    }
+
+
+
 
     // ========================
     // GET - Buscar pedido por ID criptografado
@@ -132,5 +116,38 @@ public class EqvTPedidoController {
             return ResponseEntity.badRequest().body("ID inválido ou erro ao descriptografar.");
         }
     }
+
+    @GetMapping("/processo/{numeroProcesso}")
+    public ResponseEntity<ProcessoPedidosDocumentosDTO> getPedidosComDocumentosPorProcesso(
+            @PathVariable String numeroProcesso) {
+        ProcessoPedidosDocumentosDTO resultado = crudService.getPedidosComDocumentosPorProcesso(numeroProcesso);
+        return ResponseEntity.ok(resultado);
+    }
+    @GetMapping("/processo/reclamacao/{numeroProcesso}")
+    public ResponseEntity<ReclamacaoViewDTO> getPedidoParaReclamacao(
+            @PathVariable String numeroProcesso) {
+        ReclamacaoViewDTO resultado = crudService.getPedidoParaReclamacao(numeroProcesso);
+        return ResponseEntity.ok(resultado);
+    }
+
+//    @Operation(summary = "Verifica se algum pedido de um processo está em 'alter_solic'")
+//    @GetMapping("/processo/{numeroProcesso}/verificar-etapa-solic")
+//    public ResponseEntity<Map<String, Object>> verificarAlterSolic(
+//            @PathVariable String numeroProcesso) {
+//
+//        boolean resultado = crudService.verificarPedidosEmAlterSolic(numeroProcesso);
+//
+//        Map<String, Object> response = new HashMap<>();
+//        response.put("numeroProcesso", numeroProcesso);
+//        response.put("saida", resultado);
+//        response.put("mensagem", resultado ?
+//                "Este processo pode ser alterado" :
+//                "Este processo não pode ser alterado");
+//        response.put("timestamp", LocalDateTime.now().toString());
+//
+//        return ResponseEntity.ok(response);
+//    }
+
+
 
 }

@@ -48,5 +48,8 @@ public class EqvtTDecisaoVp implements Serializable {
     @Column(name = "obs_vp")
     private String obsVp;
 
+    @Column(name = "motivo_retificado")
+    private String motivoRetificado;
+
 }
 

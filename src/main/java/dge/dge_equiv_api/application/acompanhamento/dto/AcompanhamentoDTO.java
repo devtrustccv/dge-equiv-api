@@ -90,6 +90,20 @@ public class AcompanhamentoDTO {
 
         @JsonProperty("items")
         private Map<String, String> items;
+        @JsonProperty("urls")
+        private List<UrlItem> urls;
+
+
+    }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UrlItem {
+        @JsonProperty("titulo")
+        private String titulo;
+
+        @JsonProperty("url")
+        private String url;
     }
 
     @Data

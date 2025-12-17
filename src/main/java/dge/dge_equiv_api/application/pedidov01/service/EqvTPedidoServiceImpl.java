@@ -5,9 +5,12 @@ import dge.dge_equiv_api.application.certificado.dto.CertificadoEquivalenciaDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import dge.dge_equiv_api.application.document.service.DocumentService;
 import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
-import dge.dge_equiv_api.application.pedido.dto.*;
 import dge.dge_equiv_api.application.pedidov01.PedidoOrchestrator;
+import dge.dge_equiv_api.application.pedidov01.dto.*;
 import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
+import dge.dge_equiv_api.application.reclamacao.dto.ReclamacaoViewDTO;
+import dge.dge_equiv_api.domain.pedido.business.EqvTPedidoBusinessService;
+import dge.dge_equiv_api.exception.BusinessException;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
 import dge.dge_equiv_api.infrastructure.primary.EqvTRequisicao;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
@@ -33,12 +36,10 @@ public class EqvTPedidoServiceImpl implements EqvTPedidoService {
     private final EqvTRequisicaoRepository requisicaoRepository;
     private final DocumentService documentService;
     private final PedidoMapper pedidoMapper;
-    private final ReporterConfig reporterConfig;
-    private final GlobalGeografiaService globalGeografiaService;
+    private final EqvTPedidoBusinessService pedidoBusinessService;
 
     /**
      * Cria o lote de pedidos com requisição e requerente únicos.
-     * TODO: toda a lógica do fluxo está encapsulada no orchestrator.
      */
     @Override
     @Transactional
@@ -54,6 +55,45 @@ public class EqvTPedidoServiceImpl implements EqvTPedidoService {
                 requerenteDTO,
                 pessoaId
         );
+    }
+
+    /**
+     * Atualiza o lote de pedidos com requisição e requerente únicos.
+     */
+    @Override
+    @Transactional
+    public List<EqvtPedidoDTO> updateLotePedidosComRequisicao(
+            Integer requisicaoId,
+            PortalPedidosDTO portalPedidosDTO, String numProcesso) {
+
+        log.info("Iniciando atualização de pedidos para requisição ID: {}", requisicaoId);
+
+        // Validar dados de entrada
+        if (portalPedidosDTO == null) {
+            throw new IllegalArgumentException("PortalPedidosDTO não pode ser nulo");
+        }
+
+        if (portalPedidosDTO.getPedidos() == null || portalPedidosDTO.getPedidos().isEmpty()) {
+            throw new IllegalArgumentException("Lista de pedidos não pode ser nula ou vazia");
+        }
+
+        try {
+            // Delegar a lógica de atualização para o business service
+            List<EqvtPedidoDTO> pedidosAtualizados = pedidoOrchestrator.updatePedidosByRequisicaoId(
+                    requisicaoId,
+                    portalPedidosDTO
+
+            );
+
+            log.info("Atualização concluída para requisição ID: {} - {} pedidos atualizados",
+                    requisicaoId, pedidosAtualizados.size());
+
+            return pedidosAtualizados;
+
+        } catch (Exception e) {
+            log.error("Erro ao atualizar pedidos para requisição ID: {}", requisicaoId, e);
+            throw new BusinessException("Erro ao atualizar pedidos: " + e.getMessage());
+        }
     }
 
     /**
@@ -82,57 +122,27 @@ public class EqvTPedidoServiceImpl implements EqvTPedidoService {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * Retorna os pedidos de uma requisição sem documentos.
-     */
     @Override
-    public List<EqvtPedidoDTO> findPedidosByRequisicaoId(Integer idRequisicao) {
-        return pedidoRepository.findByRequisicaoId(idRequisicao).stream()
-                .map(pedidoMapper::toDTO)
-                .collect(Collectors.toList());
+    public ProcessoPedidosDocumentosDTO getPedidosComDocumentosPorProcesso(String numeroProcesso) {
+        log.info("Buscando pedidos com documentos para processo: {}", numeroProcesso);
+
+        // Delegar a chamada para o business service
+        return pedidoBusinessService.getPedidosComDocumentosPorProcesso(numeroProcesso);
     }
 
-    /**
-     * Monta o DTO do certificado de equivalência para um pedido.
-     */
-    @Override
-    public CertificadoEquivalenciaDTO montarCertificado(EqvtPedidoDTO pedidoDTO) {
-        CertificadoEquivalenciaDTO dto = new CertificadoEquivalenciaDTO();
+    public ReclamacaoViewDTO getPedidoParaReclamacao(String numeroProcesso){
 
-        String idCriptografado = AESUtil.encrypt(pedidoDTO.getId().toString());
-        String url = reporterConfig.getReporterEqvUrl() + "equiv/declaracao_equivalencia/" + idCriptografado;
-
-        dto.setFormacaoOriginal(pedidoDTO.getFormacaoProf());
-        dto.setEntidadeOriginal(pedidoDTO.getInstEnsino() != null ? pedidoDTO.getInstEnsino().getNome() : null);
-        dto.setEquivalencia("Equivalência Profissional");
-        dto.setNivelQualificacao(pedidoDTO.getNivel() != null ? pedidoDTO.getNivel().toString() : null);
-
-        if ("5".equals(pedidoDTO.getDespacho())) {
-            dto.setUrl(url);
-        }
-
-        dto.setDataEmissao(java.time.LocalDate.now());
-        dto.setEntidadeEmissora("DGERT - Direção-Geral do Emprego e das Relações de Trabalho");
-        dto.setNumeroProcesso(pedidoDTO.getRequisicao() != null && pedidoDTO.getRequisicao().getNProcesso() != null
-                ? pedidoDTO.getRequisicao().getNProcesso().toString()
-                : null);
-
-        if (pedidoDTO.getInstEnsino() != null && pedidoDTO.getInstEnsino().getPais() != null) {
-            dto.setPaisOrigem(globalGeografiaService.buscarNomePorCodigoPais(pedidoDTO.getInstEnsino().getPais()));
-        }
-
-        return dto;
+        return pedidoBusinessService.getPedidoParaReclamacao(numeroProcesso);
     }
 
-    @Override
-    public List<CertificadoEquivalenciaDTO> montarCertificadosPorRequisicao(Integer idRequisicao) {
-        // Pode ser implementado posteriormente chamando montarCertificado para cada pedido
-        return List.of();
-    }
 
-    @Override
-    public PedidoSimplesDTO convertToSimplesDTO(EqvtPedidoDTO pedido) {
-        // Pode ser implementado conforme necessidade
-        return null;
-    }
+
+
+
+
+
+
+
+
+
 }

@@ -4,7 +4,9 @@ import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
 import dge.dge_equiv_api.application.document.dto.PublicUrlResponse;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
+import dge.dge_equiv_api.infrastructure.primary.EqvTReclamacao;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
+import dge.dge_equiv_api.infrastructure.primary.repository.EqvTReclamacaoRepository;
 import dge.dge_equiv_api.infrastructure.tertiary.DocRelacaoEntity;
 import dge.dge_equiv_api.infrastructure.tertiary.repository.DocRelacaoRepository;
 import io.micrometer.common.lang.NonNull;
@@ -36,6 +38,8 @@ public class DocumentServiceImpl implements DocumentService {
     private EqvTPedidoRepository pedidoRepository; // Adicione esta injeção
     @Autowired
     private DocRelacaoRepository docRelacaoRepository;
+    @Autowired
+    private EqvTReclamacaoRepository reclamacaoRepository;
 
 
     private final RestClientHelper restClientHelper;
@@ -195,5 +199,71 @@ public class DocumentServiceImpl implements DocumentService {
                 restTemplate.getForObject(urls, PublicUrlResponse.class);
 
         return response.getUrl();
+    }
+
+    public String saveReclamcao(DocRelacaoDTO dto) {
+        String apiUrl = url + "/documentos";
+
+        EqvTReclamacao pedido = reclamacaoRepository.findById(Long.valueOf(dto.getIdRelacao()))
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado"));
+
+        // Obter o número do processo da requisição
+        String nProcesso = pedido.getIdPedido().getRequisicao().getNProcesso() != null
+                ? String.valueOf( pedido.getIdPedido().getRequisicao().getNProcesso())
+                : "SEM-PROCESSO";
+        // Criar headers
+        Map<String, String> headersMap = new HashMap<>();
+        headersMap.put("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE);
+
+        // Criar corpo da requisição
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("tipoRelacao", dto.getTipoRelacao());
+        body.add("idRelacao", dto.getIdRelacao());
+        body.add("estado", dto.getEstado());
+        body.add("idTpDoc", dto.getIdTpDoc());
+        body.add("appCode", dto.getAppCode());
+        body.add("fileName", dto.getFileName());
+        String ext = getFileExtension(dto.getFile().getOriginalFilename());
+
+        var path = getPathFile(dto.getFileName(), dto.getTipoRelacao(), dto.getIdRelacao(), nProcesso, dto.getAppCode(), ext);
+        body.add("path", path);
+
+        if (dto.getIdTpDoc() != null) {
+            body.add("idTpDoc", dto.getIdTpDoc());
+        }
+
+        MultipartFile file = dto.getFile();
+        if (file != null && !file.isEmpty()) {
+            try {
+                ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+                    @Override
+                    public String getFilename() {
+                        return file.getOriginalFilename();
+                    }
+                };
+                body.add("file", fileResource);
+            } catch (IOException e) {
+                throw new RuntimeException("Erro ao processar o arquivo", e);
+            }
+        }
+
+        // Enviar requisição via helper
+        ResponseEntity<String> response = restClientHelper.sendRequest(
+                apiUrl,
+                HttpMethod.POST,
+                body,
+                String.class,
+                headersMap
+        );
+        System.out.println("documento");
+
+        // Verificar resposta
+        if (response.getStatusCode().is2xxSuccessful()) {
+            System.out.println("Documento salvo com sucesso!");
+        } else {
+            System.err.println("Erro ao salvar documento: " + response.getBody());
+        }
+
+        return path;
     }
 }

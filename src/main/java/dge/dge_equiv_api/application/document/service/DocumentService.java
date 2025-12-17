@@ -8,6 +8,7 @@ import java.util.List;
 public interface DocumentService {
 
     public String save(DocRelacaoDTO dto);
+    public String saveReclamcao(DocRelacaoDTO dto);
 
 
     List<DocumentoResponseDTO> getDocumentosPorRelacao(Integer idRelacao, String tipoRelacao, String appCode);

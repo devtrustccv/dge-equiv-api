@@ -43,6 +43,7 @@ public class NotificationService {
         body.add("idProcesso", dto.getIdProcesso());
         body.add("tipoRelacao", "solicitacao");
         body.add("idRelacao", dto.getIdRelacao() );
+        body.add("isAlert", "NAO");
 
 
 

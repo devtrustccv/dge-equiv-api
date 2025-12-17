@@ -1,8 +1,14 @@
 package dge.dge_equiv_api.application.pedidov01.mapper;
 
-import dge.dge_equiv_api.application.pedido.dto.*;
+
+import dge.dge_equiv_api.application.pedidov01.dto.EqvTInstEnsinoDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvTRequerenteDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvTRequisicaoDTO;
+import dge.dge_equiv_api.application.pedidov01.dto.EqvtPedidoDTO;
 import dge.dge_equiv_api.infrastructure.primary.*;
 import org.mapstruct.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,6 +17,8 @@ import java.util.List;
 @Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR,
         imports = {LocalDate.class})
 public interface PedidoMapper {
+
+    Logger log = LoggerFactory.getLogger(PedidoMapper.class);
 
     // ===================== ENTITY -> DTO =====================
     @Mapping(target = "documentos", ignore = true)
@@ -22,7 +30,7 @@ public interface PedidoMapper {
     @Mapping(target = "ValorDuc", ignore = true)
     @Mapping(target = "verduc", ignore = true)
     @Mapping(target = "despacho", source = "despacho")
-    @Mapping(target = "requerente", source = "requerente") 
+    @Mapping(target = "requerente", source = "requerente")
     @Mapping(target = "instEnsino", source = "instEnsino")
     @Mapping(target = "requisicao", source = "requisicao")
     EqvtPedidoDTO toDTO(EqvTPedido pedido);
@@ -72,6 +80,205 @@ public interface PedidoMapper {
     @Mapping(target = "idPessoa", ignore = true)
     @Mapping(target = "NProcesso",ignore = true)
     EqvTRequisicao toRequisicaoEntity(EqvTRequisicaoDTO dto);
+
+    // ===================== UPDATE METHODS =====================
+
+    //  REQUISIÇÃO - Update completo
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "dataCreate", ignore = true)
+    @Mapping(target = "dataUpdate", expression = "java(java.time.LocalDate.now())")
+    void updateRequisicaoFromDTO(EqvTRequisicaoDTO dto, @MappingTarget EqvTRequisicao entity);
+
+    //  REQUERENTE - Update completo (todos os campos que vierem no DTO)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "dateCreate", ignore = true)
+    @Mapping(target = "idPessoa", ignore = true)
+    @Mapping(target = "dataUpdate", expression = "java(java.time.LocalDate.now())")
+    @Mapping(target = "userCreate", ignore = true)
+    @Mapping(target = "userUpdate", ignore = true)
+    @Mapping(target = "habilitacao", expression = "java(stringToInteger(dto.getHabilitacao()))")
+    void updateRequerenteFromDTO(EqvTRequerenteDTO dto, @MappingTarget EqvTRequerente entity);
+
+    // INSTITUIÇÃO ENSINO - Update completo
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "dateCreate", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    void updateInstEnsinoFromDTO(EqvTInstEnsinoDTO dto, @MappingTarget EqvTInstEnsino entity);
+
+    //  PEDIDO - Update completo
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "requerente", ignore = true)
+    @Mapping(target = "instEnsino", ignore = true)
+    @Mapping(target = "requisicao", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "etapa", ignore = true)
+    void updatePedidoFromDTO(EqvtPedidoDTO dto, @MappingTarget EqvTPedido entity);
+
+    // ===================== UPDATE CONDICIONAL METHODS =====================
+
+    /**
+     * Atualiza apenas os campos não nulos do DTO para a entidade requerente
+     * Campos null no DTO mantêm os valores existentes na entidade
+     */
+    default void updateRequerenteFromDTOConditional(EqvTRequerenteDTO dto, EqvTRequerente entity) {
+        if (dto == null || entity == null) {
+            return;
+        }
+
+        log.debug("Atualizando requerente ID: {} - Apenas campos não nulos", entity.getId());
+
+        // ✅ Atualizar apenas campos não nulos
+        if (dto.getNome() != null) {
+            entity.setNome(dto.getNome());
+            log.debug("Nome atualizado: {}", dto.getNome());
+        }
+        if (dto.getNif() != null) {
+            entity.setNif(dto.getNif());
+            log.debug("NIF atualizado: {}", dto.getNif());
+        }
+        if (dto.getHabilitacao() != null) {
+            entity.setHabilitacao(stringToInteger(dto.getHabilitacao()));
+        }
+        if (dto.getDocNumero() != null) {
+            entity.setDocNumero(dto.getDocNumero());
+            log.debug("DocNumero atualizado: {}", dto.getDocNumero());
+        }
+        if (dto.getDataNascimento() != null) {
+            entity.setDataNascimento(dto.getDataNascimento());
+            log.debug("DataNascimento atualizada: {}", dto.getDataNascimento());
+        }
+        if (dto.getNacionalidade() != null) {
+            entity.setNacionalidade(dto.getNacionalidade());
+            log.debug("Nacionalidade atualizada: {}", dto.getNacionalidade());
+        }
+        if (dto.getSexo() != null) {
+            entity.setSexo(dto.getSexo());
+            log.debug("Sexo atualizado: {}", dto.getSexo());
+        }
+        if (dto.getHabilitacao() != null) {
+            entity.setHabilitacao(stringToInteger(dto.getHabilitacao()));
+            log.debug("Habilitacao atualizada: {}", dto.getHabilitacao());
+        }
+        if (dto.getDocIdentificacao() != null) {
+            entity.setDocIdentificacao(dto.getDocIdentificacao());
+            log.debug("DocIdentificacao atualizado: {}", dto.getDocIdentificacao());
+        }
+        if (dto.getDataEmissaoDoc() != null) {
+            entity.setDataEmissaoDoc(dto.getDataEmissaoDoc());
+            log.debug("DataEmissaoDoc atualizada: {}", dto.getDataEmissaoDoc());
+        }
+        if (dto.getDataValidadeDoc() != null) {
+            entity.setDataValidadeDoc(dto.getDataValidadeDoc());
+            log.debug("DataValidadeDoc atualizada: {}", dto.getDataValidadeDoc());
+        }
+        if (dto.getEmail() != null) {
+            entity.setEmail(dto.getEmail());
+            log.debug("Email atualizado: {}", dto.getEmail());
+        }
+        if (dto.getContato() != null) {
+            entity.setContato(dto.getContato());
+            log.debug("Contato atualizado: {}", dto.getContato());
+        }
+
+        // Sempre atualizar data de modificação
+        entity.setDataUpdate(LocalDate.now());
+        log.debug("DataUpdate atualizada: {}", LocalDate.now());
+    }
+
+    /**
+     * Atualiza apenas os campos não nulos do DTO para a entidade pedido
+     */
+    default void updatePedidoFromDTOConditional(EqvtPedidoDTO dto, EqvTPedido entity) {
+        if (dto == null || entity == null) {
+            return;
+        }
+
+        log.debug("Atualizando pedido ID: {} - Apenas campos não nulos", entity.getId());
+
+        // Atualizar apenas campos não nulos
+        if (dto.getFormacaoProf() != null) {
+            entity.setFormacaoProf(dto.getFormacaoProf());
+        }
+        if (dto.getInstEnsino() != null) {
+            EqvTInstEnsino inst = new EqvTInstEnsino();
+            inst.setId(dto.getInstEnsino().getId());
+            entity.setInstEnsino(inst);
+        }
+        if (dto.getRequisicao() != null) {
+            EqvTRequisicao req = new EqvTRequisicao();
+            req.setId(dto.getRequisicao().getId());
+            entity.setRequisicao(req);
+        }
+        if (dto.getEtapa() != null) {
+            entity.setEtapa(dto.getEtapa());
+        }
+
+        if (dto.getCarga() != null) {
+            entity.setCarga(dto.getCarga());
+        }
+        if (dto.getAnoInicio() != null) {
+            entity.setAnoInicio(dto.getAnoInicio());
+        }
+        if (dto.getAnoFim() != null) {
+            entity.setAnoFim(dto.getAnoFim());
+        }
+        if (dto.getNivel() != null) {
+            entity.setNivel(dto.getNivel());
+        }
+        if (dto.getFamilia() != null) {
+            entity.setFamilia(dto.getFamilia());
+        }
+
+        if (dto.getNumDeclaracao() != null) {
+            entity.setNumDeclaracao(dto.getNumDeclaracao());
+        }
+        if (dto.getStatus() != null) {
+            entity.setStatus(dto.getStatus());
+        }
+        if (dto.getDataDespacho() != null) {
+            entity.setDataDespacho(dto.getDataDespacho());
+        }
+
+
+    }
+
+    /**
+     * Atualiza apenas os campos não nulos do DTO para a entidade requisição
+     */
+    default void updateRequisicaoFromDTOConditional(EqvTRequisicaoDTO dto, EqvTRequisicao entity) {
+        if (dto == null || entity == null) {
+            return;
+        }
+
+        log.debug("Atualizando requisição ID: {} - Apenas campos não nulos", entity.getId());
+
+        // ✅ Atualizar apenas campos não nulos
+        if (dto.getNProcesso() != null) {
+            entity.setNProcesso(dto.getNProcesso());
+        }
+
+        if (dto.getDataCreate() != null) {
+            entity.setDataCreate(dto.getDataCreate());
+        }
+        if (dto.getStatus() != null) {
+            entity.setStatus(dto.getStatus());
+        }
+        if (dto.getEtapa() != null) {
+            entity.setEtapa(dto.getEtapa());
+        }
+        if (dto.getUserCreate() != null) {
+            entity.setUserCreate(dto.getUserCreate());
+        }
+        if (dto.getUserUpdate() != null) {
+            entity.setUserUpdate(dto.getUserUpdate());
+        }
+        if (dto.getIdPessoa() != null) {
+            entity.setIdPessoa(dto.getIdPessoa());
+        }
+
+        // Sempre atualizar data de modificação
+        entity.setDataUpdate(LocalDate.now());
+    }
 
     // ===================== MÉTODOS AUXILIARES =====================
 

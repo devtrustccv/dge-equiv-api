@@ -55,6 +55,30 @@ public class PagamentoService {
             throw new RuntimeException("Erro ao gerar DUC via endpoint pai", e);
         }
     }
+    public EqvTPagamento gerarDucRec(EqvTPedido pedido, String nif, Integer nrProcesso, EqvTRequisicao idrequisicao) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+
+            BigDecimal valortaxa = eqvTTaxaService.getValorAtivoParaPagamentoAnalise();
+            // Monta URL com query params
+            String url = UriComponentsBuilder
+                    .fromHttpUrl(duc) // duc deve ser algo como "http://localhost:8083/api/duc/criar"
+                    .queryParam("valor", valortaxa )
+                    .queryParam("nif", nif)
+                    .queryParam("obs", "DUC Pagamento - Processo de Equivalência Profissional")
+                    .toUriString();
+
+            System.out.println("saida....."+url);
+
+            // Usa GET porque não há body
+            DucModel duc = restTemplate.postForObject(url, null,DucModel.class);
+
+            return savePagamentoReclamacao(pedido, duc, nrProcesso,idrequisicao);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar DUC via endpoint pai", e);
+        }
+    }
 
 
 
@@ -76,6 +100,32 @@ public class PagamentoService {
         pagamento.setEstado(1);
         pagamento.setNrProcesso(nrProcesso);
         pagamento.setEtapa("pagamento_analise");
+
+
+        //pagamento.setIdTaxa(eqvTTaxaService.getValorAtivoParaPagamentoAnalise().intValue());
+
+        System.out.println("Salvou pagamento: " + duc.getDuc());
+        return pagamentoRepository.save(pagamento);
+
+    }
+    private EqvTPagamento savePagamentoReclamacao(EqvTPedido pedido, DucModel duc, Integer nrProcesso, EqvTRequisicao requisicao) {
+        EqvTPagamento pagamento = new EqvTPagamento();
+
+        if (pedido != null) {
+            pagamento.setIdPedido(pedido);
+        }
+        if (requisicao != null) {
+            pagamento.setIdRequisicao(requisicao);
+        }
+
+        pagamento.setNuDuc(toBigDecimal(duc.getDuc()));
+        pagamento.setTotal(toBigDecimal(duc.getMontante()));
+        pagamento.setReferencia(toBigDecimal(duc.getReferencia()));
+        pagamento.setEntidade(duc.getEntidade());
+        pagamento.setLinkDuc(link + duc.getDuc());
+        pagamento.setEstado(1);
+        pagamento.setNrProcesso(nrProcesso);
+        pagamento.setEtapa("Pagcertificado");
 
 
         //pagamento.setIdTaxa(eqvTTaxaService.getValorAtivoParaPagamentoAnalise().intValue());
