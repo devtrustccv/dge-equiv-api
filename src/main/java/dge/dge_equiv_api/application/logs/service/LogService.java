@@ -98,17 +98,14 @@ public class LogService {
         historico.setCampo(item.getColumn());
 
 
-        if ("motivoRetificado".equals(item.getColumn())) {
-            historico.setValorAnterior(mapMotivoRetificado(item.getOldValue()));
-            historico.setValorNovo(mapMotivoRetificado(item.getNewValue()));
-        } else if (!"nivel".equalsIgnoreCase(item.getColumn())) {
+        if (!"nivel".equalsIgnoreCase(item.getColumn())) {
             historico.setValorAnterior(mapValor(item.getOldValue()));
             historico.setValorNovo(mapValor(item.getNewValue()));
-        } else {
+        }
+        else {
             historico.setValorAnterior(item.getOldValue());
             historico.setValorNovo(item.getNewValue());
         }
-
 
         return historico;
     }
@@ -136,10 +133,10 @@ public class LogService {
             case "eqv_t_decisao_ap":
                 return "Análise Prévia";
 
-            case "eqv_t_decisao_vp":
+            case "eqvt_t_decisao_vp":
                 return "verificação Previa";
 
-            case "eqv_t_decisao_despacho":
+            case "eqvt_t_decisao_despacho":
                 return "Despacho";
 
             default:
