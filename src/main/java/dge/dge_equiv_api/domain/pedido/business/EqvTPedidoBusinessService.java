@@ -198,7 +198,7 @@ public class EqvTPedidoBusinessService {
 
         if (existente.isPresent()) {
             throw new BusinessException("Já existe uma instituição com o nome '" + dto.getNome() +
-                    "' para o país '" + dto.getPais() + "'.");
+                    "' para o país '" + globalGeografiaService.buscarNomePorCodigoPais(dto.getPais()) + "'.");
         }
 
         EqvTInstEnsino novo = pedidoMapper.toInstEnsinoEntity(dto);
@@ -246,13 +246,13 @@ public class EqvTPedidoBusinessService {
 
 
     public EqvTPagamento gerarDUC(EqvTRequerenteDTO requerenteDTO, EqvTRequisicao requisicao) {
-        try {
+       // try {
             return pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(),
                     requisicao.getNProcesso(), null);
-        } catch (Exception e) {
-            log.error("Erro ao gerar DUC");
-            throw new BusinessException("Erro ao gerar o DUC.");
-        }
+//        } catch (Exception e) {
+//            log.error("Erro ao gerar DUC");
+//            throw new BusinessException("Erro ao gerar o DUC.");
+//        }
     }
 
     public void salvarDocumentosDosPedidos(List<EqvtPedidoDTO> pedidosDTO, List<EqvTPedido> pedidosSalvos) {

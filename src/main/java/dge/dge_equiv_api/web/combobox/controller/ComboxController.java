@@ -1,5 +1,6 @@
 package dge.dge_equiv_api.web.combobox.controller;
 
+import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
 import dge.dge_equiv_api.infrastructure.primary.EqvTInstEnsino;
 import dge.dge_equiv_api.infrastructure.primary.TipoDocumentoEntity;
 import dge.dge_equiv_api.infrastructure.primary.repository.JpaEnstEnsinoRepository;
@@ -20,11 +21,13 @@ import java.util.Map;
 public class ComboxController {
     private final JpaTipoDocumentoRepository jpaTipoDocumentoRepository;
     private  final JpaEnstEnsinoRepository jpaEnstEnsinoRepository;
+    private final GlobalGeografiaService globalGeografiaService;
 
 
-    public ComboxController(JpaTipoDocumentoRepository jpaTipoDocumentoRepository, JpaEnstEnsinoRepository jpaEnstEnsinoRepository) {
+    public ComboxController(JpaTipoDocumentoRepository jpaTipoDocumentoRepository, JpaEnstEnsinoRepository jpaEnstEnsinoRepository,GlobalGeografiaService globalGeografiaService) {
         this.jpaTipoDocumentoRepository = jpaTipoDocumentoRepository;
         this.jpaEnstEnsinoRepository = jpaEnstEnsinoRepository;
+        this.globalGeografiaService = globalGeografiaService;
     }
 
 
@@ -68,7 +71,7 @@ public class ComboxController {
         for (EqvTInstEnsino inst : instituicoes) {
             Map<String, String> map = new HashMap<>();
             map.put("VALOR", String.valueOf(inst.getId()));      // valor do option
-            map.put("DESCRICAO", inst.getNome());
+            map.put("DESCRICAO", inst.getNome()+" ("+globalGeografiaService.buscarNomePorCodigoPais(inst.getPais())+")");
             list.add(map);
         }
 

@@ -11,7 +11,7 @@ public class DgeEquivApiApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DgeEquivApiApplication.class, args);
 
-		System.out.println(AESUtil.encrypt(String.valueOf(97)));
+		System.out.println(AESUtil.encrypt(String.valueOf(108)));
 
 	}
 

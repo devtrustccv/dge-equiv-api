@@ -50,7 +50,7 @@ public class PedidoOrchestrator {
         String processInstanceId = null;
         EqvTRequisicao requisicaoSalva = null;
 
-        try {
+       // try {
             log.info("Iniciando criação de lote de pedidos para pessoaId: {}", pessoaId);
 
             //  Valida dados básicos
@@ -129,31 +129,31 @@ public class PedidoOrchestrator {
 
             return result;
 
-        } catch (Exception e) {
-            log.error("Erro ao criar lote de pedidos");
-
-            // Rollback: remove processo iniciado E requisição se necessário
-            if (processInstanceId != null) {
-                try {
-                    log.warn("Eliminando processo externo {}", processInstanceId);
-                    processService.deleteProcess(processInstanceId);
-                } catch (Exception ex) {
-                    log.error("Falha ao deletar processo externo {}", processInstanceId, ex);
-                }
-            }
-
-            // Se a requisição foi salva mas houve erro depois, deletar também
-            if (requisicaoSalva != null && requisicaoSalva.getId() != null) {
-                try {
-                    log.warn("Eliminando requisição {} devido a erro no processo", requisicaoSalva.getId());
-                    requisicaoRepository.delete(requisicaoSalva);
-                } catch (Exception ex) {
-                    log.error("Falha ao deletar requisição {}", requisicaoSalva.getId(), ex);
-                }
-            }
-
-            throw new BusinessException("Erro ao criar lote de pedidos: " + e.getMessage());
-        }
+//        } catch (Exception e) {
+//            log.error("Erro ao criar lote de pedidos");
+//
+//            // Rollback: remove processo iniciado E requisição se necessário
+//            if (processInstanceId != null) {
+//                try {
+//                    log.warn("Eliminando processo externo {}", processInstanceId);
+//                    processService.deleteProcess(processInstanceId);
+//                } catch (Exception ex) {
+//                    log.error("Falha ao deletar processo externo {}", processInstanceId, ex);
+//                }
+//           }
+//
+//            // Se a requisição foi salva mas houve erro depois, deletar também
+//            if (requisicaoSalva != null && requisicaoSalva.getId() != null) {
+//                try {
+//                    log.warn("Eliminando requisição {} devido a erro no processo", requisicaoSalva.getId());
+//                    requisicaoRepository.delete(requisicaoSalva);
+//                } catch (Exception ex) {
+//                    log.error("Falha ao deletar requisição {}", requisicaoSalva.getId(), ex);
+//                }
+//            }
+//
+//            throw new BusinessException("Erro ao criar lote de pedidos: " + e.getMessage());
+//        }
     }
 
 

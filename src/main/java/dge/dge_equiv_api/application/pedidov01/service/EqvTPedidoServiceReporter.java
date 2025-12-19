@@ -9,8 +9,7 @@ import dge.dge_equiv_api.application.document.service.DocRelacaoService;
 import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
 import dge.dge_equiv_api.application.domain.service.TblDomainService;
 import dge.dge_equiv_api.application.logs.service.LogService;
-import dge.dge_equiv_api.application.logs.dto.LogDTO;
-import dge.dge_equiv_api.application.logs.dto.LogItemDTO;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -114,18 +113,9 @@ public class EqvTPedidoServiceReporter {
                 d.setNivel(dec.getNivel());
                 d.setFamilia(dec.getFamilia());
                 d.setDecisao(dec.getDecisao());
+                d.setDataDecisao(dec.getDataCreate());
                 d.setParecerCnep(dec.getParecerCnep());
                 d.setObs(dec.getObs());
-
-                // BUSCAR HISTÓRICO DO PARECER CNEP
-                if (dec.getId() != null) {
-                    List<ParecerCnepHistoricoDTO> historico = logService.getHistoricoParecerCnep(dec.getId());
-
-                    // Se houver histórico, adicionar
-                    if (!historico.isEmpty()) {
-                        d.setHistoricoParecer(historico);
-                    }
-                }
 
                 return d;
             }).collect(Collectors.toList());
@@ -150,6 +140,12 @@ public class EqvTPedidoServiceReporter {
         // Documentos (mantido igual)
         List<DocRelacaoDTO> documentos = docRelacaoService.buscarDocsComNomeTipoPorIdRelacao(pedido.getId());
         dto.setDocumentos(documentos);
+
+        List<ParecerCnepHistoricoDTO> historico = logService.getHistoricoParecerCompletoByPedidoId(pedido.getId());
+        if (!historico.isEmpty()) {
+            dto.setHistoricoDT(historico);
+        }
+
 
         return dto;
     }
