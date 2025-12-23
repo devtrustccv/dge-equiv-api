@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dge.dge_equiv_api.Utils.AESUtil;
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
 import dge.dge_equiv_api.application.document.dto.DocumentoDTO;
+import dge.dge_equiv_api.application.logs.dto.ParecerCnepHistoricoDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -43,9 +44,8 @@ public class EqvtPedidoReporteDTO {
     private List<DocumentoDTO> documentos1;
     private List<EqvtTDecisaoVpDTO> decisoesVp;
     private List<EqvtTDecisaoApDTO> decisoesAp;
-
-
     private List<DocRelacaoDTO> documentos;
+    private List<ParecerCnepHistoricoDTO> historicoDT;
 
 
 

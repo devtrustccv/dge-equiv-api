@@ -68,6 +68,8 @@ public class EqvTPedidoBusinessService {
 
     @Value("${link.report.integration.sigof.duc}")
     private String reporterDuc;
+    @Value("${doc.open}")
+    private String docOpen;
 
     public List<EqvTPedido> criarLotePedidos(
             List<EqvtPedidoDTO> pedidosDTO,
@@ -198,7 +200,7 @@ public class EqvTPedidoBusinessService {
 
         if (existente.isPresent()) {
             throw new BusinessException("Já existe uma instituição com o nome '" + dto.getNome() +
-                    "' para o país '" + dto.getPais() + "'.");
+                    "' para o país '" + globalGeografiaService.buscarNomePorCodigoPais(dto.getPais()) + "'.");
         }
 
         EqvTInstEnsino novo = pedidoMapper.toInstEnsinoEntity(dto);
@@ -246,13 +248,13 @@ public class EqvTPedidoBusinessService {
 
 
     public EqvTPagamento gerarDUC(EqvTRequerenteDTO requerenteDTO, EqvTRequisicao requisicao) {
-        try {
+       // try {
             return pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(),
                     requisicao.getNProcesso(), null);
-        } catch (Exception e) {
-            log.error("Erro ao gerar DUC");
-            throw new BusinessException("Erro ao gerar o DUC.");
-        }
+//        } catch (Exception e) {
+//            log.error("Erro ao gerar DUC");
+//            throw new BusinessException("Erro ao gerar o DUC.");
+//        }
     }
 
     public void salvarDocumentosDosPedidos(List<EqvtPedidoDTO> pedidosDTO, List<EqvTPedido> pedidosSalvos) {
@@ -367,7 +369,7 @@ public class EqvTPedidoBusinessService {
                 for (DocumentoResponseDTO doc : docs) {
                     String path = doc.getPath();
 
-                    String publicUrl = documentService.gerarLinkPublico(path);
+                    String publicUrl = docOpen+"&path_url=" + path +"&type=application/pdf";
                     AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo(
                             doc.getFileName(),
                             LocalDateTime.now(),

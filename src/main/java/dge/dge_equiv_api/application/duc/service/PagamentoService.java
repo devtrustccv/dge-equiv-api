@@ -38,7 +38,7 @@ public class PagamentoService {
             BigDecimal valortaxa = eqvTTaxaService.getValorAtivoParaPagamentoAnalise();
             // Monta URL com query params
             String url = UriComponentsBuilder
-                    .fromHttpUrl(duc) // duc deve ser algo como "http://localhost:8083/api/duc/criar"
+                    .fromHttpUrl(duc) //  "http://localhost:8083/api/duc/criar"
                     .queryParam("valor", valortaxa )
                     .queryParam("nif", nif)
                     .queryParam("obs", "DUC Pagamento - Processo de Equivalência Profissional")

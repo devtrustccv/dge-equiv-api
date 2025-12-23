@@ -12,6 +12,7 @@ public class LogItemDTO {
     private String column;
     private String oldValue;
     private String newValue;
+    private String etapa;
     private boolean file;
 }
 

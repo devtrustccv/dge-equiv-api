@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ParecerCnepHistoricoDTO {
     private String dataAlteracao;
+    private String etapa;
     private String valorAnterior;
     private String valorNovo;
+    private String campo;
 }
