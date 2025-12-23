@@ -369,7 +369,7 @@ public class EqvTPedidoBusinessService {
                 for (DocumentoResponseDTO doc : docs) {
                     String path = doc.getPath();
 
-                    String publicUrl = docOpen+"&path_url=" + path;
+                    String publicUrl = docOpen+"&path_url=" + path +"&type=application/pdf";
                     AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo(
                             doc.getFileName(),
                             LocalDateTime.now(),
