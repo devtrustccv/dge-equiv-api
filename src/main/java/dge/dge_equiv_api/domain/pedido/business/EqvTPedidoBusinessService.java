@@ -68,6 +68,8 @@ public class EqvTPedidoBusinessService {
 
     @Value("${link.report.integration.sigof.duc}")
     private String reporterDuc;
+    @Value("${doc.open}")
+    private String docOpen;
 
     public List<EqvTPedido> criarLotePedidos(
             List<EqvtPedidoDTO> pedidosDTO,
@@ -367,7 +369,7 @@ public class EqvTPedidoBusinessService {
                 for (DocumentoResponseDTO doc : docs) {
                     String path = doc.getPath();
 
-                    String publicUrl = documentService.gerarLinkPublico(path);
+                    String publicUrl = docOpen+"&path_url=" + path;
                     AcompanhamentoDTO.Anexo anexo = new AcompanhamentoDTO.Anexo(
                             doc.getFileName(),
                             LocalDateTime.now(),
