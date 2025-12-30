@@ -94,7 +94,8 @@ public class EqvTReclamacaoService {
             entity.setObservacao(dto.getObservacao());
             entity.setAnexo(dto.getAnexo());
             entity.setDateUpdate(LocalDate.now());
-            if (dto.getDecisao() == 1){
+            if (dto.getDecisao() == 2){
+                pedido.setDataReclamacao(LocalDate.now());
                 pedido.setEtapa("Pagamento Certificado");
             }else {
                 pedido.setEtapa("Verificação Previa");
@@ -104,11 +105,13 @@ public class EqvTReclamacaoService {
             entity = mapper.toEntity(dto);
             entity.setIdPedido(pedido);
             entity.setDecisao(dto.getDecisao());
-            if (dto.getDecisao() == 1){
+            if (dto.getDecisao() == 2){
                 pedido.setEtapa("Pagamento Certificado");
+                pedido.setDataReclamacao(LocalDate.now());
             }else {
                 pedido.setEtapa("Verificação Previa");
             }
+
             //entity.setIdRequisicao(pedido.getRequisicao());
             entity.setDateCreate(LocalDate.now());
 

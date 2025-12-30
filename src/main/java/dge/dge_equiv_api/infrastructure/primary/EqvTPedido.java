@@ -63,6 +63,9 @@ public class EqvTPedido {
     @Column(name = "data_despacho")
     private LocalDate dataDespacho;
 
+    @Column(name = "data_reclamacao")
+    private LocalDate dataReclamacao;
+
 
 
 
