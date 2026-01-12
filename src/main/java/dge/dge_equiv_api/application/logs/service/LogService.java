@@ -41,6 +41,9 @@ public class LogService {
         List<LogDTO> todosLogs = buscarTodosLogsPorPedido(pedidoId);
 
         return todosLogs.stream()
+                // Filtra apenas os logs das tabelas desejadas
+                .filter(log -> "eqv_t_decisao_ap".equals(log.getTableName()) || "eqvt_t_decisao_vp".equals(log.getTableName()) || "eqvt_t_decisao_despacho".equals(log.getTableName()))
+                // Continua com logsItems válidos
                 .filter(log -> log.getLogsItems() != null && !log.getLogsItems().isEmpty())
                 .flatMap(log ->
                         log.getLogsItems().stream()
@@ -49,7 +52,17 @@ public class LogService {
                 )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
+
+
+
+
+
     }
+
+
+
+
 
 
     /**
@@ -67,6 +80,8 @@ public class LogService {
                     .queryParam("page", 1)
                     .queryParam("pageSize", 100)
                     .toUriString();
+
+
 
             ResponseEntity<List<LogDTO>> response =
                     restTemplate.exchange(
