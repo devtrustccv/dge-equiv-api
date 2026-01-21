@@ -53,11 +53,6 @@ public class LogService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-
-
-
-
-
     }
 
 
@@ -81,8 +76,6 @@ public class LogService {
                     .queryParam("pageSize", 100)
                     .toUriString();
 
-
-
             ResponseEntity<List<LogDTO>> response =
                     restTemplate.exchange(
                             url,
@@ -103,9 +96,7 @@ public class LogService {
             return Collections.emptyList();
         }
     }
-
-
-
+    
     /**
      * ============================
      * MAPEAMENTO PARA HISTÓRICO
