@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,8 +38,12 @@ public class LogService {
 
     public List<ParecerCnepHistoricoDTO> getHistoricoParecerCompletoByPedidoId(Integer pedidoId) {
 
-        return TABLE_NAMES.stream()
-                .flatMap(tableName -> buscarLogsPorTabelaEPedido(pedidoId, tableName).stream())
+        List<LogDTO> todosLogs = buscarTodosLogsPorPedido(pedidoId);
+
+        return todosLogs.stream()
+                // Filtra apenas os logs das tabelas desejadas
+                .filter(log -> "eqv_t_decisao_ap".equals(log.getTableName()) || "eqvt_t_decisao_vp".equals(log.getTableName()) || "eqvt_t_decisao_despacho".equals(log.getTableName()))
+                // Continua com logsItems válidos
                 .filter(log -> log.getLogsItems() != null && !log.getLogsItems().isEmpty())
                 .flatMap(log ->
                         log.getLogsItems().stream()
@@ -46,30 +51,38 @@ public class LogService {
                                 .map(item -> montarHistorico(log, item))
                 )
                 .filter(Objects::nonNull)
-                .distinct() // <- remove duplicados
                 .collect(Collectors.toList());
 
-
     }
+
+
+
+
+
 
     /**
      * ============================
      * BUSCA LOGS POR TABELA + PEDIDO
      * ============================
      */
-    private List<LogDTO> buscarLogsPorTabelaEPedido(Integer pedidoId, String tableName) {
+    private List<LogDTO> buscarTodosLogsPorPedido(Integer pedidoId) {
         try {
-            String url = String.format(
-                    "%s/logs?appDad=equiv&tablid=%d&pageSize=100",
-                    logs, pedidoId
-            );
+            String url = UriComponentsBuilder
+                    .fromHttpUrl(logs + "/logs")
+                    .queryParam("appDad", "equiv")
+                    .queryParam("tablid", pedidoId)
+                    .queryParam("action", "update")
+                    .queryParam("page", 1)
+                    .queryParam("pageSize", 100)
+                    .toUriString();
 
-            ResponseEntity<List<LogDTO>> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<List<LogDTO>>() {}
-            );
+            ResponseEntity<List<LogDTO>> response =
+                    restTemplate.exchange(
+                            url,
+                            HttpMethod.GET,
+                            null,
+                            new ParameterizedTypeReference<List<LogDTO>>() {}
+                    );
 
             return response.getBody() != null
                     ? response.getBody()
@@ -77,13 +90,13 @@ public class LogService {
 
         } catch (Exception e) {
             System.err.printf(
-                    "Erro ao buscar logs | tabela=%s | pedidoId=%d | erro=%s%n",
-                    tableName, pedidoId, e.getMessage()
+                    "Erro ao buscar logs | pedidoId=%d | erro=%s%n",
+                    pedidoId, e.getMessage()
             );
             return Collections.emptyList();
         }
     }
-
+    
     /**
      * ============================
      * MAPEAMENTO PARA HISTÓRICO

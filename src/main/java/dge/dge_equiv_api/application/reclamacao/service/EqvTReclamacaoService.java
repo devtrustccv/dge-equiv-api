@@ -160,53 +160,64 @@ public class EqvTReclamacaoService {
             bpmDTO.setReclamacao_1__fk_desc("");
         }
 
-        if (decisaoDespacho == 1 && "2".equals(String.valueOf(saved.getDecisao()))) {
-            EqvTPagamento pagamento =   gerarDUC(pedido.getRequerente().getNif(), pedido.getRequisicao().getNProcesso());
-            enviarEmailDuc(pagamento, saved);
+        if ("2".equals(String.valueOf(saved.getDecisao()))) {
 
-            String linkPagamento = mfkink + pagamento.getEntidade()
-                    + "&referencia=" + pagamento.getReferencia()
-                    + "&montante=" + pagamento.getTotal()
-                    + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
+            if (decisaoDespacho == 1) {
 
-            Map<String, String> detalhes = Map.of(
-                    "Referencia", pagamento.getReferencia().toString(),
-                    "Entidade", pagamento.getEntidade(),
-                    "valor", pagamento.getTotal().toString(),
-                    "Pagar Online", linkPagamento,
-                    "Ver duc", reporterDuc + pagamento.getNuDuc()
-            );
-            atualizarAcompanhamentoReficado(
-                    pedido.getRequisicao().getNProcesso().toString(),
-                    "equiv",
-                    pedido.getRequisicao().getIdPessoa(),
-                    "PEDIDO_EQUIV",
-                    "Pagamento Certificado",
-                    85,
-                    "EM_PROGRESSO",
-                    "Em processo",
-                    "Periodo Reclamação Concluido",
-                    "Processo aguardando pagamento do certificado",
-                    detalhes, null, null,null,null
-            );
-        }
-        if (decisaoDespacho == 2 && "2".equals(String.valueOf(saved.getDecisao()))) {
-            atualizarAcompanhamentoReficado(
-            pedido.getRequisicao().getNProcesso().toString(),
-                    "equiv",
-                    pedido.getRequisicao().getIdPessoa(),
-                    "PEDIDO_EQUIV",
-                    "",
-                    100,
-                    "FINALIZADO",
-                    "Finalizado",
-                    "Concluído",
-                    "Informamos que o seu processo de equivalência, registado sob o número "
-                            + pedido.getRequisicao().getNProcesso() + ", encontra-se finalizado.",
-                    null,null,null,null,null
+                EqvTPagamento pagamento = gerarDUC(
+                        pedido.getRequerente().getNif(),
+                        pedido.getRequisicao().getNProcesso()
                 );
 
+                enviarEmailDuc(pagamento, saved);
+
+                String linkPagamento = mfkink + pagamento.getEntidade()
+                        + "&referencia=" + pagamento.getReferencia()
+                        + "&montante=" + pagamento.getTotal()
+                        + "&call_back_url=" + ducCheck + pagamento.getNuDuc();
+
+                Map<String, String> detalhes = Map.of(
+                        "Referencia", pagamento.getReferencia().toString(),
+                        "Entidade", pagamento.getEntidade(),
+                        "valor", pagamento.getTotal().toString(),
+                        "Pagar Online", linkPagamento,
+                        "Ver duc", reporterDuc + pagamento.getNuDuc()
+                );
+
+                atualizarAcompanhamentoReficado(
+                        pedido.getRequisicao().getNProcesso().toString(),
+                        "equiv",
+                        pedido.getRequisicao().getIdPessoa(),
+                        "PEDIDO_EQUIV",
+                        "Pagamento Certificado",
+                        85,
+                        "EM_PROGRESSO",
+                        "Em processo",
+                        "Periodo Reclamação Concluido",
+                        "Processo aguardando pagamento do certificado",
+                        detalhes, null, null, null, null
+                );
+
+            } else if (decisaoDespacho == 2) {
+
+                atualizarAcompanhamentoReficado(
+                        pedido.getRequisicao().getNProcesso().toString(),
+                        "equiv",
+                        pedido.getRequisicao().getIdPessoa(),
+                        "PEDIDO_EQUIV",
+                        "",
+                        100,
+                        "FINALIZADO",
+                        "Finalizado",
+                        "Concluído",
+                        "Informamos que o seu processo de equivalência, registado sob o número "
+                                + pedido.getRequisicao().getNProcesso()
+                                + ", encontra-se finalizado.",
+                        null, null, null, null, null
+                );
+            }
         }
+
 
         bpmDTO.setDespacho(String.valueOf(decisaoDespacho != null ? decisaoDespacho : 1));
         bpmDTO.setDespacho__fk(String.valueOf(decisaoDespacho != null ? decisaoDespacho : 1));
