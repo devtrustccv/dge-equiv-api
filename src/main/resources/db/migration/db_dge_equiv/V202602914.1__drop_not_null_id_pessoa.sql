@@ -1,0 +1,1 @@
+ALTER TABLE eqv_t_requerente ALTER COLUMN id_pessoa DROP NOT NULL;
