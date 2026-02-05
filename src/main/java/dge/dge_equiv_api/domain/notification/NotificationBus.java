@@ -38,7 +38,7 @@ public class NotificationBus {
                 writeFormField(writer, boundary, "subject", dto.getAssunto(), charset, CRLF);
                 writeFormField(writer, boundary, "tipoProcesso", dto.getTipoProcesso(), charset, CRLF);
                 writeFormField(writer, boundary, "idProcesso", dto.getIdProcesso(), charset, CRLF);
-                writeFormField(writer, boundary, "appName", dto.getAppCode(), charset, CRLF);
+                writeFormField(writer, boundary, "appName", dto.getAppName(), charset, CRLF);
                 writeFormField(writer, boundary, "idRelacao", dto.getIdRelacao(), charset, CRLF);
                 writeFormField(writer, boundary, "tipoRelacao", dto.getTipoRelacao(), charset, CRLF);
                 writeFormField(writer, boundary, "isAlert", dto.getIsAlert() != null ? dto.getIsAlert() : "NAO", charset, CRLF);

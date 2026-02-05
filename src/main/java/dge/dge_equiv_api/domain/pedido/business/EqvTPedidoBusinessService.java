@@ -58,6 +58,7 @@ public class EqvTPedidoBusinessService {
     private final PedidoMapper pedidoMapper;
     private final MotivoRetificacaoService motivoRetificacaoService;
     private final GlobalGeografiaService globalGeografiaService;
+    private final EqvTReclamacaoRepository reclamacaoRepository;
 
 
     @Value("${link.mf.duc}")
@@ -131,7 +132,7 @@ public class EqvTPedidoBusinessService {
             requisicaoDTO = EqvTRequisicaoDTO.builder()
                     .dataCreate(LocalDate.now())
                     .status(1)
-                    .etapa(1)
+                    .etapa(0)
                     .idPessoa(pessoaId)
                     .userCreate(pessoaId)
                     .build();
@@ -570,12 +571,14 @@ public class EqvTPedidoBusinessService {
                 .replace("[LIMKS]", linksHtml);
 
         NotificationRequestDTO dto = new NotificationRequestDTO();
-
+        dto.setAppName("equiv");
         dto.setAssunto(assunto);
         dto.setMensagem(mensagem);
         dto.setIdProcesso(numeroPedido);
         dto.setIdRelacao(requisicao.getNProcesso().toString());
+        dto.setTipoRelacao("processo_equivalencia");
         dto.setIsAlert("NAO");
+
         dto.setEmail(emailRequerente);
 
         notificationService.enviarEmail(dto);
@@ -717,6 +720,7 @@ public class EqvTPedidoBusinessService {
             throw new BusinessException("Erro ao obter pedidos do processo");
         }
     }
+
 
     /**
          * Processa um pedido extraindo suas informações e documentos
