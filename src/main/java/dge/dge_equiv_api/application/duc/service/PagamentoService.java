@@ -39,7 +39,7 @@ public class PagamentoService {
             // Monta URL com query params
             String url = UriComponentsBuilder
                     .fromHttpUrl(duc) //  "http://localhost:8083/api/duc/criar"
-                    .queryParam("valor", valortaxa )
+                    .queryParam("valor", valortaxa)
                     .queryParam("nif", nif)
                     .queryParam("obs", "DUC Pagamento - Processo de Equivalência Profissional")
                     .toUriString();

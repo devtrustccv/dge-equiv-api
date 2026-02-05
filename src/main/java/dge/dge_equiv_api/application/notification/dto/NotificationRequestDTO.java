@@ -13,7 +13,7 @@ public class NotificationRequestDTO {
 
     private String mensagem;
     private String assunto;
-    private String appCode;
+    private String appName;
     private String email;
     private String tipoProcesso;
     private String idProcesso;

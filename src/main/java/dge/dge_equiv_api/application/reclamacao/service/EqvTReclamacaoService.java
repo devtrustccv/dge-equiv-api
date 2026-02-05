@@ -348,7 +348,7 @@ public class EqvTReclamacaoService {
                 .replace("[LINK_PAGAMENTO]", linksHtml);
 
         NotificationRequestDTO dto = new NotificationRequestDTO();
-        dto.setAppCode("equiv");
+        dto.setAppName("equiv");
         dto.setAssunto(assunto);
         dto.setMensagem(mensagem);
         dto.setIdProcesso("");
