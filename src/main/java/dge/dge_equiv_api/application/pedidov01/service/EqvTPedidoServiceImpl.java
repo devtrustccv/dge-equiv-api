@@ -1,10 +1,8 @@
 package dge.dge_equiv_api.application.pedidov01.service;
 
-import dge.dge_equiv_api.application.certificado.config.ReporterConfig;
-import dge.dge_equiv_api.application.certificado.dto.CertificadoEquivalenciaDTO;
+
 import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import dge.dge_equiv_api.application.document.service.DocumentService;
-import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
 import dge.dge_equiv_api.application.pedidov01.PedidoOrchestrator;
 import dge.dge_equiv_api.application.pedidov01.dto.*;
 import dge.dge_equiv_api.application.pedidov01.mapper.PedidoMapper;
@@ -15,7 +13,6 @@ import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
 import dge.dge_equiv_api.infrastructure.primary.EqvTRequisicao;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTRequisicaoRepository;
-import dge.dge_equiv_api.Utils.AESUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

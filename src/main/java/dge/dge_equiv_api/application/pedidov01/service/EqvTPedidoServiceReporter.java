@@ -10,6 +10,7 @@ import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
 import dge.dge_equiv_api.application.domain.service.TblDomainService;
 import dge.dge_equiv_api.application.logs.service.LogService;
 
+import dge.dge_equiv_api.infrastructure.tertiary.repository.CiTCertificadoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,17 +25,19 @@ public class EqvTPedidoServiceReporter {
     private final GlobalGeografiaService globalGeografiaService;
     private final DocRelacaoService docRelacaoService;
     private final LogService logService;
+    private final CiTCertificadoRepository certificadoRepository;
 
     public EqvTPedidoServiceReporter(EqvTPedidoRepository pedidoService,
                                      TblDomainService tblDomainService,
                                      GlobalGeografiaService globalGeografiaService,
                                      DocRelacaoService docRelacaoService,
-                                     LogService logService) {
+                                     LogService logService,CiTCertificadoRepository certificadoRepository) {
         this.pedidoRepository = pedidoService;
         this.tblDomainService = tblDomainService;
         this.globalGeografiaService = globalGeografiaService;
         this.docRelacaoService = docRelacaoService;
         this.logService = logService;
+        this.certificadoRepository = certificadoRepository;
     }
 
     public EqvtPedidoReporteDTO getPedidoDTOById(Integer id) {
@@ -55,6 +58,19 @@ public class EqvTPedidoServiceReporter {
         dto.setDespacho(despacho);
         dto.setNumDeclaracao(pedido.getNumDeclaracao());
         dto.setDataDespacho(pedido.getDataDespacho());
+
+
+        Long pessoaId = null;
+        if (pedido.getRequerente() != null) {
+
+            pessoaId = pedido.getRequerente().getIdPessoa() != null ? pedido.getRequerente().getIdPessoa().longValue() : null;
+        }
+
+        if (pessoaId != null) {
+            certificadoRepository.buscarCertificadoEquivPorNome(pessoaId,pedido.getFormacaoProf())
+                    .map(c -> c.getCreatedAt())
+                    .ifPresent(dto::setDataGeracaoCertificado);
+        }
 
         // Requerente (mantido igual)
         if (pedido.getRequerente() != null) {

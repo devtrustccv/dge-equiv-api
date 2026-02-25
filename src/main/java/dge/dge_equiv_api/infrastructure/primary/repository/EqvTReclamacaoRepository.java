@@ -15,4 +15,5 @@ public interface EqvTReclamacaoRepository extends JpaRepository<EqvTReclamacao, 
 
     Optional<EqvTReclamacao> findById(Long id);
 
+
 }
