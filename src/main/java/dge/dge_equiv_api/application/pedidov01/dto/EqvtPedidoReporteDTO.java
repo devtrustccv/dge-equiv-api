@@ -47,7 +47,8 @@ public class EqvtPedidoReporteDTO {
     private List<EqvtTDecisaoApDTO> decisoesAp;
     private List<DocRelacaoDTO> documentos;
     private List<ParecerCnepHistoricoDTO> historicoDT;
-    private LocalDateTime dataGeracaoCertificado;
+    private LocalDate dataGeracaoCertificado;
+    private LocalDate dataPagamento;
 
 
 

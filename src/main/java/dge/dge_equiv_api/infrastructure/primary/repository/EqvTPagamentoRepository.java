@@ -8,4 +8,7 @@ import java.util.Optional;
 @Repository
 public interface EqvTPagamentoRepository extends JpaRepository<EqvTPagamento, Integer> {
     Optional<EqvTPagamento> findBynrProcesso(Integer nProcesso);
+
+    Optional<EqvTPagamento> findByNrProcessoAndEtapa(Integer nrProcesso, String etapa);
+
 }

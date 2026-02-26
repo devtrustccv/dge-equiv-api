@@ -3,7 +3,9 @@ package dge.dge_equiv_api.application.pedidov01.service;
 import dge.dge_equiv_api.application.document.dto.DocRelacaoDTO;
 import dge.dge_equiv_api.application.logs.dto.ParecerCnepHistoricoDTO;
 import dge.dge_equiv_api.application.pedidov01.dto.*;
+import dge.dge_equiv_api.infrastructure.primary.EqvTPagamento;
 import dge.dge_equiv_api.infrastructure.primary.EqvTPedido;
+import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPagamentoRepository;
 import dge.dge_equiv_api.infrastructure.primary.repository.EqvTPedidoRepository;
 import dge.dge_equiv_api.application.document.service.DocRelacaoService;
 import dge.dge_equiv_api.application.geografia.service.GlobalGeografiaService;
@@ -26,18 +28,20 @@ public class EqvTPedidoServiceReporter {
     private final DocRelacaoService docRelacaoService;
     private final LogService logService;
     private final CiTCertificadoRepository certificadoRepository;
+    private  final  EqvTPagamentoRepository pagamentoRepository;
 
     public EqvTPedidoServiceReporter(EqvTPedidoRepository pedidoService,
                                      TblDomainService tblDomainService,
                                      GlobalGeografiaService globalGeografiaService,
                                      DocRelacaoService docRelacaoService,
-                                     LogService logService,CiTCertificadoRepository certificadoRepository) {
+                                     LogService logService,CiTCertificadoRepository certificadoRepository,EqvTPagamentoRepository pagamentoRepository) {
         this.pedidoRepository = pedidoService;
         this.tblDomainService = tblDomainService;
         this.globalGeografiaService = globalGeografiaService;
         this.docRelacaoService = docRelacaoService;
         this.logService = logService;
         this.certificadoRepository = certificadoRepository;
+        this.pagamentoRepository = pagamentoRepository;
     }
 
     public EqvtPedidoReporteDTO getPedidoDTOById(Integer id) {
@@ -68,8 +72,17 @@ public class EqvTPedidoServiceReporter {
 
         if (pessoaId != null) {
             certificadoRepository.buscarCertificadoEquivPorNome(pessoaId,pedido.getFormacaoProf())
-                    .map(c -> c.getCreatedAt())
+                    .map(c -> c.getCreatedAt().toLocalDate())
                     .ifPresent(dto::setDataGeracaoCertificado);
+        }
+
+        Integer nProcesso = (pedido.getRequisicao() != null) ? pedido.getRequisicao().getNProcesso() : null;
+
+        if (nProcesso != null) {
+            pagamentoRepository
+                    .findByNrProcessoAndEtapa(nProcesso, "pagamento_analise")
+                    .map(EqvTPagamento::getDataPagamento)
+                    .ifPresent(dto::setDataPagamento);
         }
 
         // Requerente (mantido igual)
