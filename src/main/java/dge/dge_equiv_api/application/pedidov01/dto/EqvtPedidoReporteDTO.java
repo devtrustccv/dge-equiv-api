@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -46,6 +47,9 @@ public class EqvtPedidoReporteDTO {
     private List<EqvtTDecisaoApDTO> decisoesAp;
     private List<DocRelacaoDTO> documentos;
     private List<ParecerCnepHistoricoDTO> historicoDT;
+    private LocalDate dataGeracaoCertificado;
+    private LocalDate dataPagamento;
+    private String numero_certificado;
 
 
 
