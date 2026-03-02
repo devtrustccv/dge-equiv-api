@@ -49,6 +49,7 @@ public class EqvtPedidoReporteDTO {
     private List<ParecerCnepHistoricoDTO> historicoDT;
     private LocalDate dataGeracaoCertificado;
     private LocalDate dataPagamento;
+    private String numero_certificado;
 
 
 

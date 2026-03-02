@@ -15,13 +15,6 @@ public class CiTCertificado {
     @Column(name = "pessoa_id")
     private Long pessoaId;
 
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
 
     @Column(name = "app")
     private String app;
@@ -37,6 +30,9 @@ public class CiTCertificado {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "numero_certificado")
+    private String numeroCertificado;
 
     // getters/setters
 
@@ -57,4 +53,20 @@ public class CiTCertificado {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getApp() {
+        return app;
+    }
+
+    public void setApp(String app) {
+        this.app = app;
+    }
+
+    public String getNumeroCertificado() {
+        return numeroCertificado;
+    }
+
+    public void setNumeroCertificado(String numeroCertificado) {
+        this.numeroCertificado = numeroCertificado;
+    }
 }

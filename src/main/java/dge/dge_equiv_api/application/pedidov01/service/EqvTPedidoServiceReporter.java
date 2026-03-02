@@ -15,6 +15,7 @@ import dge.dge_equiv_api.application.logs.service.LogService;
 import dge.dge_equiv_api.infrastructure.tertiary.repository.CiTCertificadoRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -70,11 +71,21 @@ public class EqvTPedidoServiceReporter {
             pessoaId = pedido.getRequerente().getIdPessoa() != null ? pedido.getRequerente().getIdPessoa().longValue() : null;
         }
 
-        if (pessoaId != null) {
-            certificadoRepository.buscarCertificadoEquivPorNome(pessoaId,pedido.getFormacaoProf())
-                    .map(c -> c.getCreatedAt().toLocalDate())
-                    .ifPresent(dto::setDataGeracaoCertificado);
+        if (pessoaId != null && pedido.getFormacaoProf() != null && !pedido.getFormacaoProf().isBlank()) {
+            certificadoRepository
+                    .findTopByPessoaIdAndAppIgnoreCaseAndNomeFormacaoIgnoreCaseOrderByIdDesc(
+                            pessoaId, "equiv", pedido.getFormacaoProf().trim()
+                    )
+                    .ifPresent(c -> {
+                        // Popula os campos existentes no DTO
+                        dto.setNumero_certificado(c.getNumeroCertificado());
+                        dto.setDataGeracaoCertificado(c.getCreatedAt().toLocalDate());  // usando createdAt como data de geração
+
+                        System.out.println("CERTIFICADO ENCONTRADO: " + c.getNumeroCertificado());
+                    });
         }
+
+
 
         Integer nProcesso = (pedido.getRequisicao() != null) ? pedido.getRequisicao().getNProcesso() : null;
 
