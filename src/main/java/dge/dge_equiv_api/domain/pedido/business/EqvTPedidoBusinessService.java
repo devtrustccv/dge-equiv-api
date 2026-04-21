@@ -7,6 +7,7 @@ import dge.dge_equiv_api.application.document.dto.DocumentoResponseDTO;
 import dge.dge_equiv_api.application.document.service.DocumentService;
 import dge.dge_equiv_api.application.motivo_retidicado.dto.MotivoRetificacaoResponseDTO;
 import dge.dge_equiv_api.application.motivo_retidicado.service.MotivoRetificacaoService;
+import dge.dge_equiv_api.application.nif.PesquisaNifService;
 import dge.dge_equiv_api.application.notification.dto.NotificationRequestDTO;
 import dge.dge_equiv_api.application.notification.service.NotificationService;
 
@@ -59,6 +60,7 @@ public class EqvTPedidoBusinessService {
     private final MotivoRetificacaoService motivoRetificacaoService;
     private final GlobalGeografiaService globalGeografiaService;
     private final EqvTReclamacaoRepository reclamacaoRepository;
+    private final PesquisaNifService pesquisaNifService;
 
 
     @Value("${link.mf.duc}")
@@ -249,13 +251,23 @@ public class EqvTPedidoBusinessService {
 
 
     public EqvTPagamento gerarDUC(EqvTRequerenteDTO requerenteDTO, EqvTRequisicao requisicao) {
-       // try {
+        try {
+            boolean nifValido = pesquisaNifService.validarNif(requerenteDTO.getNif());
+
+            if (!nifValido) {
+                log.warn("NIF {} não encontrado", requerenteDTO.getNif());
+                throw new BusinessException("NIF inválido ou não encontrado ");
+            }
+
             return pagamentoService.gerarDuc(null, requerenteDTO.getNif().toString(),
                     requisicao.getNProcesso(), null);
-//        } catch (Exception e) {
-//            log.error("Erro ao gerar DUC");
-//            throw new BusinessException("Erro ao gerar o DUC.");
-//        }
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erro ao gerar DUC: {}", e.getMessage(), e);
+            throw new BusinessException("Erro ao gerar o DUC.");
+        }
     }
 
     public void salvarDocumentosDosPedidos(List<EqvtPedidoDTO> pedidosDTO, List<EqvTPedido> pedidosSalvos) {
