@@ -402,6 +402,7 @@ public class EqvTPedidoBusinessService {
 
             return acomp;
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Erro ao montar AcompanhamentoDTO para requisição: {}", requisicao.getId());
             throw new BusinessException("Erro ao montar acompanhamento");
         }
