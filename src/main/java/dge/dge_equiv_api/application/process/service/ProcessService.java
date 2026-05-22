@@ -258,41 +258,68 @@ public class ProcessService {
     private Map<String, String[]> convertDtoToMap(Object dto) throws IllegalAccessException {
         Map<String, String[]> finalMap = new HashMap<>();
 
+        if (dto instanceof Map<?, ?> map) {
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                String key = String.valueOf(entry.getKey());
+                Object value = entry.getValue();
+
+                if (value == null) continue;
+
+                addValue(finalMap, key, value);
+            }
+
+            return finalMap;
+        }
+
         for (Field field : dto.getClass().getDeclaredFields()) {
             field.setAccessible(true);
+
             String key = field.getName();
             Object value = field.get(dto);
-            if (value == null) {
-                continue;
-            }
 
-            String cleanedKey = key.replaceAll("(_desc)?_[0-9]+$", "");
-            String finalKey = "p_" + cleanedKey;
+            if (value == null) continue;
 
-            if (value instanceof List<?> list) {
-                String[] values = list.stream()
-                        .filter(Objects::nonNull)
-                        .map(Object::toString)
-                        .toArray(String[]::new);
-                finalMap.put(finalKey, values);
-            } else if (value.getClass().isArray()) {
-                finalMap.put(finalKey, arrayToStringArray(value));
-            } else {
-                finalMap.put(finalKey, new String[]{value.toString()});
-            }
+            addValue(finalMap, key, value);
         }
 
         return finalMap;
     }
 
-    private String[] arrayToStringArray(Object array) {
-        int length = Array.getLength(array);
-        return java.util.stream.IntStream.range(0, length)
-                .mapToObj(i -> Array.get(array, i))
-                .filter(Objects::nonNull)
-                .map(Object::toString)
-                .toArray(String[]::new);
+    private void addValue(Map<String, String[]> finalMap, String key, Object value) {
+        String cleanedKey = key.replaceAll("(_desc)?_[0-9]+$", "");
+        String finalKey = cleanedKey.startsWith("p_") ? cleanedKey : "p_" + cleanedKey;
+
+        if (value instanceof List<?> list) {
+            String[] values = list.stream()
+                    .filter(Objects::nonNull)
+                    .map(Object::toString)
+                    .toArray(String[]::new);
+
+            finalMap.put(finalKey, values);
+
+        } else if (value instanceof String[] arr) {
+            finalMap.put(finalKey, arr);
+
+        } else if (value.getClass().isArray()) {
+            finalMap.put(finalKey, arrayToStringArray(value));
+
+        } else {
+            finalMap.put(finalKey, new String[]{value.toString()});
+        }
     }
+
+    private String[] arrayToStringArray(Object array) {
+        int length = java.lang.reflect.Array.getLength(array);
+        String[] result = new String[length];
+
+        for (int i = 0; i < length; i++) {
+            Object item = java.lang.reflect.Array.get(array, i);
+            result[i] = item != null ? item.toString() : "";
+        }
+
+        return result;
+    }
+
 
     private ParamProcessDTO criarParamProcessDTO(ProcessEquivDto dto, String idProcesso) throws IllegalAccessException {
         String email = obterEmailProcesso(dto);
