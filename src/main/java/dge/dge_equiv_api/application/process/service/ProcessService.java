@@ -37,8 +37,11 @@ public class ProcessService {
         validarPedidos(pedidos);
 
         ProcessEquivDto dto = new ProcessEquivDto();
+
         preencherDadosRequerente(dto, requerente);
         preencherDadosPedidos(dto, pedidos);
+
+        System.out.println("dto"+dto);
 
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
