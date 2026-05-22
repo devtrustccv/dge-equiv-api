@@ -41,7 +41,7 @@ public class ProcessService {
         preencherDadosRequerente(dto, requerente);
         preencherDadosPedidos(dto, pedidos);
 
-        log.info("saida dto .....", dto);
+        log.info("saida dto .....{}", dto);
 
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
