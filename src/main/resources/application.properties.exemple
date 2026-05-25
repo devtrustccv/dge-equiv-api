@@ -52,3 +52,6 @@ link.report.integration.sigof.duc=https://portalrep.gov.cv/reports/rwservlet?SIG
 link.mf.duc=https://www.mf.gov.cv/web/mf/pagamento-duc?entidade=
 link.api.duc.check=http://localhost:8080/dge/services/feedback/pagamento?duc=
 
+doc.open=
+api.validar.url=
+api.validar.token=

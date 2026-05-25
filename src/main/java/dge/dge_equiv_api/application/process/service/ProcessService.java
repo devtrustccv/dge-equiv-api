@@ -13,10 +13,13 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 @Slf4j
@@ -30,6 +33,12 @@ public class ProcessService {
     @Value("${process.equiv-url}")
     private String processStartUrl;
 
+    @Value("${process.equiv-profile-code:equiv}")
+    private String processProfileCode;
+
+    @Value("${process.equiv-email:}")
+    private String processEmail;
+
 
     /** Inicia o processo de equivalência */
     public String iniciarProcessoEquivalencia(EqvTRequerente requerente, List<EqvTPedido> pedidos) {
@@ -37,8 +46,11 @@ public class ProcessService {
         validarPedidos(pedidos);
 
         ProcessEquivDto dto = new ProcessEquivDto();
+
         preencherDadosRequerente(dto, requerente);
         preencherDadosPedidos(dto, pedidos);
+
+        log.info("saida dto .....{}", dto);
 
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
@@ -47,11 +59,12 @@ public class ProcessService {
             ResponseEntity<String> response = restClientHelper.sendRequest(
                     processStartUrl + "/start",
                     HttpMethod.POST,
-                    dto,
+                    criarParamProcessDTO(dto, null),
                     String.class,
                     headers
             );
 
+            validarRespostaProcesso(response);
             String processInstanceId = parseProcessId(response.getBody());
 
             log.info("[ProcessEquiv] Processo iniciado com ID: {}", processInstanceId);
@@ -67,6 +80,7 @@ public class ProcessService {
     public String avancarProcessoEquivalencia(EqvTRequerente requerente, List<EqvTPedido> pedidos, String numProcesso) {
 
         ProcessEquivDto dto = new ProcessEquivDto();
+        dto.setId_solicitacao(numProcesso);
         preencherDadosRequerente(dto, requerente);
         preencherDadosPedidos(dto, pedidos);
 
@@ -74,14 +88,16 @@ public class ProcessService {
         headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
         try {
+            validarIdProcesso(numProcesso);
             ResponseEntity<String> response = restClientHelper.sendRequest(
-                    processStartUrl + "/advance/"+numProcesso,
+                    processStartUrl + "/advance",
                     HttpMethod.POST,
-                    dto,
+                    criarParamProcessDTO(dto, numProcesso),
                     String.class,
                     headers
             );
 
+            validarRespostaProcesso(response);
             String processInstanceId = parseProcessId(response.getBody());
 
             log.info("[ProcessEquiv] Processo iniciado com ID: {}", processInstanceId);
@@ -209,9 +225,162 @@ public class ProcessService {
     }
 
     private String parseProcessId(String json) throws IOException {
-        if (json == null || json.isBlank()) return null;
+        if (json == null || json.isBlank()) {
+            throw new IllegalStateException("Resposta do processo sem body.");
+        }
+
+        String body = json.trim();
+        if (!body.startsWith("{") && !body.startsWith("[") && !body.startsWith("\"")) {
+            return body;
+        }
+
         JsonNode root = mapper.readTree(json);
-        return root.path("processInstanceId").asText();
+        String processInstanceId = root.isTextual()
+                ? root.asText()
+                : root.path("processInstanceId").asText();
+
+        if (processInstanceId == null || processInstanceId.isBlank()) {
+            throw new IllegalStateException("Resposta do processo sem identificador.");
+        }
+
+        return processInstanceId;
+    }
+
+    private void validarRespostaProcesso(ResponseEntity<String> response) {
+        if (response == null) {
+            throw new IllegalStateException("Servico de processo nao retornou resposta.");
+        }
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new IllegalStateException("Servico de processo retornou status " + response.getStatusCode());
+        }
+    }
+
+    private Map<String, String[]> convertDtoToMap(Object dto) throws IllegalAccessException {
+        Map<String, String[]> finalMap = new HashMap<>();
+
+        if (dto instanceof Map<?, ?> map) {
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                String key = String.valueOf(entry.getKey());
+                Object value = entry.getValue();
+
+                if (value == null) continue;
+
+                addValue(finalMap, key, value);
+            }
+
+            return finalMap;
+        }
+
+        for (Field field : dto.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+
+            String key = field.getName();
+            Object value = field.get(dto);
+
+            if (value == null) continue;
+
+            addValue(finalMap, key, value);
+        }
+
+        return finalMap;
+    }
+
+    private void addValue(Map<String, String[]> finalMap, String key, Object value) {
+        String cleanedKey = key.replaceAll("(_desc)?_[0-9]+$", "");
+        String finalKey = cleanedKey.startsWith("p_") ? cleanedKey : "p_" + cleanedKey;
+
+        if (value instanceof List<?> list) {
+            String[] values = list.stream()
+                    .filter(Objects::nonNull)
+                    .map(Object::toString)
+                    .toArray(String[]::new);
+
+            finalMap.put(finalKey, values);
+
+        } else if (value instanceof String[] arr) {
+            finalMap.put(finalKey, arr);
+
+        } else if (value.getClass().isArray()) {
+            finalMap.put(finalKey, arrayToStringArray(value));
+
+        } else {
+            finalMap.put(finalKey, new String[]{value.toString()});
+        }
+    }
+
+    private String[] arrayToStringArray(Object array) {
+        int length = java.lang.reflect.Array.getLength(array);
+        String[] result = new String[length];
+
+        for (int i = 0; i < length; i++) {
+            Object item = java.lang.reflect.Array.get(array, i);
+            result[i] = item != null ? item.toString() : "";
+        }
+
+        return result;
+    }
+
+
+    private ParamProcessDTO criarParamProcessDTO(ProcessEquivDto dto, String idProcesso) throws IllegalAccessException {
+        String email = obterEmailProcesso(dto);
+        return new ParamProcessDTO(
+                "processo_equivalencia",
+                convertDtoToVariables(dto),
+                idProcesso,
+                processProfileCode,
+                email
+        );
+    }
+
+    private String obterEmailProcesso(ProcessEquivDto dto) {
+        String email = processEmail != null && !processEmail.isBlank()
+                ? processEmail
+                : dto.getEmail();
+
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email e obrigatorio para iniciar/avancar processo.");
+        }
+
+        return email;
+    }
+
+    private void validarIdProcesso(String idProcesso) {
+        if (idProcesso == null || idProcesso.isBlank()) {
+            throw new IllegalArgumentException("NProcesso e obrigatorio para avancar processo.");
+        }
+    }
+
+    private Map<String, String> convertDtoToVariables(ProcessEquivDto dto) throws IllegalAccessException {
+        Map<String, String[]> original = convertDtoToMap(dto);
+        Map<String, String> result = new HashMap<>();
+
+        for (Map.Entry<String, String[]> entry : original.entrySet()) {
+            String key = entry.getKey();
+            String[] values = entry.getValue();
+
+            if (values == null || values.length == 0) {
+                result.put(key, "");
+            } else if (values.length == 1) {
+                result.put(key, values[0] != null ? values[0] : "");
+            } else {
+                try {
+                    result.put(key, mapper.writeValueAsString(values));
+                } catch (Exception e) {
+                    result.put(key, String.join(",", values));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private record ParamProcessDTO(
+            String tipoProcesso,
+            Map<String, String> variables,
+            String idProcesso,
+            String profileCode,
+            String email
+    ) {
     }
 
     public   void  deleteProcess(String processId) {
