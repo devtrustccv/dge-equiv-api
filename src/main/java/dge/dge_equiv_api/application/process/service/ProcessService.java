@@ -350,13 +350,33 @@ public class ProcessService {
         }
     }
 
-    private Map<String, Object> convertDtoToVariables(ProcessEquivDto dto) throws IllegalAccessException {
-        return new HashMap<>(convertDtoToMap(dto));
+    private Map<String, String> convertDtoToVariables(ProcessEquivDto dto) throws IllegalAccessException {
+        Map<String, String[]> original = convertDtoToMap(dto);
+        Map<String, String> result = new HashMap<>();
+
+        for (Map.Entry<String, String[]> entry : original.entrySet()) {
+            String key = entry.getKey();
+            String[] values = entry.getValue();
+
+            if (values == null || values.length == 0) {
+                result.put(key, "");
+            } else if (values.length == 1) {
+                result.put(key, values[0] != null ? values[0] : "");
+            } else {
+                try {
+                    result.put(key, mapper.writeValueAsString(values));
+                } catch (Exception e) {
+                    result.put(key, String.join(",", values));
+                }
+            }
+        }
+
+        return result;
     }
 
     private record ParamProcessDTO(
             String tipoProcesso,
-            Map<String, Object> variables,
+            Map<String, String> variables,
             String idProcesso,
             String profileCode,
             String email
